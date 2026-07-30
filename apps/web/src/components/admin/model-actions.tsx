@@ -1,0 +1,169 @@
+"use client";
+
+import { useState } from "react";
+import { Power, Trash2, Loader2 } from "lucide-react";
+import { deleteAiModel, setActiveModel } from "@/app/actions/model-actions";
+import { EditModelDialog } from "./edit-model-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { AiModel } from "@prisma/client";
+import { Button } from "@/components/ui/button";
+
+export function ModelActions({ model }: { model: AiModel }) {
+  const [loading, setLoading] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [activeOpen, setActiveOpen] = useState(false);
+  const id = model.id;
+  const isActive = model.isActive;
+
+  const handleSetActive = async () => {
+    if (isActive) return;
+    setLoading(true);
+    await setActiveModel(id);
+    setLoading(false);
+    setActiveOpen(false);
+  };
+
+  const handleDelete = async () => {
+    setLoading(true);
+    const result = await deleteAiModel(id);
+    setLoading(false);
+    
+    if (result?.error) {
+      alert(`ลบไม่สำเร็จ: ${result.error}`);
+    } else {
+      setDeleteOpen(false);
+    }
+  };
+
+  return (
+    <div className="flex justify-end items-center gap-1">
+      {!isActive && (
+        <AlertDialog open={activeOpen} onOpenChange={setActiveOpen}>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    disabled={loading}
+                    variant="outline"
+                    size="icon"
+                    className="rounded-md hover:text-emerald-400"
+                  >
+                    {loading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Power className="h-4 w-4" />
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>ใช้งานโมเดล</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>ยืนยันการตั้งเป็นโมเดลหลัก</AlertDialogTitle>
+              <AlertDialogDescription>
+                คุณต้องการตั้งโมเดล{" "}
+                <span className="font-semibold text-foreground">
+                  {model.name}
+                </span>{" "}
+                ให้เป็นโมเดลหลักที่ใช้ในการวิเคราะห์ภาพใช่หรือไม่?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={loading}>ยกเลิก</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e: React.FormEvent) => {
+                  e.preventDefault();
+                  handleSetActive();
+                }}
+                disabled={loading}
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                ยืนยัน
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
+      <EditModelDialog model={model} />
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="inline-block">
+                <AlertDialogTrigger asChild>
+                  {!isActive ? (
+                    <Button
+                      disabled={loading}
+                      variant="outline"
+                      size="icon"
+                      className={`rounded-md hover:text-destructive`}
+                    >
+                      {loading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  ) : null}
+                </AlertDialogTrigger>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{isActive ? "ไม่สามารถลบโมเดลหลักได้" : "ลบโมเดล"}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ยืนยันการลบโมเดล</AlertDialogTitle>
+            <AlertDialogDescription>
+              คุณแน่ใจหรือไม่ว่าต้องการลบโมเดล{" "}
+              <span className="font-semibold text-foreground">
+                {model.name}
+              </span>{" "}
+              ถาวร? ไฟล์ `.pt` ของโมเดลนี้จะถูกลบออกจากเครื่องเซิร์ฟเวอร์
+              และไม่สามารถกู้คืนได้
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e: React.FormEvent) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              disabled={loading}
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              ลบทิ้งถาวร
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

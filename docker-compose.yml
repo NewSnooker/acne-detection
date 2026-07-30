@@ -1,0 +1,69 @@
+services:
+  # ─── MongoDB ───────────────────────────────────────────────
+  mongodb:
+    image: mongo:7
+    container_name: acne_mongodb
+    restart: unless-stopped
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - acne_network
+
+  mongo-setup:
+    image: mongo:7
+    container_name: acne_mongo_setup
+    depends_on:
+      - mongodb
+    restart: "no"
+    command: >
+      bash -c "sleep 3 && mongosh --host mongodb:27017 --eval 'try { rs.status().ok } catch (e) { rs.initiate({_id: \"rs0\", members: [{_id: 0, host: \"mongodb:27017\"}]}) }'"
+    networks:
+      - acne_network
+
+  # ─── FastAPI (AI Service) ───────────────────────────────────
+  ai:
+    build:
+      context: ./apps/ai
+      dockerfile: Dockerfile
+    container_name: acne_ai
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./apps/ai:/app
+      - ./storage:/app/storage
+    env_file:
+      - ./apps/ai/.env
+    networks:
+      - acne_network
+
+  # ─── Next.js (Web + Backend) ───────────────────────────────
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: acne_web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./storage:/app/storage
+    env_file:
+      - ./apps/web/.env.local
+    environment:
+      AI_SERVICE_URL: http://ai:8000
+    depends_on:
+      - mongodb
+      - ai
+    networks:
+      - acne_network
+
+volumes:
+  mongodb_data:
+
+networks:
+  acne_network:
+    driver: bridge

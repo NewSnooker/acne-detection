@@ -1,0 +1,116 @@
+// ─── Prisma Schema — MongoDB ────────────────────────────────
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ─────────────────────────────────────────────────
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Severity {
+  MILD
+  MODERATE
+  SEVERE
+}
+
+// ─── User ──────────────────────────────────────────────────
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // null ถ้า login ด้วย Google
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Auth.js relations
+  accounts  Account[]
+  sessions  Session[]
+
+  // App relations
+  analyses  Analysis[]
+}
+
+// ─── Auth.js required models ───────────────────────────────
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── AI Model Registry ─────────────────────────────────────
+model AiModel {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  version     String
+  description String?
+  filePath    String   // path บนดิสก์ (ในระบบ FastAPI)
+  fileName    String
+  sizeMb      Float?
+  isActive    Boolean  @default(true)
+  uploadedBy  String?  @db.ObjectId
+  createdAt   DateTime @default(now())
+
+  analyses Analysis[]
+}
+
+// ─── Analysis Result ───────────────────────────────────────
+model Analysis {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
+  modelId         String?  @db.ObjectId
+
+  // รูปภาพ
+  originalImage   String   // path บนดิสก์ / URL
+
+  // ผลจาก YOLO
+  detections      Json     // [{type, confidence, bbox:{x1,y1,x2,y2}}]
+  counts          Json     // {blackhead:2, cyst:0, ...}
+  total           Int
+  severity        Severity
+
+  createdAt DateTime @default(now())
+
+  user  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  model AiModel? @relation(fields: [modelId], references: [id], onDelete: SetNull)
+}

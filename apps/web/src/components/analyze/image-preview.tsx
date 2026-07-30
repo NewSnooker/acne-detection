@@ -1,0 +1,103 @@
+import { useEffect, useRef } from "react";
+import Image from "next/image";
+import { RefreshCw } from "lucide-react";
+import { AnalysisResult, ACNE_COLORS } from "@/types/analyze";
+
+interface ImagePreviewProps {
+  previewUrl: string;
+  result: AnalysisResult | null;
+  loading: boolean;
+  onChangeImage?: () => void;
+  readOnly?: boolean;
+}
+
+export function ImagePreview({
+  previewUrl,
+  result,
+  loading,
+  onChangeImage,
+  readOnly = false,
+}: ImagePreviewProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!result || !previewUrl || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const image = new window.Image();
+    image.src = previewUrl;
+    image.onload = () => {
+      // Set canvas size to match image intrinsic size
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+
+      // Draw original image
+      ctx.drawImage(image, 0, 0);
+
+      // Draw bounding boxes
+      result.detections.forEach((det) => {
+        const { x1, y1, x2, y2 } = det.bbox;
+        const w = x2 - x1;
+        const h = y2 - y1;
+        const color = ACNE_COLORS[det.type] || "#3b82f6";
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = Math.max(2, image.naturalWidth / 300); // scale line width
+        ctx.strokeRect(x1, y1, w, h);
+
+        // Draw label background
+        ctx.fillStyle = color;
+        const fontSize = Math.max(12, image.naturalWidth / 40);
+        ctx.font = `${fontSize}px sans-serif`;
+
+        // 📌 หากต้องการให้แสดงเปอร์เซ็นต์ความมั่นใจ (%) บนกรอบด้วย
+        // ให้คอมเมนต์บรรทัดข้างล่างนี้...
+        const text = det.type;
+
+        // ... แล้วเปิดใช้งานบรรทัดนี้แทนครับ:
+        // const text = `${det.type} ${(det.confidence * 100).toFixed(0)}%`;
+
+        const textWidth = ctx.measureText(text).width;
+        ctx.fillRect(x1, y1 - fontSize - 4, textWidth + 8, fontSize + 4);
+
+        // Draw label text
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(text, x1 + 4, y1 - 4);
+      });
+    };
+  }, [result, previewUrl]);
+
+  return (
+    <div className="w-full bg-card border rounded-2xl overflow-hidden shadow-sm relative group h-auto min-h-[250px] lg:min-h-[400px] flex items-center justify-center bg-muted/20">
+      {!result ? (
+        <div className="relative w-full h-full flex justify-center p-2">
+          <Image
+            src={previewUrl}
+            alt="Preview"
+            className="w-auto h-auto max-w-full max-h-[300px] md:max-h-[500px] object-contain"
+            width={500}
+            height={500}
+          />
+        </div>
+      ) : (
+        <canvas
+          ref={canvasRef}
+          className="w-full h-full max-h-[300px] md:max-h-[500px] object-contain p-2"
+        />
+      )}
+
+      {!loading && !readOnly && (
+        <button
+          onClick={onChangeImage}
+          className="absolute cursor-pointer top-4 right-4 bg-background/80 backdrop-blur-md p-2 rounded-full shadow-sm hover:bg-background transition-colors"
+          title="เปลี่ยนรูปภาพ"
+        >
+          <RefreshCw className="h-5 w-5" />
+        </button>
+      )}
+    </div>
+  );
+}
