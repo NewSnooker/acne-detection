@@ -14,16 +14,20 @@ import {
 } from "lucide-react";
 
 const userNav = [
-  { href: "/analyze", label: "หน้าแรก", icon: ScanFace },
+  { href: "/analyze", label: "วิเคราะห์สิว", icon: ScanFace },
   { href: "/statistics", label: "สถิติของฉัน", icon: LayoutDashboard },
-  { href: "/history", label: "ประวัติ", icon: History },
+  { href: "/history", label: "ประวัติการวิเคราะห์", icon: History },
 ];
 
 const adminNav = [
-  { href: "/admin/analytics", label: "สถิติผู้ใช้งานและระบบ", icon: Activity },
+  { href: "/admin/statistics", label: "สถิติผู้ใช้งานและระบบ", icon: Activity },
   { href: "/admin/users", label: "จัดการผู้ใช้", icon: Users },
   { href: "/admin/models", label: "จัดการโมเดล", icon: Cpu },
-  { href: "/admin/history", label: "ประวัติทั้งหมด", icon: History },
+  {
+    href: "/admin/history",
+    label: "ประวัติการวิเคราะห์ทั้งหมด",
+    icon: History,
+  },
 ];
 
 export function SidebarContent({

@@ -43,6 +43,13 @@ export function PersonalStatsChart({ data }: PersonalStatsChartProps) {
   // Sort chronologically just in case
   seriesData.sort((a, b) => (a[0] as number) - (b[0] as number));
 
+  // Hack for ApexCharts: If there's only 1 data point, the area chart and gradient won't render.
+  // We duplicate the point slightly in the past (e.g. 1 hour ago) to form a short flat line.
+  if (seriesData.length === 1) {
+    const singlePoint = seriesData[0];
+    seriesData.unshift([(singlePoint[0] as number) - 3600000, singlePoint[1]]);
+  }
+
   const isDark = theme === "dark";
 
   const options: ApexOptions = {
@@ -64,26 +71,21 @@ export function PersonalStatsChart({ data }: PersonalStatsChartProps) {
     colors: ["#7c3aed"], // Primary color
     dataLabels: {
       enabled: true,
+      offsetY: -10,
       style: {
         fontSize: "12px",
         fontFamily: "inherit",
         fontWeight: "bold",
-        colors: ["#ffffff"],
       },
       background: {
         enabled: true,
-        foreColor: "#fff",
-        padding: 4,
+        foreColor: "#ffffff",
+        padding: 6,
         borderRadius: 4,
         borderWidth: 0,
-        borderColor: "#fff",
-        opacity: 1,
-        dropShadow: {
-          enabled: false,
-        },
+        opacity: 0.9,
       },
-      formatter: (value: number) => value.toString(),
-      offsetY: -5,
+      formatter: (value: number) => `${value} จุด`,
     },
     markers: {
       size: 5,
@@ -129,7 +131,7 @@ export function PersonalStatsChart({ data }: PersonalStatsChartProps) {
           colors: isDark ? "#9ca3af" : "#6b7280",
         },
         formatter: (val, timestamp) => {
-          if (!timestamp) return val;
+          if (!timestamp) return val.toString();
           return new Intl.DateTimeFormat("th-TH", {
             day: "numeric",
             month: "short",

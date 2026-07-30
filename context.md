@@ -69,8 +69,7 @@ AcneAI เป็นโปรเจกต์เว็บแอปพลิเค�
 
 ```bash
 cd apps\ai
-venv\Scripts\activate.bat
-uvicorn app.main:app --reload --port 8000
+venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 ```
 
 **2. รันฝั่ง Web (Next.js)**

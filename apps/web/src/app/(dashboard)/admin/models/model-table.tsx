@@ -273,7 +273,7 @@ export function ModelTable({ models }: ModelTableProps) {
   );
 
   return (
-    <div className="space-y-4 h-full flex flex-col">
+    <div className="space-y-4 h-[600px] flex flex-col">
       <DataGridToolbar
         searchPlaceholder="ค้นหาโมเดล AI ทั่วทั้งตาราง..."
         searchValue={quickFilterText}

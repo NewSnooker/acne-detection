@@ -9,8 +9,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -28,7 +26,7 @@ export function Header({ user }: { user: AuthUser }) {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 sm:h-19 w-full items-center justify-between border-b bg-background/80 px-6 backdrop-blur-md">
+    <header className="sticky top-0 z-30 flex h-16 sm:h-19 w-full items-center justify-between border-b bg-card px-6 backdrop-blur-md">
       <div className="flex items-center gap-4">
         {/* Mobile Menu */}
         <Sheet open={open} onOpenChange={setOpen}>
@@ -45,7 +43,7 @@ export function Header({ user }: { user: AuthUser }) {
           </SheetContent>
         </Sheet>
         <h2 className="text-lg font-semibold tracking-tight hidden md:block">
-          Dashboard
+          แดชบอร์ด
         </h2>
       </div>
 
@@ -69,12 +67,12 @@ export function Header({ user }: { user: AuthUser }) {
         {/* User Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 rounded-full hover:bg-accent hover:text-accent-foreground p-1 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <button className="flex items-center cursor-pointer gap-2 rounded-full hover:bg-accent hover:text-accent-foreground p-1 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
                 {user.image ? (
                   <Image
                     src={user.image}
-                    alt=""
+                    alt="Profile"
                     width={32}
                     height={32}
                     className="h-8 w-8 rounded-full"
@@ -94,8 +92,6 @@ export function Header({ user }: { user: AuthUser }) {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>บัญชีของฉัน</DropdownMenuLabel>
-            <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive focus:text-destructive cursor-pointer"
               onClick={() => signOut({ callbackUrl: "/login" })}

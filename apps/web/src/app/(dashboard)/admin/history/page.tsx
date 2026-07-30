@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getAllHistory } from "@/lib/services/history-service";
 import { HistoryGallery } from "@/components/history/history-gallery";
-import { History } from "lucide-react";
 
 export const metadata = {
   title: "ประวัติการวิเคราะห์ทั้งหมด (Admin) - AcneAI",
@@ -49,7 +48,7 @@ export default async function AdminHistoryPage({
   );
 
   return (
-    <div className="max-w-6xl mx-auto flex flex-col gap-4 h-[calc(100vh-6rem)]">
+    <div className="max-w-6xl mx-auto flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">

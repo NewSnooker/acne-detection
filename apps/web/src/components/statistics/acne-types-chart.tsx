@@ -9,13 +9,15 @@ import { ACNE_COLORS, ACNE_LABELS } from "@/types/analyze";
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 interface AcneTypesChartProps {
-  data: {
+  data?: {
     counts: any; // Record<string, number>
     total: number;
   }[];
+  preAggregated?: { type: string; count: number }[];
+  clearSkinCount?: number;
 }
 
-export function AcneTypesChart({ data }: AcneTypesChartProps) {
+export function AcneTypesChart({ data = [], preAggregated, clearSkinCount: passedClearSkinCount = 0 }: AcneTypesChartProps) {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -39,19 +41,29 @@ export function AcneTypesChart({ data }: AcneTypesChartProps) {
   // Aggregate counts over the selected period
   const aggregatedCounts: Record<string, number> = {};
   types.forEach(t => aggregatedCounts[t] = 0);
-  let clearSkinCount = 0;
+  let clearSkinCount = passedClearSkinCount;
 
-  data.forEach((item) => {
-    if (item.total === 0) {
-      clearSkinCount++;
-    } else {
-      types.forEach(type => {
-        if (item.counts?.[type]) {
-          aggregatedCounts[type] += item.counts[type];
-        }
-      });
-    }
-  });
+  if (preAggregated) {
+    preAggregated.forEach(item => {
+      if (item.type === "no_acne") {
+        clearSkinCount = item.count;
+      } else if (types.includes(item.type)) {
+        aggregatedCounts[item.type] = item.count;
+      }
+    });
+  } else {
+    data.forEach((item) => {
+      if (item.total === 0) {
+        clearSkinCount++;
+      } else {
+        types.forEach(type => {
+          if (item.counts?.[type]) {
+            aggregatedCounts[type] += item.counts[type];
+          }
+        });
+      }
+    });
+  }
 
   // Filter out types with 0 counts to keep the pie chart clean
   const activeTypes = types.filter(t => aggregatedCounts[t] > 0);
@@ -74,19 +86,58 @@ export function AcneTypesChart({ data }: AcneTypesChartProps) {
       type: "pie",
       background: "transparent",
       fontFamily: "inherit",
+      animations: {
+        enabled: true,
+        easing: "easeinout",
+        speed: 800,
+        dynamicAnimation: {
+          enabled: true,
+          speed: 350
+        }
+      },
+      dropShadow: {
+        enabled: true,
+        color: "#000",
+        top: 2,
+        left: 3,
+        blur: 4,
+        opacity: isDark ? 0.3 : 0.1,
+      },
     },
     labels: labels,
     colors: colors,
     stroke: {
       show: true,
-      colors: isDark ? ["#1e293b"] : ["#ffffff"],
-      width: 2,
+      colors: isDark ? ["#020817"] : ["#ffffff"],
+      width: 3,
+    },
+    fill: {
+      type: "gradient",
+      gradient: {
+        shade: isDark ? "dark" : "light",
+        type: "vertical",
+        shadeIntensity: 0.5,
+        inverseColors: true,
+        opacityFrom: 1,
+        opacityTo: 0.8,
+        stops: [0, 100],
+      },
     },
     dataLabels: {
       enabled: true,
-      formatter: (val: number, opts) => {
-        // Show percentage
-        return `${val.toFixed(1)}%`;
+      formatter: (val: number) => `${val.toFixed(0)}%`,
+      style: {
+        fontSize: "13px",
+        fontFamily: "inherit",
+        fontWeight: "bold",
+        colors: ["#ffffff"],
+      },
+      dropShadow: {
+        enabled: true,
+        top: 1,
+        left: 1,
+        blur: 1,
+        opacity: 0.5,
       },
     },
     legend: {
@@ -115,7 +166,7 @@ export function AcneTypesChart({ data }: AcneTypesChartProps) {
     },
   };
 
-  if (data.length === 0) {
+  if ((!preAggregated && data.length === 0) || (preAggregated && preAggregated.length === 0)) {
     return (
       <div className="h-[350px] flex items-center justify-center text-muted-foreground">
         ยังไม่มีประวัติการวิเคราะห์

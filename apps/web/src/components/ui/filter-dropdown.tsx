@@ -108,7 +108,7 @@ export function FilterDropdown({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex w-full items-center cursor-pointer justify-center gap-2 px-3 py-1.5 bg-card border rounded-lg shadow-sm text-sm transition-colors hover:bg-muted",
+          "flex w-full h-10 items-center cursor-pointer justify-center gap-2 px-3 py-1.5 bg-card border rounded-lg shadow-sm text-sm transition-colors hover:bg-muted",
           isFiltered && "border-primary/50 text-primary",
         )}
       >

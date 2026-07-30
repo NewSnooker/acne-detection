@@ -9,12 +9,13 @@ import { SEVERITY_LABELS } from "@/types/analyze";
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 interface SeverityDonutChartProps {
-  data: {
+  data?: {
     severity: string;
   }[];
+  preAggregated?: { MILD: number; MODERATE: number; SEVERE: number };
 }
 
-export function SeverityDonutChart({ data }: SeverityDonutChartProps) {
+export function SeverityDonutChart({ data = [], preAggregated }: SeverityDonutChartProps) {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -34,19 +35,23 @@ export function SeverityDonutChart({ data }: SeverityDonutChartProps) {
   }
 
   // Count occurrences of each severity
-  const counts: Record<string, number> = {
+  let counts: Record<string, number> = {
     MILD: 0,
     MODERATE: 0,
     SEVERE: 0,
   };
 
-  data.forEach((item) => {
-    if (counts[item.severity] !== undefined) {
-      counts[item.severity]++;
-    }
-  });
+  if (preAggregated) {
+    counts = { ...preAggregated };
+  } else {
+    data.forEach((item) => {
+      if (counts[item.severity] !== undefined) {
+        counts[item.severity]++;
+      }
+    });
+  }
 
-  const series = [counts.MILD, counts.MODERATE, counts.SEVERE];
+  const series = [counts.MILD || 0, counts.MODERATE || 0, counts.SEVERE || 0];
   
   // Only use colors if they correspond to tailwind classes or define hex
   const colors = ["#10b981", "#d97706", "#ef4444"]; // emerald-500, amber-600, red-500
@@ -64,35 +69,85 @@ export function SeverityDonutChart({ data }: SeverityDonutChartProps) {
       type: "donut",
       background: "transparent",
       fontFamily: "inherit",
+      animations: {
+        enabled: true,
+        easing: "easeinout",
+        speed: 800,
+        dynamicAnimation: {
+          enabled: true,
+          speed: 350
+        }
+      },
+      dropShadow: {
+        enabled: true,
+        color: "#000",
+        top: 2,
+        left: 3,
+        blur: 4,
+        opacity: isDark ? 0.3 : 0.1,
+      },
     },
     labels: labels,
     colors: colors,
     stroke: {
       show: true,
-      colors: isDark ? ["#1e293b"] : ["#ffffff"],
-      width: 2,
+      colors: isDark ? ["#020817"] : ["#ffffff"],
+      width: 3,
+    },
+    fill: {
+      type: "gradient",
+      gradient: {
+        shade: isDark ? "dark" : "light",
+        type: "vertical",
+        shadeIntensity: 0.5,
+        inverseColors: true,
+        opacityFrom: 1,
+        opacityTo: 0.8,
+        stops: [0, 100],
+      },
     },
     dataLabels: {
       enabled: true,
-      formatter: (val: number) => `${val.toFixed(1)}%`,
+      formatter: (val: number) => `${val.toFixed(0)}%`,
+      style: {
+        fontSize: "13px",
+        fontFamily: "inherit",
+        fontWeight: "bold",
+        colors: ["#ffffff"],
+      },
+      dropShadow: {
+        enabled: true,
+        top: 1,
+        left: 1,
+        blur: 1,
+        opacity: 0.5,
+      },
     },
     plotOptions: {
       pie: {
         donut: {
-          size: "65%",
+          size: "70%",
           labels: {
             show: true,
             name: {
               show: true,
+              fontSize: "14px",
+              fontWeight: 500,
+              color: isDark ? "#9ca3af" : "#6b7280",
             },
             value: {
               show: true,
+              fontSize: "24px",
+              fontWeight: "bold",
+              color: isDark ? "#f3f4f6" : "#111827",
               formatter: (val) => `${val} ครั้ง`,
             },
             total: {
               show: true,
               showAlways: false,
               label: "ทั้งหมด",
+              fontSize: "14px",
+              color: isDark ? "#9ca3af" : "#6b7280",
               formatter: function (w) {
                 return w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0) + " ครั้ง";
               },
@@ -118,7 +173,7 @@ export function SeverityDonutChart({ data }: SeverityDonutChartProps) {
     },
   };
 
-  if (data.length === 0) {
+  if ((!preAggregated && data.length === 0) || (preAggregated && Object.values(preAggregated).every(v => v === 0))) {
     return (
       <div className="h-[400px] flex items-center justify-center border rounded-2xl bg-card text-muted-foreground">
         ยังไม่มีประวัติการวิเคราะห์

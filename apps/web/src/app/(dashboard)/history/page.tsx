@@ -49,7 +49,7 @@ export default async function HistoryPage({
   );
 
   return (
-    <div className="max-w-6xl mx-auto flex flex-col gap-4 h-[calc(100vh-6rem)]">
+    <div className="max-w-6xl mx-auto flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">

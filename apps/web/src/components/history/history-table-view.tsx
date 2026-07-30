@@ -149,6 +149,7 @@ export function HistoryTableView({
             src={imageUrl}
             alt="thumbnail"
             fill
+            sizes="40px"
             unoptimized={true}
             className="object-cover"
           />
@@ -176,6 +177,7 @@ export function HistoryTableView({
               src={user.image}
               alt={user.name || "User"}
               fill
+              sizes="32px"
               className="object-cover"
             />
           ) : (
@@ -449,7 +451,7 @@ export function HistoryTableView({
               onSelect(event.data.originalIndex);
             }
           }}
-          suppressRowClickSelection={true}
+          // rowSelection={{ mode: "multiRow", enableClickSelection: false }}
         />
       </div>
 
