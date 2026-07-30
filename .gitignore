@@ -83,8 +83,9 @@ env/
 # (ซ่อนไฟล์ภาพและโมเดลทั้งหมด แต่เก็บโครงสร้างโฟลเดอร์ไว้)
 apps/storage/uploads/*
 !apps/storage/uploads/.gitkeep
-apps/storage/models/*.pt
-apps/storage/models/*.pth
+apps/ai/models/*.pt
+apps/ai/models/*.pth
+
 
 # =========================
 # 5. OS & Editor Files
