@@ -112,11 +112,11 @@ function GlobalFilterInner() {
   return (
     <div className="flex flex-wrap w-full sm:w-auto items-center justify-center sm:justify-end gap-2">
       {!isCustomMode ? (
-        <div className="flex gap-2 w-full">
+        <div className="flex gap-2 w-full ">
           <select
             value={preset}
             onChange={handlePresetChange}
-            className="h-9 px-3 py-1 w-full rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer min-w-[150px]"
+            className="h-9 px-3 py-1 w-full rounded-lg border bg-card shadow text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer min-w-[150px]"
           >
             <option value="all">ทั้งหมด (All Time)</option>
             <option value="todayHourly">วันนี้ (Today)</option>
@@ -126,7 +126,7 @@ function GlobalFilterInner() {
           </select>
           <button
             onClick={() => setIsCustomMode(true)}
-            className="h-9 w-9 flex items-center justify-center rounded-lg border bg-background hover:bg-muted transition-colors shrink-0"
+            className="h-9 w-9 flex items-center justify-center rounded-lg border bg-card shadow hover:bg-muted transition-colors shrink-0"
             title="ระบุช่วงเวลาเอง"
           >
             <Calendar className="h-3.5 w-3.5 cursor-pointer text-muted-foreground" />
@@ -134,7 +134,7 @@ function GlobalFilterInner() {
         </div>
       ) : (
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <div className="flex flex-1 sm:flex-initial items-center justify-between gap-2 border rounded-lg p-2 bg-background h-9">
+          <div className="flex flex-1 sm:flex-initial bg-card shadow items-center justify-between gap-2 border rounded-lg p-2 h-9">
             <input
               type="date"
               value={startDate}
@@ -161,7 +161,7 @@ function GlobalFilterInner() {
               className="bg-transparent border-none focus:outline-none text-xs px-1 w-full sm:w-[110px]"
             />
           </div>
-          <div className="flex items-center border rounded-lg px-1 py-1 bg-background h-9 shrink-0">
+          <div className="flex items-center bg-card shadow border rounded-lg px-1 py-1 h-9 shrink-0">
             <button
               onClick={handleReset}
               className="p-1 cursor-pointer hover:bg-muted rounded-md transition-colors"

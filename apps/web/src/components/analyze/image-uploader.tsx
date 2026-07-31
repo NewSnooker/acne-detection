@@ -44,7 +44,7 @@ export function ImageUploader({
 
   if (!isModelAvailable) {
     return (
-      <div className="border-2 border-dashed rounded-2xl p-12 flex flex-col items-center justify-center text-center transition-colors h-[500px] border-destructive/50 bg-destructive/5">
+      <div className="border-2 border-dashed rounded-2xl p-12 flex flex-col items-center justify-center text-center transition-colors h-[500px] border-destructive/50 bg-card">
         <AlertTriangle className="h-16 w-16 mb-4 text-destructive" />
         <h3 className="text-xl font-bold text-destructive">
           ระบบไม่พร้อมใช้งาน

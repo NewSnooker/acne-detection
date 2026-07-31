@@ -100,7 +100,7 @@ export function AnalysisResultPanel({
               onClick={onAnalyze}
               disabled={loading}
               className={cn(
-                "w-full h-12 bg-primary text-primary-foreground rounded-xl font-bold transition-all flex items-center justify-center disabled:opacity-70",
+                "w-full cursor-pointer h-12 bg-primary text-primary-foreground rounded-xl font-bold transition-all flex items-center justify-center disabled:opacity-70",
                 loading ? "animate-pulse" : "hover:bg-primary/90 shadow-sm",
               )}
             >
@@ -224,7 +224,7 @@ export function AnalysisResultPanel({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={onUploadNew}
-                  className="w-full h-10 border-2 border-primary text-primary rounded-xl font-bold hover:bg-primary/5 transition-colors shadow-sm"
+                  className="w-full cursor-pointer h-10 border-2 border-primary text-primary rounded-xl font-bold hover:bg-primary/5 transition-colors shadow-sm"
                 >
                   อัปโหลดรูปภาพใหม่
                 </motion.button>
