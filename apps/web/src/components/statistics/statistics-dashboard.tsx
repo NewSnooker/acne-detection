@@ -1,19 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { subDays, startOfDay, endOfDay, parseISO } from "date-fns";
+import { subDays, startOfDay, endOfDay, parseISO, format, startOfMonth } from "date-fns";
+import { useSearchParams } from "next/navigation";
 import { PersonalStatsChart } from "./personal-stats-chart";
 import { SeverityDonutChart } from "./severity-donut-chart";
 import { AcneTypesChart } from "./acne-types-chart";
-import { Calendar, RotateCcw } from "lucide-react";
-
-type Preset =
-  | "todayHourly"
-  | "7days"
-  | "30days"
-  | "thisMonth"
-  | "thisYear"
-  | "all";
+import { GlobalFilter } from "./global-filter";
+import { ScanFace, Sparkles, Activity } from "lucide-react";
+import { SEVERITY_LABELS } from "@/types/analyze";
 
 interface AnalysisData {
   createdAt: Date;
@@ -27,47 +22,31 @@ interface StatisticsDashboardProps {
 }
 
 export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
-  const [preset, setPreset] = useState<Preset>("all");
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
-
-  // Toggle for custom date picker
-  const [isCustomMode, setIsCustomMode] = useState(false);
+  const searchParams = useSearchParams();
+  const startStr = searchParams.get("start");
+  const endStr = searchParams.get("end");
+  const isAll = searchParams.get("all") === "true";
 
   const [activeTab, setActiveTab] = useState<"severity" | "types">("severity");
-
-  const handlePresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value as Preset;
-    setPreset(val);
-  };
-
-  const handleReset = () => {
-    setStartDate("");
-    setEndDate("");
-    setPreset("all");
-    setIsCustomMode(false);
-  };
 
   const filteredData = useMemo(() => {
     if (data.length === 0) return [];
 
-    const now = new Date();
     let start: Date | null = null;
-    let end: Date | null = endOfDay(now);
+    let end: Date | null = null;
 
-    if (isCustomMode) {
-      if (startDate) start = startOfDay(parseISO(startDate));
-      if (endDate) end = endOfDay(parseISO(endDate));
-    } else if (preset === "todayHourly") {
-      start = startOfDay(now);
-    } else if (preset === "7days") {
-      start = startOfDay(subDays(now, 7));
-    } else if (preset === "30days") {
-      start = startOfDay(subDays(now, 30));
-    } else if (preset === "thisMonth") {
-      start = new Date(now.getFullYear(), now.getMonth(), 1);
-    } else if (preset === "thisYear") {
-      start = new Date(now.getFullYear(), 0, 1);
+    if (startStr && endStr) {
+      start = startOfDay(new Date(startStr));
+      end = endOfDay(new Date(endStr));
+      
+      // If "Today" (single day) is selected, expand start date by 1 day to show a trend line from yesterday
+      if (startStr === endStr) {
+        start = subDays(start, 1);
+      }
+    } else if (!isAll) {
+      const now = new Date();
+      end = endOfDay(now);
+      start = startOfMonth(now);
     }
 
     if (!start && !end) return data;
@@ -78,62 +57,176 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
       if (end && itemDate > end) return false;
       return true;
     });
-  }, [data, preset, startDate, endDate, isCustomMode]);
+  }, [data, startStr, endStr, isAll]);
 
-  // Calculate ALL-TIME summary metrics based on raw `data` (unaffected by filters)
-  const totalScans = data.length;
+  // Aggregate user data by day to create a continuous padded trend line, exactly like the Admin chart.
+  const paddedDailyData = useMemo(() => {
+    if (filteredData.length === 0 && (!startStr || !endStr)) return [];
+
+    let start: Date | null = null;
+    let end: Date | null = null;
+
+    if (startStr && endStr) {
+      start = startOfDay(new Date(startStr));
+      end = endOfDay(new Date(endStr));
+      if (startStr === endStr) {
+        start = subDays(start, 1);
+      }
+    } else if (!isAll) {
+      const now = new Date();
+      end = endOfDay(now);
+      start = startOfMonth(now);
+    }
+
+    if (!start || !end) return filteredData; // Fallback for All Time
+
+    const dailyMap = new Map<string, number>();
+    let curr = new Date(start);
+    const maxDays = 365; // safety limit
+    let days = 0;
+    while (curr <= end && days < maxDays) {
+      dailyMap.set(format(curr, "yyyy-MM-dd"), 0);
+      curr.setDate(curr.getDate() + 1);
+      days++;
+    }
+
+    const dayCounts = new Map<string, { sum: number; count: number }>();
+    filteredData.forEach((item) => {
+      const key = format(new Date(item.createdAt), "yyyy-MM-dd");
+      if (dailyMap.has(key)) {
+        if (!dayCounts.has(key)) dayCounts.set(key, { sum: 0, count: 0 });
+        const stats = dayCounts.get(key)!;
+        stats.sum += item.total;
+        stats.count++;
+      }
+    });
+
+    const result: AnalysisData[] = [];
+    dailyMap.forEach((_, key) => {
+      const stats = dayCounts.get(key);
+      // Use average acne count if multiple scans in a day, or 0 if none
+      const avg = stats ? Math.round(stats.sum / stats.count) : 0;
+      result.push({
+        createdAt: new Date(key), // timestamp for that day
+        total: avg,
+        severity: "",
+        counts: {},
+      });
+    });
+
+    return result;
+  }, [filteredData, startStr, endStr, isAll]);
+
+  // Calculate summary metrics based on filteredData
+  const totalScans = filteredData.length;
   
   let totalAcne = 0;
   const severityCounts = { MILD: 0, MODERATE: 0, SEVERE: 0 };
   
-  data.forEach(item => {
+  filteredData.forEach(item => {
     totalAcne += item.total;
     if (item.severity && severityCounts[item.severity as keyof typeof severityCounts] !== undefined) {
       severityCounts[item.severity as keyof typeof severityCounts]++;
     }
   });
 
-  const clearSkinCount = data.filter(item => item.total === 0).length;
+  const clearSkinCount = filteredData.filter(item => item.total === 0).length;
   
   // Find most frequent severity
-  let mostFrequentSeverity = "ไม่มีข้อมูล";
+  let mostFrequentSeverity = "ไม่พบ";
   let maxCount = 0;
+  let severityColor = "text-muted-foreground";
+
   if (totalScans > 0) {
-    if (severityCounts.SEVERE > maxCount) { maxCount = severityCounts.SEVERE; mostFrequentSeverity = "รุนแรง"; }
-    if (severityCounts.MODERATE > maxCount) { maxCount = severityCounts.MODERATE; mostFrequentSeverity = "ปานกลาง"; }
-    if (severityCounts.MILD > maxCount) { maxCount = severityCounts.MILD; mostFrequentSeverity = "เล็กน้อย"; }
-    if (maxCount === 0 && totalAcne === 0) mostFrequentSeverity = "หน้าใส";
+    if (severityCounts.SEVERE > maxCount) { maxCount = severityCounts.SEVERE; mostFrequentSeverity = SEVERITY_LABELS.SEVERE.label; severityColor = SEVERITY_LABELS.SEVERE.color; }
+    if (severityCounts.MODERATE > maxCount) { maxCount = severityCounts.MODERATE; mostFrequentSeverity = SEVERITY_LABELS.MODERATE.label; severityColor = SEVERITY_LABELS.MODERATE.color; }
+    if (severityCounts.MILD > maxCount) { maxCount = severityCounts.MILD; mostFrequentSeverity = SEVERITY_LABELS.MILD.label; severityColor = SEVERITY_LABELS.MILD.color; }
+    if (maxCount === 0) { mostFrequentSeverity = "ไม่พบ"; severityColor = "text-emerald-500"; }
+  }
+
+  // Generate date suffix for subtexts
+  let dateSuffix = "ตลอดการใช้งาน";
+  if (startStr && endStr) {
+      const today = new Date();
+      const s = new Date(startStr);
+      const diffDays = Math.round((today.getTime() - s.getTime()) / (1000 * 3600 * 24));
+      
+      if (diffDays === 0) dateSuffix = "ของวันนี้";
+      else if (diffDays <= 7 && diffDays > 0) dateSuffix = "ใน 7 วันล่าสุด";
+      else dateSuffix = "ในช่วงเวลาที่เลือก";
+  } else if (!isAll) {
+      dateSuffix = "ในเดือนนี้"; // default
   }
 
   return (
     <div className="space-y-6">
       
-      {/* Summary Cards (Always All-Time) */}
+      {/* Header and Filter */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
+            สถิติของฉัน
+          </h1>
+          <p className="text-center sm:text-start text-muted-foreground mt-1">
+            ข้อมูลรายละเอียดการวิเคราะห์สิวย้อนหลังของคุณ
+          </p>
+        </div>
+        
+        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2">
+          <GlobalFilter />
+        </div>
+      </div>
+
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-col justify-center">
-          <p className="text-sm text-muted-foreground font-medium">การสแกนทั้งหมด</p>
-          <div className="mt-2 flex items-baseline gap-2">
+        <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-col justify-center relative overflow-hidden">
+          <div className="absolute right-4 top-4 opacity-10">
+            <ScanFace className="w-12 h-12 text-primary" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <ScanFace className="w-4 h-4 text-primary" />
+            </div>
+            <p className="text-sm text-muted-foreground font-medium">การสแกนทั้งหมด</p>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-bold">{totalScans}</span>
             <span className="text-sm text-muted-foreground">ครั้ง</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">ตลอดการใช้งาน</p>
+          <p className="text-xs text-muted-foreground mt-1">{dateSuffix}</p>
         </div>
         
-        <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-col justify-center">
-          <p className="text-sm text-muted-foreground font-medium">จำนวนครั้งที่หน้าใส</p>
-          <div className="mt-2 flex items-baseline gap-2">
+        <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-col justify-center relative overflow-hidden">
+          <div className="absolute right-4 top-4 opacity-10">
+            <Sparkles className="w-12 h-12 text-emerald-500" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-emerald-500/10 rounded-lg">
+              <Sparkles className="w-4 h-4 text-emerald-500" />
+            </div>
+            <p className="text-sm text-muted-foreground font-medium">จำนวนครั้งที่หน้าใส</p>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-bold">{clearSkinCount}</span>
             <span className="text-sm text-muted-foreground">ครั้ง</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">สแกนแล้วไม่พบสิวเลย</p>
+          <p className="text-xs text-muted-foreground mt-1">สแกนแล้วไม่พบสิวเลย {dateSuffix}</p>
         </div>
 
-        <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-col justify-center">
-          <p className="text-sm text-muted-foreground font-medium">ระดับความรุนแรงที่พบบ่อย</p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-primary">{mostFrequentSeverity}</span>
+        <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-col justify-center relative overflow-hidden">
+          <div className="absolute right-4 top-4 opacity-10">
+            <Activity className="w-12 h-12 text-primary" />
           </div>
-          <p className="text-xs text-muted-foreground mt-1">จากประวัติสแกนทั้งหมด</p>
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Activity className="w-4 h-4 text-primary" />
+            </div>
+            <p className="text-sm text-muted-foreground font-medium">ระดับความรุนแรงที่พบบ่อย</p>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className={`text-3xl font-bold ${severityColor}`}>{mostFrequentSeverity}</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">จากประวัติสแกน {dateSuffix}</p>
         </div>
       </div>
 
@@ -150,86 +243,12 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
                 </span>
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                แสดงจำนวนสิวรวมที่พบจากการสแกนแต่ละครั้ง
+                แสดงจำนวนสิวรวมที่พบจากการสแกนแต่ละครั้ง {dateSuffix}
               </p>
-            </div>
-
-            {/* Filter Toolbar embedded in the first chart */}
-            <div className="flex flex-wrap items-center gap-2">
-              {!isCustomMode ? (
-                <>
-                  <div className="w-full flex gap-2">
-                    <select
-                      value={preset}
-                      onChange={handlePresetChange}
-                      className="h-9 px-3 py-1 w-full rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer min-w-[150px]"
-                    >
-                      <option value="all">ทั้งหมด (All Time)</option>
-                      <option value="todayHourly">
-                        วันนี้รายชั่วโมง (Today Hourly)
-                      </option>
-                      <option value="7days">7 วันล่าสุด (Last 7 Days)</option>
-                      <option value="30days">
-                        30 วันล่าสุด (Last 30 Days)
-                      </option>
-                      <option value="thisMonth">รายเดือนปีนี้ (Monthly)</option>
-                      <option value="thisYear">รายปี (Yearly)</option>
-                    </select>
-                    <button
-                      onClick={() => setIsCustomMode(true)}
-                      className="h-9 w-9 flex items-center justify-center rounded-lg border bg-background hover:bg-muted transition-colors"
-                      title="ระบุช่วงเวลาเอง"
-                    >
-                      <Calendar className="h-3.5 w-3.5 cursor-pointer text-muted-foreground" />
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                  <div className="flex flex-1 sm:flex-initial items-center justify-between gap-2 border rounded-lg p-2 bg-background h-9">
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="bg-transparent border-none focus:outline-none text-xs px-1 w-full sm:w-[110px]"
-                    />
-                    <span className="text-muted-foreground text-xs font-medium">
-                      ถึง
-                    </span>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="bg-transparent border-none focus:outline-none text-xs px-1 w-full sm:w-[110px]"
-                    />
-                  </div>
-                  <div className="flex items-center border rounded-lg px-1 py-1 bg-background h-9 shrink-0">
-                    <button
-                      onClick={handleReset}
-                      className="p-1 cursor-pointer hover:bg-muted rounded-md transition-colors"
-                      title="รีเซ็ต"
-                    >
-                      <RotateCcw className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
-                    <div className="w-px h-4 bg-border mx-1" />
-                    <button
-                      onClick={() => {
-                        setStartDate("");
-                        setEndDate("");
-                        setIsCustomMode(false);
-                      }}
-                      className="p-1 cursor-pointer hover:bg-muted rounded-md transition-colors"
-                      title="สลับกลับไปใช้ตัวเลือกด่วน"
-                    >
-                      <Calendar className="h-3.5 w-3.5 cursor-pointer text-primary" />
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
           <div className="flex-1 min-h-[350px]">
-            <PersonalStatsChart data={filteredData} />
+            <PersonalStatsChart data={paddedDailyData} />
           </div>
         </div>
 
@@ -241,7 +260,7 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
                 ภาพรวมและประเภทสิว
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                สัดส่วนระดับความรุนแรงและประเภทสิวที่พบ
+                สัดส่วนระดับความรุนแรงและประเภทสิวที่พบ {dateSuffix}
               </p>
             </div>
 

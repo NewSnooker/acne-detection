@@ -4,25 +4,24 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
   ScanFace,
   History,
   Users,
-  Cpu,
   ChevronRight,
   Activity,
+  BrainCircuit,
 } from "lucide-react";
 
 const userNav = [
   { href: "/analyze", label: "วิเคราะห์สิว", icon: ScanFace },
-  { href: "/statistics", label: "สถิติของฉัน", icon: LayoutDashboard },
+  { href: "/statistics", label: "สถิติของฉัน", icon: Activity },
   { href: "/history", label: "ประวัติการวิเคราะห์", icon: History },
 ];
 
 const adminNav = [
-  { href: "/admin/statistics", label: "สถิติผู้ใช้งานและระบบ", icon: Activity },
   { href: "/admin/users", label: "จัดการผู้ใช้", icon: Users },
-  { href: "/admin/models", label: "จัดการโมเดล", icon: Cpu },
+  { href: "/admin/models", label: "จัดการโมเดล", icon: BrainCircuit },
+  { href: "/admin/statistics", label: "สถิติผู้ใช้งานและระบบ", icon: Activity },
   {
     href: "/admin/history",
     label: "ประวัติการวิเคราะห์ทั้งหมด",

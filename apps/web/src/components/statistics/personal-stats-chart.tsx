@@ -44,10 +44,10 @@ export function PersonalStatsChart({ data }: PersonalStatsChartProps) {
   seriesData.sort((a, b) => (a[0] as number) - (b[0] as number));
 
   // Hack for ApexCharts: If there's only 1 data point, the area chart and gradient won't render.
-  // We duplicate the point slightly in the past (e.g. 1 hour ago) to form a short flat line.
+  // We duplicate the point 24 hours in the past to form a trend line from yesterday.
   if (seriesData.length === 1) {
     const singlePoint = seriesData[0];
-    seriesData.unshift([(singlePoint[0] as number) - 3600000, singlePoint[1]]);
+    seriesData.unshift([(singlePoint[0] as number) - 86400000, singlePoint[1]]);
   }
 
   const isDark = theme === "dark";
@@ -85,7 +85,7 @@ export function PersonalStatsChart({ data }: PersonalStatsChartProps) {
         borderWidth: 0,
         opacity: 0.9,
       },
-      formatter: (value: number) => `${value} จุด`,
+      formatter: (value: number) => value === 0 ? "" : `${value} จุด`,
     },
     markers: {
       size: 5,
@@ -97,7 +97,7 @@ export function PersonalStatsChart({ data }: PersonalStatsChartProps) {
       },
     },
     stroke: {
-      curve: "smooth",
+      curve: seriesData.length > 2 ? "smooth" : "straight",
       width: 3,
     },
     fill: {
