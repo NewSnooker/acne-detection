@@ -82,7 +82,7 @@ export function AdminStatisticsDashboard({
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <div className="w-full sm:w-auto">
           <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
-            ภาพรวมระบบ (System Overview)
+            ภาพรวมระบบ <br className="sm:hidden" />(System Overview)
           </h1>
           <p className="text-center sm:text-start text-muted-foreground mt-1">
             แสดงสถิติการใช้งาน ข้อมูลผู้ใช้ และผลการวิเคราะห์โดยรวมของระบบ

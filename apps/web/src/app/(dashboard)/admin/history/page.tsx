@@ -52,7 +52,7 @@ export default async function AdminHistoryPage({
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
-            ประวัติการวิเคราะห์ทั้งหมด (All Analysis History)
+            ประวัติการวิเคราะห์ทั้งหมด<br className="sm:hidden" /> (All Analysis History)
           </h1>
           <p className="text-center sm:text-start text-muted-foreground mt-1">
             ตรวจสอบประวัติการวิเคราะห์สิวทั้งหมดของผู้ใช้งาน

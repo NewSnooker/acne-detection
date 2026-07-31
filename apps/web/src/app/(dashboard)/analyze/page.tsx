@@ -22,7 +22,7 @@ export default async function AnalyzePage() {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight">
-            วิเคราะห์สิวด้วย AI (AI Acne Analysis)
+            วิเคราะห์สิวด้วย AI <br className="sm:hidden" />(AI Acne Analysis)
           </h1>
           <p className="text-center sm:text-start text-muted-foreground">
             อัปโหลดภาพถ่ายใบหน้าเพื่อวิเคราะห์สิวด้วย AI

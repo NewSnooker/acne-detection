@@ -52,7 +52,7 @@ export default async function HistoryPage({
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
-            ประวัติการวิเคราะห์ (Analysis History)
+            ประวัติการวิเคราะห์ <br className="sm:hidden" />(Analysis History)
           </h1>
           <p className="text-center sm:text-start text-muted-foreground mt-1">
             ดูประวัติการวิเคราะห์สิวที่ผ่านมา
