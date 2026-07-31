@@ -4,7 +4,7 @@ import { getAllHistory } from "@/lib/services/history-service";
 import { HistoryGallery } from "@/components/history/history-gallery";
 
 export const metadata = {
-  title: "ประวัติการวิเคราะห์ทั้งหมด (Admin) - AcneAI",
+  title: "ประวัติการวิเคราะห์ทั้งหมด (All Analysis History)",
 };
 
 export default async function AdminHistoryPage({
@@ -52,11 +52,11 @@ export default async function AdminHistoryPage({
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
-            ประวัติการวิเคราะห์ทั้งหมด
+            ประวัติการวิเคราะห์ทั้งหมด (All Analysis History)
           </h1>
           <p className="text-center sm:text-start text-muted-foreground mt-1">
-            ดูภาพรวมการใช้งานและการวิเคราะห์ของผู้ใช้ทั้งหมดในระบบ
-            โหมดผู้ดูแลระบบ;
+            ตรวจสอบประวัติการวิเคราะห์สิวทั้งหมดของผู้ใช้งาน
+            พร้อมรายละเอียดและผลลัพธ์ย้อนหลัง
           </p>
         </div>
       </div>

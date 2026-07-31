@@ -17,7 +17,7 @@ export function HistoryGridView({
   onSelect,
 }: HistoryGridViewProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
       {items.map((item, index) => {
         const imageUrl = `/api/storage/${item.imageName}`;
         const severityInfo =
@@ -38,10 +38,7 @@ export function HistoryGridView({
         }
 
         return (
-          <div
-            key={item.id}
-            className="group relative"
-          >
+          <div key={item.id} className="group relative">
             {/* Purple/Primary Intense Glow Behind Card */}
             <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-purple-500 to-primary rounded-[1.2rem] blur-xl opacity-0 group-hover:opacity-60 transition duration-700 ease-out z-0" />
 

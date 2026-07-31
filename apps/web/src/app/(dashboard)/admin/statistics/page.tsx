@@ -4,7 +4,7 @@ import { getAdminStatistics } from "@/lib/services/statistics-service";
 import { AdminStatisticsDashboard } from "@/components/statistics/admin-statistics-dashboard";
 
 export const metadata = {
-  title: "สถิติผู้ใช้งานและระบบ - Admin - AcneAI",
+  title: "ภาพรวมระบบ (System Overview)",
 };
 
 export default async function AdminStatisticsPage(props: {
@@ -28,7 +28,11 @@ export default async function AdminStatisticsPage(props: {
     startDateStr = s.toISOString().split("T")[0];
   }
 
-  const statisticsData = await getAdminStatistics(startDateStr, endDateStr, isAll);
+  const statisticsData = await getAdminStatistics(
+    startDateStr,
+    endDateStr,
+    isAll,
+  );
 
   return (
     <div className="max-w-6xl mx-auto flex flex-col gap-6">

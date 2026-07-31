@@ -5,7 +5,7 @@ import { ImageAnalyzer } from "@/components/analyze/image-analyzer";
 import { hasActiveModel } from "@/app/actions/model-actions";
 
 export const metadata = {
-  title: "วิเคราะห์สิว - AcneAI",
+  title: "วิเคราะห์สิวด้วย AI (AI Acne Analysis)",
 };
 
 export default async function AnalyzePage() {
@@ -22,10 +22,11 @@ export default async function AnalyzePage() {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight">
-            วิเคราะห์สิวด้วย AI
+            วิเคราะห์สิวด้วย AI (AI Acne Analysis)
           </h1>
           <p className="text-center sm:text-start text-muted-foreground">
-            อัปโหลดรูปภาพใบหน้าของคุณเพื่อรับการวิเคราะห์ปัญหาสิวอย่างแม่นยำ
+            อัปโหลดภาพถ่ายใบหน้าเพื่อวิเคราะห์สิวด้วย AI
+            และแสดงผลลัพธ์การตรวจจับ
           </p>
         </div>
       </div>

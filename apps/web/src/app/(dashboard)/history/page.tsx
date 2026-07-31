@@ -2,10 +2,9 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getUserHistory } from "@/lib/services/history-service";
 import { HistoryGallery } from "@/components/history/history-gallery";
-import { History } from "lucide-react";
 
 export const metadata = {
-  title: "ประวัติการวิเคราะห์ - AcneAI",
+  title: "ประวัติการวิเคราะห์ (My Analysis History)",
 };
 
 export default async function HistoryPage({
@@ -53,10 +52,11 @@ export default async function HistoryPage({
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
-            ประวัติการวิเคราะห์
+            ประวัติการวิเคราะห์ (Analysis History)
           </h1>
           <p className="text-center sm:text-start text-muted-foreground mt-1">
-            ติดตามผลลัพธ์และพัฒนาการสุขภาพผิวหน้าของคุณ
+            ดูประวัติการวิเคราะห์สิวที่ผ่านมา
+            พร้อมรายละเอียดและผลลัพธ์ของแต่ละครั้ง
           </p>
         </div>
       </div>

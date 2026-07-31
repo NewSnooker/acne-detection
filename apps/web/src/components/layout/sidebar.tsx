@@ -13,15 +13,15 @@ import {
 } from "lucide-react";
 
 const userNav = [
-  { href: "/analyze", label: "วิเคราะห์สิว", icon: ScanFace },
-  { href: "/statistics", label: "สถิติของฉัน", icon: Activity },
+  { href: "/analyze", label: "วิเคราะห์สิวด้วย AI", icon: ScanFace },
+  { href: "/statistics", label: "ภาพรวมของฉัน", icon: Activity },
   { href: "/history", label: "ประวัติการวิเคราะห์", icon: History },
 ];
 
 const adminNav = [
   { href: "/admin/users", label: "จัดการผู้ใช้", icon: Users },
-  { href: "/admin/models", label: "จัดการโมเดล", icon: BrainCircuit },
-  { href: "/admin/statistics", label: "สถิติผู้ใช้งานและระบบ", icon: Activity },
+  { href: "/admin/models", label: "จัดการโมเดล AI", icon: BrainCircuit },
+  { href: "/admin/statistics", label: "ภาพรวมระบบ", icon: Activity },
   {
     href: "/admin/history",
     label: "ประวัติการวิเคราะห์ทั้งหมด",

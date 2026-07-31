@@ -82,10 +82,10 @@ export function AdminStatisticsDashboard({
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <div className="w-full sm:w-auto">
           <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
-            สถิติผู้ใช้งานและระบบ
+            ภาพรวมระบบ (System Overview)
           </h1>
           <p className="text-center sm:text-start text-muted-foreground mt-1">
-            ดูสถิติการใช้งานของผู้ใช้ทั้งหมดและสถานะของระบบ
+            แสดงสถิติการใช้งาน ข้อมูลผู้ใช้ และผลการวิเคราะห์โดยรวมของระบบ
           </p>
         </div>
         <div className="w-full sm:w-auto flex justify-center sm:justify-end">
@@ -166,7 +166,7 @@ export function AdminStatisticsDashboard({
       </div>
 
       {/* Row 2: Growth & Top Users (2|1) */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3 grid-cols-1">
         {/* Growth Chart (Span 2) */}
         <Card className="col-span-1 md:col-span-2 flex flex-col">
           <CardHeader className="pb-2">
@@ -237,7 +237,7 @@ export function AdminStatisticsDashboard({
       </div>
 
       {/* Row 3: Trend & Recent Activity (2|1) */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3 grid-cols-1">
         {/* Trend Chart (Span 2) */}
         <Card className="col-span-1 md:col-span-2 flex flex-col">
           <CardHeader className="pb-2">
@@ -310,16 +310,16 @@ export function AdminStatisticsDashboard({
       </div>
 
       {/* Row 4: AI Insights (1|1|1) */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {/* Detection Results */}
-        <Card className="col-span-1 flex flex-col">
+        <Card className="w-full col-span-1 flex flex-col">
           <CardHeader>
             <CardTitle>สัดส่วนผลการตรวจพบ</CardTitle>
             <CardDescription>
               สัดส่วนพบสิว vs หน้าใส {dateSuffix}
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 pb-0 flex items-center justify-center min-h-[300px]">
+          <CardContent className="flex-1 w-full pb-0 flex items-center justify-center min-h-[300px]">
             <DetectionResultsChart data={data.detectionResults} />
           </CardContent>
         </Card>

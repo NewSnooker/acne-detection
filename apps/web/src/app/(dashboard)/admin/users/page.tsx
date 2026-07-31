@@ -2,10 +2,9 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getAllUsers } from "@/lib/services/user-service";
 import { UserTable } from "./user-table";
-import { Users } from "lucide-react";
 
 export const metadata = {
-  title: "จัดการผู้ใช้งาน (Admin) - AcneAI",
+  title: "จัดการผู้ใช้งาน (User Management) - AcneAI",
 };
 
 export default async function AdminUsersPage() {
@@ -22,10 +21,10 @@ export default async function AdminUsersPage() {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
-            จัดการผู้ใช้งาน
+            จัดการผู้ใช้งาน (User Management)
           </h1>
           <p className="text-center sm:text-start text-muted-foreground mt-1">
-            ดูรายชื่อผู้ใช้งานในระบบ ค้นหา กรอง และลบบัญชีผู้ใช้ที่ไม่เหมาะสม
+            จัดการข้อมูลผู้ใช้งาน สิทธิ์การเข้าถึง และสถานะบัญชีภายในระบบ
           </p>
         </div>
       </div>

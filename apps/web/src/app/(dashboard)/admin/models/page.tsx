@@ -3,6 +3,10 @@ import { requireAdminRoute } from "@/lib/auth/guards";
 import { UploadModelDialog } from "@/components/admin/upload-model-dialog";
 import { ModelTable } from "./model-table";
 
+export const metadata = {
+  title: "จัดการโมเดล AI (AI Model Management)",
+};
+
 export default async function AdminModelsPage() {
   await requireAdminRoute();
   const models = await getAdminModels();
@@ -12,10 +16,10 @@ export default async function AdminModelsPage() {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
-            จัดการโมเดล AI (YOLO)
+            จัดการโมเดล AI (AI Model Management)
           </h1>
           <p className="text-center sm:text-start text-muted-foreground mt-1">
-            อัปโหลดและจัดการไฟล์โมเดลที่ใช้สำหรับวิเคราะห์ภาพสิว
+            อัปโหลด จัดการ และกำหนดโมเดล AI ที่ใช้สำหรับตรวจจับและจำแนกชนิดสิว
           </p>
         </div>
         <UploadModelDialog />

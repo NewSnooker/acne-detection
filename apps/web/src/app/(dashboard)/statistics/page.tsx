@@ -6,7 +6,7 @@ import { StatisticsDashboard } from "@/components/statistics/statistics-dashboar
 import { startOfDay, endOfDay, subDays } from "date-fns";
 
 export const metadata = {
-  title: "สถิติของฉัน - AcneAI",
+  title: "ภาพรวมของฉัน (My Overview)",
 };
 
 export default async function StatisticsPage({
@@ -29,12 +29,12 @@ export default async function StatisticsPage({
   if (!isAll && startParam && endParam) {
     let startDate = startOfDay(new Date(startParam));
     const endDate = endOfDay(new Date(endParam));
-    
+
     // If "Today" (single day) is selected, expand start date by 1 day to show a trend line from yesterday
     if (startParam === endParam) {
       startDate = subDays(startDate, 1);
     }
-    
+
     dateFilter = {
       gte: startDate,
       lte: endDate,

@@ -15,7 +15,10 @@ interface SeverityDonutChartProps {
   preAggregated?: { MILD: number; MODERATE: number; SEVERE: number };
 }
 
-export function SeverityDonutChart({ data = [], preAggregated }: SeverityDonutChartProps) {
+export function SeverityDonutChart({
+  data = [],
+  preAggregated,
+}: SeverityDonutChartProps) {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -28,7 +31,9 @@ export function SeverityDonutChart({ data = [], preAggregated }: SeverityDonutCh
       <div className="w-full flex items-center justify-center min-h-[350px] relative z-0 mt-4">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-          <p className="text-muted-foreground animate-pulse text-sm">กำลังโหลดข้อมูลกราฟ...</p>
+          <p className="text-muted-foreground animate-pulse text-sm">
+            กำลังโหลดข้อมูลกราฟ...
+          </p>
         </div>
       </div>
     );
@@ -52,7 +57,7 @@ export function SeverityDonutChart({ data = [], preAggregated }: SeverityDonutCh
   }
 
   const series = [counts.MILD || 0, counts.MODERATE || 0, counts.SEVERE || 0];
-  
+
   // Only use colors if they correspond to tailwind classes or define hex
   const colors = ["#10b981", "#d97706", "#ef4444"]; // emerald-500, amber-600, red-500
 
@@ -75,8 +80,8 @@ export function SeverityDonutChart({ data = [], preAggregated }: SeverityDonutCh
         speed: 800,
         dynamicAnimation: {
           enabled: true,
-          speed: 350
-        }
+          speed: 350,
+        },
       },
       dropShadow: {
         enabled: true,
@@ -149,7 +154,12 @@ export function SeverityDonutChart({ data = [], preAggregated }: SeverityDonutCh
               fontSize: "14px",
               color: isDark ? "#9ca3af" : "#6b7280",
               formatter: function (w) {
-                return w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0) + " ครั้ง";
+                return (
+                  w.globals.seriesTotals.reduce(
+                    (a: number, b: number) => a + b,
+                    0,
+                  ) + " ครั้ง"
+                );
               },
             },
           },
@@ -173,9 +183,12 @@ export function SeverityDonutChart({ data = [], preAggregated }: SeverityDonutCh
     },
   };
 
-  if ((!preAggregated && data.length === 0) || (preAggregated && Object.values(preAggregated).every(v => v === 0))) {
+  if (
+    (!preAggregated && data.length === 0) ||
+    (preAggregated && Object.values(preAggregated).every((v) => v === 0))
+  ) {
     return (
-      <div className="h-[400px] flex items-center justify-center border rounded-2xl bg-card text-muted-foreground">
+      <div className="h-[400px] w-full flex items-center justify-center text-muted-foreground">
         ยังไม่มีประวัติการวิเคราะห์
       </div>
     );
@@ -184,7 +197,7 @@ export function SeverityDonutChart({ data = [], preAggregated }: SeverityDonutCh
   // If all zeros, show empty
   if (series.every((val) => val === 0)) {
     return (
-      <div className="h-[400px] flex items-center justify-center border rounded-2xl bg-card text-muted-foreground">
+      <div className="h-[400px] w-full flex items-center justify-center text-muted-foreground">
         ไม่พบข้อมูลระดับความรุนแรง
       </div>
     );
@@ -192,7 +205,13 @@ export function SeverityDonutChart({ data = [], preAggregated }: SeverityDonutCh
 
   return (
     <div className="w-full flex items-center justify-center h-[350px] relative z-0 mt-4">
-      <Chart options={options} series={series} type="donut" height={350} width="100%" />
+      <Chart
+        options={options}
+        series={series}
+        type="donut"
+        height={350}
+        width="100%"
+      />
     </div>
   );
 }
