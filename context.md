@@ -83,6 +83,49 @@ _หมายเหตุ: จำเป็นต้องรันทั้ง�
 
 ---
 
+## Acne Classification & Severity Logic (ระบบจำแนกสิวและประเมินความเสี่ยง)
+
+### ประเภทสิวที่ระบบรู้จัก
+
+โมเดล YOLO ถูกฝึกมาให้จำแนกสิว **6 ประเภท**:
+
+| ประเภท | ความหมาย |
+|---|---|
+| `blackhead` | สิวหัวดำ |
+| `whitehead` | สิวหัวขาว |
+| `papule` | สิวตุ่มแดง (อักเสบ) |
+| `pustule` | สิวหัวหนอง (อักเสบ) |
+| `nodule` | สิวก้อนแข็ง (รุนแรง) |
+| `cyst` | สิวซีสต์ (รุนแรงมาก) |
+
+### เกณฑ์ความเสี่ยง (Severity)
+
+สิว 6 ประเภทถูกแบ่งบทบาทในการคำนวณความเสี่ยงดังนี้:
+
+| ประเภทสิว | บทบาท | ส่งผลถึงระดับ |
+|---|---|---|
+| `blackhead` สิวหัวดำ | ❌ ไม่นำมาคิด | — |
+| `whitehead` สิวหัวขาว | ❌ ไม่นำมาคิด | — |
+| `papule` สิวตุ่มแดง | ✅ นับรวมกลุ่ม **Inflammatory** | 🟡 MODERATE (>10) / 🔴 SEVERE (>30) |
+| `pustule` สิวหัวหนอง | ✅ นับรวมกลุ่ม **Inflammatory** | 🟡 MODERATE (>10) / 🔴 SEVERE (>30) |
+| `nodule` สิวก้อนแข็ง | ✅ นับรวมกลุ่ม **Severe Lesions** | 🟡 MODERATE (≥1) / 🔴 SEVERE (>3) |
+| `cyst` สิวซีสต์ | ✅ นับรวมกลุ่ม **Severe Lesions** | 🟡 MODERATE (≥1) / 🔴 SEVERE (>3) |
+
+**สรุปเงื่อนไขการตัดสิน:**
+
+| ระดับ | เงื่อนไข |
+|---|---|
+| 🔴 **SEVERE** (รุนแรง) | nodule + cyst **> 3** เม็ด &nbsp;หรือ&nbsp; papule + pustule **> 30** เม็ด |
+| 🟡 **MODERATE** (ปานกลาง) | nodule + cyst **≥ 1** เม็ด &nbsp;หรือ&nbsp; papule + pustule **> 10** เม็ด |
+| 🟢 **MILD** (น้อย) | papule + pustule **≤ 10** เม็ด และ ไม่มี nodule/cyst เลย |
+
+### ไฟล์ที่เกี่ยวข้อง
+
+- **การจำแนกประเภท:** `apps/ai/app/services/yolo_service.py` — กำหนด 6 class และ confidence threshold (0.25)
+- **การคำนวณความเสี่ยง:** `apps/web/src/app/actions/analyze-actions.ts` — ฟังก์ชัน `calculateSeverity()`
+
+---
+
 ## Future Roadmap (สิ่งที่สามารถพัฒนาต่อได้)
 
 - **Dashboard Overview:** หน้าแรกแสดงกราฟสรุปแนวโน้มสิวของผู้ใช้ว่าลดลงหรือเพิ่มขึ้น

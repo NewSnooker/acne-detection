@@ -126,7 +126,7 @@ export async function getAdminStatistics(startDateStr?: string, endDateStr?: str
 
   interface TrendData {
     scans: number;
-    formatted?: string;
+    formatted: string;
   }
   const trendMap = new Map<string, TrendData>();
   

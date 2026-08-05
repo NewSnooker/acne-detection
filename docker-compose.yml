@@ -37,6 +37,9 @@ services:
       - ./storage:/app/storage
     env_file:
       - ./apps/ai/.env
+    environment:
+      - STORAGE_PATH=/app/storage/images
+      - MODELS_PATH=/app/storage/models
     networks:
       - acne_network
 
@@ -54,7 +57,9 @@ services:
     env_file:
       - ./apps/web/.env.local
     environment:
-      AI_SERVICE_URL: http://ai:8000
+      - STORAGE_PATH=/app/storage/images
+      - MODELS_PATH=/app/storage/models
+      - AI_SERVICE_URL=http://ai:8000
     depends_on:
       - mongodb
       - ai
