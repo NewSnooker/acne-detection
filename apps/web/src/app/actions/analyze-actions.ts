@@ -66,16 +66,9 @@ export async function analyzeImage(formData: FormData) {
     if (!storagePath || !path.isAbsolute(storagePath)) {
       const cwd = process.cwd();
       if (cwd.endsWith("web")) {
-        storagePath = path.resolve(
-          cwd,
-          "..",
-          "..",
-          "apps",
-          "storage",
-          "uploads",
-        );
+        storagePath = path.resolve(cwd, "..", "..", "apps", "images");
       } else {
-        storagePath = path.resolve(cwd, "apps", "storage", "uploads");
+        storagePath = path.resolve(cwd, "apps", "images");
       }
     }
 
@@ -170,16 +163,9 @@ export async function deleteHistory(id: string) {
     if (!storagePath || !path.isAbsolute(storagePath)) {
       const cwd = process.cwd();
       if (cwd.endsWith("web")) {
-        storagePath = path.resolve(
-          cwd,
-          "..",
-          "..",
-          "apps",
-          "storage",
-          "uploads",
-        );
+        storagePath = path.resolve(cwd, "..", "..", "apps", "images");
       } else {
-        storagePath = path.resolve(cwd, "apps", "storage", "uploads");
+        storagePath = path.resolve(cwd, "apps", "images");
       }
     }
 
@@ -221,16 +207,9 @@ export async function deleteHistories(ids: string[]) {
     if (!storagePath || !path.isAbsolute(storagePath)) {
       const cwd = process.cwd();
       if (cwd.endsWith("web")) {
-        storagePath = path.resolve(
-          cwd,
-          "..",
-          "..",
-          "apps",
-          "storage",
-          "uploads",
-        );
+        storagePath = path.resolve(cwd, "..", "..", "apps", "images");
       } else {
-        storagePath = path.resolve(cwd, "apps", "storage", "uploads");
+        storagePath = path.resolve(cwd, "apps", "images");
       }
     }
 

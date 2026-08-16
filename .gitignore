@@ -81,8 +81,8 @@ env/
 # 4. Storage & AI Models
 # =========================
 # (ซ่อนไฟล์ภาพและโมเดลทั้งหมด แต่เก็บโครงสร้างโฟลเดอร์ไว้)
-apps/storage/uploads/*
-!apps/storage/uploads/.gitkeep
+apps/images/*
+!apps/images/.gitkeep
 apps/ai/models/*.pt
 apps/ai/models/*.pth
 

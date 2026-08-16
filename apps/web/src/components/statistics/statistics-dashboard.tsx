@@ -191,7 +191,8 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
-            ภาพรวมของฉัน <br className="sm:hidden" />(My Overview)
+            ภาพรวมของฉัน <br className="sm:hidden" />
+            (My Overview)
           </h1>
           <p className="text-center sm:text-start text-muted-foreground mt-1">
             แสดงภาพรวมผลการวิเคราะห์สิว สถิติการใช้งาน และข้อมูลสรุปของคุณ
@@ -274,7 +275,7 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
         <div className="lg:col-span-2 bg-card border rounded-2xl p-6 shadow-sm flex flex-col">
           <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold flex items-center gap-2">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
                 จำนวนสิวทั้งหมด{" "}
                 <span className="text-muted-foreground text-sm font-normal">
                   (Total Acne Count)
@@ -294,7 +295,7 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
         <div className="lg:col-span-1 bg-card border rounded-2xl p-6 shadow-sm flex flex-col">
           <div className="mb-4 flex flex-col gap-3">
             <div>
-              <h2 className="text-lg font-semibold flex items-center gap-2">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
                 ภาพรวมและประเภทสิว
               </h2>
               <p className="text-sm text-muted-foreground mt-1">

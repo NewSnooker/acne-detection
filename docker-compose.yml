@@ -23,7 +23,7 @@ services:
     networks:
       - acne_network
 
-  # ─── FastAPI (AI Service) ───────────────────────────────────
+  # ─── FastAPI (AI Service) ────────────────────────────────
   ai:
     build:
       context: ./apps/ai
@@ -33,13 +33,14 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./apps/ai:/app
-      - ./storage:/app/storage
+      - ./apps/ai:/app                       # Source code
+      - ./apps/images:/app/images            # Shared images (same as web)
+      - ./apps/ai/models:/app/models         # AI models
     env_file:
       - ./apps/ai/.env
     environment:
-      - STORAGE_PATH=/app/storage/images
-      - MODELS_PATH=/app/storage/models
+      - STORAGE_PATH=/app/images
+      - MODELS_PATH=/app/models
     networks:
       - acne_network
 
@@ -53,13 +54,14 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./storage:/app/storage
+      - ./apps/images:/app/images            # Shared images (same as ai)
     env_file:
       - ./apps/web/.env.local
     environment:
-      - STORAGE_PATH=/app/storage/images
-      - MODELS_PATH=/app/storage/models
+      - STORAGE_PATH=/app/images             # ← Linux path inside container
+      - MODELS_PATH=/app/models              # ← ไม่ได้ใช้ฝั่ง web ตอน runtime
       - AI_SERVICE_URL=http://ai:8000
+      - DATABASE_URL=mongodb://mongodb:27017/acne_db?replicaSet=rs0
     depends_on:
       - mongodb
       - ai

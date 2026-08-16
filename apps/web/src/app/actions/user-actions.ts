@@ -32,9 +32,9 @@ export async function deleteUser(userIdToDelete: string) {
       if (!storagePath || !path.isAbsolute(storagePath)) {
         const cwd = process.cwd();
         if (cwd.endsWith("web")) {
-          storagePath = path.resolve(cwd, "..", "..", "apps", "storage", "uploads");
+          storagePath = path.resolve(cwd, "..", "..", "apps", "images");
         } else {
-          storagePath = path.resolve(cwd, "apps", "storage", "uploads");
+          storagePath = path.resolve(cwd, "apps", "images");
         }
       }
 
@@ -93,9 +93,9 @@ export async function deleteUsers(userIdsToDelete: string[]) {
       if (!storagePath || !path.isAbsolute(storagePath)) {
         const cwd = process.cwd();
         if (cwd.endsWith("web")) {
-          storagePath = path.resolve(cwd, "..", "..", "apps", "storage", "uploads");
+          storagePath = path.resolve(cwd, "..", "..", "apps", "images");
         } else {
-          storagePath = path.resolve(cwd, "apps", "storage", "uploads");
+          storagePath = path.resolve(cwd, "apps", "images");
         }
       }
 

@@ -16,14 +16,11 @@ export async function GET(
     let storageDir = process.env.STORAGE_PATH;
     
     if (!storageDir || !path.isAbsolute(storageDir)) {
-      // ถ้าไม่มี ENV หรือเป็น Relative Path ให้คำนวณจาก __dirname หรือ process.cwd()
-      // ถ้ารันจาก apps/web -> process.cwd() คือ apps/web
-      // ถ้ารันจาก root -> process.cwd() คือ acne-ai-v2
       const cwd = process.cwd();
       if (cwd.endsWith("web")) {
-        storageDir = path.resolve(cwd, "..", "..", "apps", "storage", "uploads");
+        storageDir = path.resolve(cwd, "..", "..", "apps", "images");
       } else {
-        storageDir = path.resolve(cwd, "apps", "storage", "uploads");
+        storageDir = path.resolve(cwd, "apps", "images");
       }
     }
 

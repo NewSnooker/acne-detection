@@ -82,7 +82,8 @@ export function AdminStatisticsDashboard({
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
         <div className="w-full sm:w-auto">
           <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
-            ภาพรวมระบบ <br className="sm:hidden" />(System Overview)
+            ภาพรวมระบบ <br className="sm:hidden" />
+            (System Overview)
           </h1>
           <p className="text-center sm:text-start text-muted-foreground mt-1">
             แสดงสถิติการใช้งาน ข้อมูลผู้ใช้ และผลการวิเคราะห์โดยรวมของระบบ
@@ -170,7 +171,12 @@ export function AdminStatisticsDashboard({
         {/* Growth Chart (Span 2) */}
         <Card className="col-span-1 md:col-span-2 flex flex-col">
           <CardHeader className="pb-2">
-            <CardTitle>การเติบโตของฐานผู้ใช้งาน (User Growth)</CardTitle>
+            <CardTitle className="text-xl">
+              การเติบโตของฐานผู้ใช้งาน <br className="sm:hidden" />
+              <span className="text-muted-foreground text-sm font-normal">
+                (User Growth)
+              </span>
+            </CardTitle>
             <CardDescription>
               แสดงยอดผู้ใช้งานสะสมทั้งหมดในระบบ {dateSuffix}
             </CardDescription>
@@ -183,7 +189,7 @@ export function AdminStatisticsDashboard({
         {/* Top Users (Span 1) */}
         <Card className="col-span-1 flex flex-col">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-xl">
               <Trophy className="h-5 w-5 text-yellow-500" /> อันดับผู้ใช้งาน
             </CardTitle>
             <CardDescription>
@@ -241,7 +247,12 @@ export function AdminStatisticsDashboard({
         {/* Trend Chart (Span 2) */}
         <Card className="col-span-1 md:col-span-2 flex flex-col">
           <CardHeader className="pb-2">
-            <CardTitle>เทรนด์การสแกนระบบรวม</CardTitle>
+            <CardTitle className="text-xl">
+              สถิติการสแกนระบบรวม <br className="sm:hidden" />
+              <span className="text-muted-foreground text-sm font-normal">
+                (Total Scan Analysis)
+              </span>
+            </CardTitle>
             <CardDescription>
               จำนวนครั้งการสแกนวิเคราะห์สิวของผู้ใช้งานทั้งหมดในระบบ{" "}
               {dateSuffix}
@@ -255,10 +266,9 @@ export function AdminStatisticsDashboard({
         {/* Recent Activity (Span 1) */}
         <Card className="col-span-1 flex flex-col">
           <CardHeader>
-            <CardTitle>การวิเคราะห์ล่าสุด</CardTitle>
+            <CardTitle className="text-xl">การวิเคราะห์ล่าสุด</CardTitle>
             <CardDescription>
-              รายการการวิเคราะห์สิว 10 รายการล่าสุดที่เพิ่งถูกใช้งานผ่านระบบ{" "}
-              {dateSuffix}
+              รายการการวิเคราะห์สิว 10 รายการล่าสุด {dateSuffix}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto min-h-[350px] max-h-[400px]">
@@ -314,7 +324,7 @@ export function AdminStatisticsDashboard({
         {/* Detection Results */}
         <Card className="w-full col-span-1 flex flex-col">
           <CardHeader>
-            <CardTitle>สัดส่วนผลการตรวจพบ</CardTitle>
+            <CardTitle className="text-xl">สัดส่วนผลการตรวจพบ</CardTitle>
             <CardDescription>
               สัดส่วนพบสิว vs หน้าใส {dateSuffix}
             </CardDescription>
@@ -327,7 +337,7 @@ export function AdminStatisticsDashboard({
         {/* Global Severity */}
         <Card className="col-span-1 flex flex-col">
           <CardHeader>
-            <CardTitle>สัดส่วนความรุนแรงรวม</CardTitle>
+            <CardTitle className="text-xl">สัดส่วนความรุนแรงรวม</CardTitle>
             <CardDescription>
               ภาพรวมระดับความรุนแรงของสิวทั้งระบบ {dateSuffix}
             </CardDescription>
@@ -340,7 +350,7 @@ export function AdminStatisticsDashboard({
         {/* Global Acne Types */}
         <Card className="col-span-1 flex flex-col">
           <CardHeader>
-            <CardTitle>ประเภทสิวที่พบมากที่สุด</CardTitle>
+            <CardTitle className="text-xl">ประเภทสิวที่พบมากที่สุด</CardTitle>
             <CardDescription>
               ภาพรวมสิวแต่ละประเภททั้งระบบ {dateSuffix}
             </CardDescription>
