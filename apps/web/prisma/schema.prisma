@@ -37,7 +37,8 @@ model User {
   sessions  Session[]
 
   // App relations
-  analyses  Analysis[]
+  analyses        Analysis[]
+  uploadedModels  AiModel[]
 }
 
 // ─── Auth.js required models ───────────────────────────────
@@ -84,14 +85,29 @@ model AiModel {
   name        String
   version     String
   description String?
-  filePath    String   // path บนดิสก์ (ในระบบ FastAPI)
+  filePath    String   // path บนดิสก์ (ในระบบ FastAPI) (ถ้าเป็น hosted เก็บว่าง)
+  modelData   Bytes?   // เก็บไฟล์ .pt เป็น Binary (ใช้เฉพาะโหมด hosted)
+  provider    String   @default("local") // "local" หรือ "mongodb"
   fileName    String
-  sizeMb      Float?
+  sizeMb      Float
   isActive    Boolean  @default(true)
-  uploadedBy  String?  @db.ObjectId
+  uploadedBy  String   @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User       @relation(fields: [uploadedBy], references: [id])
+  analyses    Analysis[] // โมเดล 1 ตัว ถูกใช้ในหลายการวิเคราะห์
+}
+
+// ─── Image Registry ───────────────────────────────────────
+model Image {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  fileName    String   // ชื่อไฟล์ (local) หรือ public_id (cloudinary)
+  url         String?  // Public URL ของ Cloudinary
+  provider    String   @default("local") // "local" หรือ "cloudinary"
   createdAt   DateTime @default(now())
 
-  analyses Analysis[]
+  analysis    Analysis?
 }
 
 // ─── Analysis Result ───────────────────────────────────────
@@ -100,8 +116,9 @@ model Analysis {
   userId          String   @db.ObjectId
   modelId         String?  @db.ObjectId
 
-  // รูปภาพ
-  originalImage   String   // path บนดิสก์ / URL
+  // ── 1-to-1 Relation กับ Image ──
+  imageId         String   @unique @db.ObjectId
+  image           Image    @relation(fields: [imageId], references: [id], onDelete: Cascade)
 
   // ผลจาก YOLO
   detections      Json     // [{type, confidence, bbox:{x1,y1,x2,y2}}]

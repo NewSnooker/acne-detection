@@ -164,25 +164,43 @@ export function HistoryModal({
                 <ChevronRight className="h-5 w-5" />
               </button>
 
-              <ImagePreview
-                previewUrl={`/api/storage/${selectedItem.imageName}`}
-                result={selectedItem as AnalysisResult}
-                loading={false}
-                readOnly={true}
-              />
+              {(() => {
+                const imageUrl =
+                  selectedItem.imageProvider === "cloudinary" &&
+                  selectedItem.imageUrl
+                    ? selectedItem.imageUrl
+                    : `/api/images/${selectedItem.imageName}`;
+                return (
+                  <ImagePreview
+                    previewUrl={imageUrl}
+                    result={selectedItem as AnalysisResult}
+                    loading={false}
+                    readOnly={true}
+                  />
+                );
+              })()}
             </div>
 
             {/* Right: Results Panel */}
             <div className="h-full animate-in fade-in duration-500">
-              <AnalysisResultPanel
-                previewUrl={`/api/storage/${selectedItem.imageName}`}
-                result={selectedItem as AnalysisResult}
-                loading={false}
-                error={null}
-                onAnalyze={() => {}}
-                onUploadNew={() => {}}
-                readOnly={true} // ซ่อนปุ่มอัปโหลดรูปใหม่
-              />
+              {(() => {
+                const imageUrl =
+                  selectedItem.imageProvider === "cloudinary" &&
+                  selectedItem.imageUrl
+                    ? selectedItem.imageUrl
+                    : `/api/images/${selectedItem.imageName}`;
+                return (
+                  <AnalysisResultPanel
+                    previewUrl={imageUrl}
+                    result={selectedItem as AnalysisResult}
+                    loading={false}
+                    error={null}
+                    onAnalyze={() => {}}
+                    onUploadNew={() => {}}
+                    readOnly={true} // ซ่อนปุ่มอัปโหลดรูปใหม่
+                  />
+                );
+              })()}
             </div>
           </div>
         </div>

@@ -17,4 +17,4 @@ RUN npm run build
 
 # Expose port and start
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npm start"]

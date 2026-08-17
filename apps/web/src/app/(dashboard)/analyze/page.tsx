@@ -4,6 +4,8 @@ import { ImageAnalyzer } from "@/components/analyze/image-analyzer";
 
 import { hasActiveModel } from "@/app/actions/model-actions";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "วิเคราะห์สิวด้วย AI (AI Acne Analysis)",
 };

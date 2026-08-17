@@ -10,6 +10,7 @@ const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 interface AdminTrendChartProps {
   data: {
     date: string;
+    rawDate?: Date | string;
     count: number;
   }[];
 }

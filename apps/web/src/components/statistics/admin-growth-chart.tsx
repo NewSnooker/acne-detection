@@ -10,6 +10,7 @@ const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 interface AdminGrowthChartProps {
   data: {
     date: string;
+    rawDate?: Date | string;
     newUsers: number;
     existingUsers: number;
   }[];

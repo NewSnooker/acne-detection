@@ -6,6 +6,8 @@ import uuid
 import shutil
 from pathlib import Path
 from contextlib import asynccontextmanager
+import urllib.request
+from urllib.error import URLError
 
 from app.config import settings
 from app.services.yolo_service import YoloService
@@ -50,23 +52,64 @@ async def health():
 
 @app.post("/predict", tags=["Inference"])
 async def predict(
-    image_path: str = Form(..., description="Absolute path ของรูปในระบบ"),
-    model_path: str = Form(..., description="Absolute path ของไฟล์ .pt"),
+    image_url_or_path: str = Form(..., description="URL หรือ Absolute path ของรูป"),
+    model_url_or_path: str = Form(..., description="URL หรือ Absolute path ของไฟล์ .pt"),
     confidence: float = Form(0.20),
     _: str = Security(verify_api_key),
 ):
     """
-    รับ path รูปและ path โมเดล → รัน YOLO → return detections JSON
-    Next.js เป็นคนส่งมา ไม่รับ upload ตรงจาก browser
+    รับ path หรือ URL รูปและโมเดล → รัน YOLO → return detections JSON
     """
-    if not Path(image_path).exists():
-        raise HTTPException(status_code=404, detail=f"Image not found: {image_path}")
-    if not Path(model_path).exists():
-        raise HTTPException(status_code=404, detail=f"Model not found: {model_path}")
+    # Helper for downloading URL
+    def get_local_path(url_or_path: str, is_model: bool = False) -> str:
+        if url_or_path.startswith("http://") or url_or_path.startswith("https://"):
+            filename = url_or_path.split("/")[-1] or f"temp_{uuid.uuid4().hex}"
+            if "?" in filename:
+                filename = filename.split("?")[0]
+            
+            # ถ้าเป็นโมเดล ให้เก็บใน MODELS_PATH (เพื่อเป็น Cache)
+            # ถ้าเป็นรูปภาพ ให้เก็บใน STORAGE_PATH (เป็น temp)
+            target_dir = settings.MODELS_PATH if is_model else settings.STORAGE_PATH
+            
+            if is_model and not filename.lower().endswith(".pt"):
+                filename += ".pt"
+                
+            local_path = os.path.join(target_dir, filename)
+            
+            if is_model and os.path.exists(local_path):
+                return local_path # Cache hit
+                
+            try:
+                # Add a simple user-agent just in case
+                req = urllib.request.Request(url_or_path, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req) as response, open(local_path, 'wb') as out_file:
+                    shutil.copyfileobj(response, out_file)
+                return local_path
+            except URLError as e:
+                raise HTTPException(status_code=400, detail=f"Failed to download {url_or_path}: {str(e)}")
+        else:
+            return url_or_path
 
-    service = YoloService()
-    result = service.predict(image_path, model_path, confidence)
-    return result
+    # Get local paths
+    local_image_path = get_local_path(image_url_or_path, is_model=False)
+    local_model_path = get_local_path(model_url_or_path, is_model=True)
+
+    if not Path(local_image_path).exists():
+        raise HTTPException(status_code=404, detail=f"Image not found: {local_image_path}")
+    if not Path(local_model_path).exists():
+        raise HTTPException(status_code=404, detail=f"Model not found: {local_model_path}")
+
+    try:
+        service = YoloService()
+        result = service.predict(local_image_path, local_model_path, confidence)
+        return result
+    finally:
+        # Cleanup temp image if it was downloaded from URL
+        if image_url_or_path.startswith("http") and os.path.exists(local_image_path):
+            try:
+                os.remove(local_image_path)
+            except:
+                pass
 
 
 @app.post("/models/upload", tags=["Models"])

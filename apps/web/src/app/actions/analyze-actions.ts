@@ -7,6 +7,8 @@ import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import { Prisma } from "@prisma/client";
+import { uploadImage, deleteImage } from "@/lib/storage/image-provider";
+import { ACCURACY_THRESHOLD } from "@/types/analyze";
 
 // Types
 interface BBox {
@@ -26,15 +28,24 @@ interface AnalysisResult {
   total: number;
 }
 
-// Heuristic for Severity
+// Heuristic for Severity (AAD / ALADIN)
 function calculateSeverity(
   counts: Record<string, number>,
 ): "MILD" | "MODERATE" | "SEVERE" {
-  const inflammatory = (counts["papule"] || 0) + (counts["pustule"] || 0);
-  const severeLesions = (counts["nodule"] || 0) + (counts["cyst"] || 0);
+  const nonInflammatory = (counts["blackhead"] || 0) + (counts["whitehead"] || 0);
+  const shallowInflammatory = (counts["papule"] || 0) + (counts["pustule"] || 0);
+  const deepInflammatory = (counts["nodule"] || 0) + (counts["cyst"] || 0);
 
-  if (severeLesions > 3 || inflammatory > 30) return "SEVERE";
-  if (severeLesions > 0 || inflammatory > 10) return "MODERATE";
+  // 3. สิวระดับรุนแรง (Severe Acne)
+  // ตรวจพบสิวอักเสบระดับตื้นมากกว่า 20 จุด หรือตรวจพบกลุ่มสิวอักเสบลึกตั้งแต่ 1 จุดขึ้นไป
+  if (shallowInflammatory > 20 || deepInflammatory >= 1) return "SEVERE";
+
+  // 2. สิวระดับปานกลาง (Moderate Acne)
+  // ตรวจพบสิวชนิดไม่อักเสบกระจายตัวมากกว่า 20 จุด หรือมีสิวอักเสบระดับตื้นจำนวน 6 ถึง 20 จุด
+  if (nonInflammatory > 20 || (shallowInflammatory >= 6 && shallowInflammatory <= 20)) return "MODERATE";
+
+  // 1. สิวระดับเล็กน้อย (Mild Acne)
+  // ตรวจพบสิวชนิดไม่อักเสบจำนวนน้อยกว่าหรือเท่ากับ 20 จุด หรือมีสิวอักเสบระดับตื้นไม่เกิน 5 จุด
   return "MILD";
 }
 
@@ -61,27 +72,8 @@ export async function analyzeImage(formData: FormData) {
       };
     }
 
-    // 2. Save image to disk using STORAGE_PATH (production safe)
-    let storagePath = process.env.STORAGE_PATH;
-    if (!storagePath || !path.isAbsolute(storagePath)) {
-      const cwd = process.cwd();
-      if (cwd.endsWith("web")) {
-        storagePath = path.resolve(cwd, "..", "..", "apps", "images");
-      } else {
-        storagePath = path.resolve(cwd, "apps", "images");
-      }
-    }
-
-    if (!fs.existsSync(storagePath)) {
-      fs.mkdirSync(storagePath, { recursive: true });
-    }
-
-    const fileExt = file.name.split(".").pop() || "jpg";
-    const fileName = `${uuidv4()}.${fileExt}`;
-    const filePath = path.join(storagePath, fileName);
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(filePath, buffer);
+    // 2. Save image using Image Provider
+    const imageResult = await uploadImage(file);
 
     // 3. Call FastAPI for prediction
     const fastApiUrl = process.env.AI_SERVICE_URL || "http://localhost:8000";
@@ -90,9 +82,24 @@ export async function analyzeImage(formData: FormData) {
       "1juc+3JyvBqyZpRe9Ar9+cd05WWWyMgORKTfE512PVk";
 
     const apiFormData = new FormData();
-    apiFormData.append("image_path", filePath);
-    apiFormData.append("model_path", activeModel.filePath);
-    apiFormData.append("confidence", "0.25"); // Default confidence for UI
+    if (imageResult.imageProvider === "cloudinary" && imageResult.imageUrl) {
+      apiFormData.append("image_url_or_path", imageResult.imageUrl);
+    } else {
+      let storagePath =
+        process.env.STORAGE_PATH ||
+        path.resolve(process.cwd(), "apps", "images");
+      apiFormData.append(
+        "image_url_or_path",
+        path.join(storagePath, imageResult.originalImage),
+      );
+    }
+
+    // โมเดลอยู่ใน MongoDB เสมอ → ส่ง URL ให้ FastAPI ดาวน์โหลด
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const activeModelPath = `${appUrl}/api/models/${activeModel.id}`;
+
+    apiFormData.append("model_url_or_path", activeModelPath);
+    apiFormData.append("confidence", ACCURACY_THRESHOLD.toString()); // Default confidence for UI
 
     const response = await fetch(`${fastApiUrl}/predict`, {
       method: "POST",
@@ -115,9 +122,15 @@ export async function analyzeImage(formData: FormData) {
     // 5. Save to database
     const analysisRecord = await prisma.analysis.create({
       data: {
-        userId: session.user.id,
-        modelId: activeModel.id,
-        originalImage: fileName, // เก็บแค่ชื่อไฟล์ เดี๋ยว Next.js Serve รูปผ่าน /api/storage/images
+        user: { connect: { id: session.user.id } },
+        model: { connect: { id: activeModel.id } },
+        image: {
+          create: {
+            fileName: imageResult.originalImage,
+            url: imageResult.imageUrl,
+            provider: imageResult.imageProvider,
+          },
+        },
         detections: result.detections as unknown as Prisma.InputJsonValue,
         counts: result.counts as unknown as Prisma.InputJsonValue,
         total: result.total,
@@ -131,7 +144,9 @@ export async function analyzeImage(formData: FormData) {
         ...result,
         id: analysisRecord.id,
         severity,
-        imageName: fileName,
+        imageName: imageResult.originalImage,
+        imageUrl: imageResult.imageUrl,
+        imageProvider: imageResult.imageProvider,
       },
     };
   } catch (error) {
@@ -152,36 +167,24 @@ export async function deleteHistory(id: string) {
 
     const analysis = await prisma.analysis.findUnique({
       where: { id },
+      include: { image: true },
     });
 
-    if (!analysis) {
-      return { error: "Analysis not found" };
+    if (!analysis || !analysis.image) {
+      return { error: "Analysis or Image not found" };
     }
 
-    // Resolve storage path same as in analyzeImage
-    let storagePath = process.env.STORAGE_PATH;
-    if (!storagePath || !path.isAbsolute(storagePath)) {
-      const cwd = process.cwd();
-      if (cwd.endsWith("web")) {
-        storagePath = path.resolve(cwd, "..", "..", "apps", "images");
-      } else {
-        storagePath = path.resolve(cwd, "apps", "images");
-      }
-    }
-
-    // Try to delete the image file
+    // 1. Delete the image file
     try {
-      const imagePath = path.join(storagePath, analysis.originalImage);
-      if (fs.existsSync(imagePath)) {
-        await fs.promises.unlink(imagePath);
-      }
+      await deleteImage(analysis.image.fileName, analysis.image.provider);
     } catch (fsError) {
       console.error("Failed to delete image file:", fsError);
-      // We continue even if file deletion fails
+      return { error: "Failed to delete image file" };
     }
 
-    await prisma.analysis.delete({
-      where: { id },
+    // 2. Delete the Image record from DB (this will cascade delete the Analysis record)
+    await prisma.image.delete({
+      where: { id: analysis.image.id },
     });
 
     return { success: true };
@@ -200,33 +203,25 @@ export async function deleteHistories(ids: string[]) {
 
     const analyses = await prisma.analysis.findMany({
       where: { id: { in: ids } },
+      include: { image: true },
     });
 
-    // Resolve storage path same as in analyzeImage
-    let storagePath = process.env.STORAGE_PATH;
-    if (!storagePath || !path.isAbsolute(storagePath)) {
-      const cwd = process.cwd();
-      if (cwd.endsWith("web")) {
-        storagePath = path.resolve(cwd, "..", "..", "apps", "images");
-      } else {
-        storagePath = path.resolve(cwd, "apps", "images");
-      }
-    }
-
-    // Try to delete image files
+    // 1. Delete image files
     for (const analysis of analyses) {
+      if (!analysis.image) continue;
       try {
-        const imagePath = path.join(storagePath, analysis.originalImage);
-        if (fs.existsSync(imagePath)) {
-          await fs.promises.unlink(imagePath);
-        }
+        await deleteImage(analysis.image.fileName, analysis.image.provider);
       } catch (fsError) {
         console.error("Failed to delete image file:", fsError);
       }
     }
 
-    await prisma.analysis.deleteMany({
-      where: { id: { in: ids } },
+    // 2. Delete Image records from DB (cascades to Analysis records)
+    const imageIds = analyses
+      .map((a) => a.image?.id)
+      .filter(Boolean) as string[];
+    await prisma.image.deleteMany({
+      where: { id: { in: imageIds } },
     });
 
     return { success: true };

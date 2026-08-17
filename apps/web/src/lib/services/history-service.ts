@@ -26,6 +26,7 @@ export async function getUserHistory(
           version: true,
         },
       },
+      image: true,
     },
   });
 
@@ -114,7 +115,9 @@ export async function getUserHistory(
 
   const items = paginatedHistory.map((item) => ({
     id: item.id,
-    imageName: item.originalImage,
+    imageName: item.image?.fileName || "",
+    imageUrl: item.image?.url || null,
+    imageProvider: item.image?.provider || "local",
     detections: item.detections as unknown as Detection[],
     counts: item.counts as Record<string, number>,
     total: item.total,
@@ -157,6 +160,7 @@ export async function getAllHistory(
           version: true,
         },
       },
+      image: true,
     },
   });
 
@@ -249,7 +253,9 @@ export async function getAllHistory(
 
   const items = paginatedHistory.map((item) => ({
     id: item.id,
-    imageName: item.originalImage,
+    imageName: item.image?.fileName || "",
+    imageUrl: item.image?.url || null,
+    imageProvider: item.image?.provider || "local",
     detections: item.detections as unknown as Detection[],
     counts: item.counts as Record<string, number>,
     total: item.total,

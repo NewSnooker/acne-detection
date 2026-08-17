@@ -56,7 +56,7 @@ services:
     volumes:
       - ./apps/images:/app/images            # Shared images (same as ai)
     env_file:
-      - ./apps/web/.env.local
+      - ./apps/web/.env
     environment:
       - STORAGE_PATH=/app/images             # ← Linux path inside container
       - MODELS_PATH=/app/models              # ← ไม่ได้ใช้ฝั่ง web ตอน runtime

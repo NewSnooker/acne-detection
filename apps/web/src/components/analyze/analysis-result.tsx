@@ -5,6 +5,7 @@ import {
   ACNE_COLORS,
   ACNE_LABELS,
   SEVERITY_LABELS,
+  ACNE_CARE_ADVICE,
 } from "@/types/analyze";
 import { cn } from "@/lib/utils";
 
@@ -212,6 +213,22 @@ export function AnalysisResultPanel({
                 )}
               </motion.div>
             </div>
+
+            {result.total > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-primary/5 border border-primary/20 rounded-xl p-4 mt-4"
+              >
+                <h3 className="font-semibold mb-2 flex items-center gap-2 text-primary">
+                  <span className="text-lg">💡</span> คำแนะนำการดูแลผิว
+                </h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {ACNE_CARE_ADVICE[result.severity] || "แนะนำให้ปรึกษาแพทย์ผู้เชี่ยวชาญด้านผิวหนัง"}
+                </p>
+              </motion.div>
+            )}
 
             {!readOnly && (
               <motion.div

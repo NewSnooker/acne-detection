@@ -1,67 +1,4 @@
-# AcneAI - Project Context & Architecture
-
-## Overview
-
-AcneAI เป็นโปรเจกต์เว็บแอปพลิเคชันสำหรับการวิเคราะห์และตรวจจับสิว (Acne Detection) บนใบหน้าโดยอัตโนมัติ โดยใช้โมเดล AI (YOLO) ในการประมวลผล โปรเจกต์นี้ถูกออกแบบมาเพื่อช่วยให้ผู้ใช้สามารถติดตามสุขภาพผิวหน้าและดูแนวโน้มความรุนแรงของสิวได้
-
-โปรเจกต์นี้ใช้โครงสร้างแบบ **Monorepo** โดยแบ่งออกเป็นสองส่วนหลักคือ Frontend (Next.js) และ Backend/AI (FastAPI)
-
----
-
-## Tech Stack & Architecture
-
-### 1. Frontend: Web Application (`apps/web`)
-
-- **Framework:** Next.js 14 (App Router)
-- **Styling:** Tailwind CSS + custom UI components
-- **Language:** TypeScript
-- **State Management & Data Fetching:** React Hooks, Server Components, Server Actions
-- **Database Access:** Prisma ORM เชื่อมต่อกับ MongoDB
-- **Authentication:** NextAuth (Auth.js) สำหรับระบบ Login / Register
-
-### 2. Backend: AI Service (`apps/ai`)
-
-- **Framework:** FastAPI (Python)
-- **AI Model:** YOLO (Ultralytics) สำหรับ Object Detection (ตรวจจับพิกัดและประเภทของสิว)
-- **Core Function:** รับรูปภาพจาก Web Frontend -> ประมวลผลผ่านโมเดล YOLO -> ส่งกลับผลลัพธ์พิกัด (Bounding Boxes) และประเภทสิว
-- **Execution:** ใช้ Virtual Environment (`venv`) และรันผ่าน Uvicorn
-
-### 3. Database: MongoDB
-
-- **Schema หลัก:**
-  - `User`: เก็บข้อมูลผู้ใช้และรหัสผ่าน
-  - `Model`: เก็บข้อมูลโมเดล AI (เวอร์ชัน, Path ของไฟล์ `.pt`, สถานะ)
-  - `Analysis`: เก็บประวัติการวิเคราะห์สิว (ไฟล์รูปภาพ, ยอดสิวแต่ละประเภท, ระดับความรุนแรง, และวันที่)
-
-### 4. Storage (`apps/storage`)
-
-- ใช้โฟลเดอร์ Local สำหรับจัดเก็บไฟล์:
-  - `uploads/`: เก็บไฟล์รูปภาพใบหน้าที่ผู้ใช้อัปโหลดเพื่อวิเคราะห์
-
-### 5. Model (`apps/ai/models`)
-
-- ใช้โฟลเดอร์ Local สำหรับจัดเก็บไฟล์:
-  - `best.pt`: เก็บไฟล์โมเดล AI (YOLO)
-
----
-
-## Key Features (ฟีเจอร์หลัก)
-
-1. **Dashboard & Image Analysis (หน้าวิเคราะห์สิว)**
-   - ผู้ใช้สามารถอัปโหลดรูปภาพ หรือลากวาง (Drag & Drop)
-   - ระบบจะส่งรูปภาพไปให้ FastAPI วิเคราะห์
-   - แสดงผลลัพธ์เป็นกล่องกรอบ (Bounding Boxes) วาดทับบนใบหน้าอย่างแม่นยำผ่าน HTML5 Canvas
-   - สรุปผลความรุนแรง (Mild, Moderate, Severe) และจำนวนสิวแต่ละประเภท
-
-2. **History (ประวัติการวิเคราะห์)**
-   - ดูประวัติการวิเคราะห์ทั้งหมดได้ทั้งรูปแบบ **Grid (การ์ด)** และ **Table (ตาราง)**
-   - มีระบบ Pagination และ Filters (เรียงตามวันที่, เลือกจำนวนแสดงผล)
-   - มี Lightbox Modal สำหรับกดดูรายละเอียดของแต่ละรูปภาพย้อนหลัง (ซูมและเลื่อนดูได้)
-
-3. **Admin Model Management (จัดการโมเดล)**
-   - สำหรับแอดมิน เพื่ออัปโหลดและสลับใช้งานโมเดล AI (`.pt`) เวอร์ชันใหม่ๆ โดยไม่ต้องแก้โค้ด
-
----
+# AcneAI — System Context
 
 ## How to Run (การรันโปรเจกต์แบบ Local)
 
@@ -79,55 +16,155 @@ cd apps\web
 npm run dev
 ```
 
-_หมายเหตุ: จำเป็นต้องรันทั้งสองระบบควบคู่กัน เพื่อให้หน้าเว็บสามารถส่งรูปไปให้ AI ประมวลผลได้_
+## Stack
+
+- **Web**: Next.js 16 (App Router, Server Actions)
+- **AI Service**: FastAPI + YOLO (Ultralytics)
+- **Database**: MongoDB (Prisma ORM) — Atlas (hosted/dev) / Container (docker)
+- **Image Storage**: Local disk (dev/docker) | Cloudinary (hosted)
+- **Model Storage**: MongoDB Binary (`modelData: Bytes`) — ทุก environment
 
 ---
 
-## Acne Classification & Severity Logic (ระบบจำแนกสิวและประเมินความเสี่ยง)
+## Environment
 
-### ประเภทสิวที่ระบบรู้จัก
+|            | **Dev**                 | **Docker**                   | **Hosted**           |
+| ---------- | ----------------------- | ---------------------------- | -------------------- |
+| รัน        | `npm run dev`           | `docker-compose up`          | Vercel + HuggingFace |
+| DB         | MongoDB Atlas           | MongoDB container (override) | MongoDB Atlas        |
+| รูปภาพ     | Local disk              | Local disk (volume mount)    | Cloudinary           |
+| โมเดล AI   | **MongoDB Binary**      | **MongoDB Binary**           | **MongoDB Binary**   |
+| AI URL     | `http://localhost:8000` | `http://ai:8000` (override)  | HuggingFace URL      |
+| Switch key | `APP_ENV=dev`           | `APP_ENV=docker`             | `APP_ENV=hosted`     |
 
-โมเดล YOLO ถูกฝึกมาให้จำแนกสิว **6 ประเภท**:
-
-| ประเภท | ความหมาย |
-|---|---|
-| `blackhead` | สิวหัวดำ |
-| `whitehead` | สิวหัวขาว |
-| `papule` | สิวตุ่มแดง (อักเสบ) |
-| `pustule` | สิวหัวหนอง (อักเสบ) |
-| `nodule` | สิวก้อนแข็ง (รุนแรง) |
-| `cyst` | สิวซีสต์ (รุนแรงมาก) |
-
-### เกณฑ์ความเสี่ยง (Severity)
-
-สิว 6 ประเภทถูกแบ่งบทบาทในการคำนวณความเสี่ยงดังนี้:
-
-| ประเภทสิว | บทบาท | ส่งผลถึงระดับ |
-|---|---|---|
-| `blackhead` สิวหัวดำ | ❌ ไม่นำมาคิด | — |
-| `whitehead` สิวหัวขาว | ❌ ไม่นำมาคิด | — |
-| `papule` สิวตุ่มแดง | ✅ นับรวมกลุ่ม **Inflammatory** | 🟡 MODERATE (>10) / 🔴 SEVERE (>30) |
-| `pustule` สิวหัวหนอง | ✅ นับรวมกลุ่ม **Inflammatory** | 🟡 MODERATE (>10) / 🔴 SEVERE (>30) |
-| `nodule` สิวก้อนแข็ง | ✅ นับรวมกลุ่ม **Severe Lesions** | 🟡 MODERATE (≥1) / 🔴 SEVERE (>3) |
-| `cyst` สิวซีสต์ | ✅ นับรวมกลุ่ม **Severe Lesions** | 🟡 MODERATE (≥1) / 🔴 SEVERE (>3) |
-
-**สรุปเงื่อนไขการตัดสิน:**
-
-| ระดับ | เงื่อนไข |
-|---|---|
-| 🔴 **SEVERE** (รุนแรง) | nodule + cyst **> 3** เม็ด &nbsp;หรือ&nbsp; papule + pustule **> 30** เม็ด |
-| 🟡 **MODERATE** (ปานกลาง) | nodule + cyst **≥ 1** เม็ด &nbsp;หรือ&nbsp; papule + pustule **> 10** เม็ด |
-| 🟢 **MILD** (น้อย) | papule + pustule **≤ 10** เม็ด และ ไม่มี nodule/cyst เลย |
-
-### ไฟล์ที่เกี่ยวข้อง
-
-- **การจำแนกประเภท:** `apps/ai/app/services/yolo_service.py` — กำหนด 6 class และ confidence threshold (0.25)
-- **การคำนวณความเสี่ยง:** `apps/web/src/app/actions/analyze-actions.ts` — ฟังก์ชัน `calculateSeverity()`
+> **Image provider switch**: `image-provider.ts` → `if APP_ENV === "hosted"` → Cloudinary, else Local disk
+> **Model provider**: เก็บ MongoDB Binary เสมอ ทุก env (ไม่มี switch แล้ว)
 
 ---
 
-## Future Roadmap (สิ่งที่สามารถพัฒนาต่อได้)
+## Flow: สแกนสิว (ทุก env)
 
-- **Dashboard Overview:** หน้าแรกแสดงกราฟสรุปแนวโน้มสิวของผู้ใช้ว่าลดลงหรือเพิ่มขึ้น
-- **Export Data:** ดาวน์โหลดผลประวัติการวิเคราะห์เป็น PDF
-- **Mobile Responsive Polish:** ปรับ UI เพิ่มเติมให้แสดงผลบนมือถือได้อย่างสมบูรณ์แบบ
+```
+1. ผู้ใช้อัปโหลดรูป
+       ↓
+2. Next.js รับรูป → เซฟตาม env (Local / Cloudinary)
+       ↓
+3. Next.js ดึง Active Model จาก MongoDB
+       ↓
+4. Next.js POST /predict ไปที่ FastAPI พร้อม:
+   - image_url_or_path = URL (Cloudinary) หรือ absolute path (local)
+   - model_url_or_path = http://<app>/api/models/{id}  ← เสมอ
+       ↓
+5. FastAPI รับ:
+   - รูป: download จาก URL หรืออ่านจาก path ตรงๆ
+   - โมเดล: download จาก /api/models/{id} → Cache ไว้ที่ /app/models/
+       ↓
+6. FastAPI โหลด YOLO → รัน predict → return JSON
+       ↓
+7. Next.js รับผล → คำนวณ Severity → บันทึก DB → แสดงผล
+```
+
+---
+
+## Flow: อัปโหลดโมเดล (Admin)
+
+```
+Admin เลือกไฟล์ .pt → กด Upload
+       ↓
+Next.js รับไฟล์ → อ่านเป็น Uint8Array
+       ↓
+บันทึกลง MongoDB: AiModel { modelData: <Binary>, provider: "mongodb" }
+       ↓
+ใช้งานได้ทันที (ไม่มีไฟล์บนดิสก์เลย)
+```
+
+---
+
+## Flow: FastAPI Model Cache
+
+```
+FastAPI รับ model_url_or_path = "http://localhost:3000/api/models/abc123"
+       ↓
+เช็คว่ามีไฟล์ใน /app/models/<filename> ไหม?
+  - มีแล้ว (Cache hit)  → โหลดเลย
+  - ไม่มี (Cache miss) → Download จาก URL → เซฟที่ /app/models/
+       ↓
+YOLO โหลดโมเดล → predict
+```
+
+> `/app/models/` ในฝั่ง FastAPI = **Cache เท่านั้น** ไม่ใช่ source of truth
+> Source of truth = MongoDB `modelData` field
+> โฟลเดอร์นี้จำเป็นต้องมีเพื่อให้ FastAPI เขียน cache ได้
+
+---
+
+## โครงสร้างไฟล์สำคัญ
+
+```
+apps/
+├── web/
+│   ├── src/lib/storage/
+│   │   ├── image-provider.ts   ← switch Local/Cloudinary ตาม APP_ENV
+│   │   └── model-provider.ts   ← MongoDB Binary เสมอ (ไม่มี switch)
+│   ├── src/app/actions/
+│   │   ├── analyze-actions.ts  ← flow สแกนสิว
+│   │   └── model-actions.ts    ← upload/delete โมเดล
+│   └── src/app/api/models/[id]/
+│       └── route.ts            ← FastAPI ดึงโมเดลจากนี่
+├── ai/
+│   ├── app/main.py             ← /predict endpoint
+│   ├── app/config.py           ← MODELS_PATH (cache dir)
+│   └── models/                 ← FastAPI cache (ต้องมี แต่ไม่ใช่ source of truth)
+└── images/                     ← รูปภาพ shared volume (dev/docker)
+```
+
+---
+
+## API Endpoints สำคัญ
+
+| Endpoint                       | ใครเรียก | ทำอะไร                            |
+| ------------------------------ | -------- | --------------------------------- |
+| `POST /predict`                | Next.js  | ส่งรูป+โมเดล → YOLO → return JSON |
+| `GET /api/models/[id]`         | FastAPI  | ดึง binary โมเดลจาก MongoDB       |
+| `GET /api/images/[...path]`    | Browser  | ดึงรูปจาก local disk              |
+| `POST /api/auth/[...nextauth]` | Browser  | Auth.js session                   |
+
+---
+
+## กฎการประเมินความรุนแรงของสิว (Severity Rules)
+
+การคำนวณและประเมินระดับความรุนแรง อ้างอิงตามแนวทางสถาบันโรคผิวหนังแห่งสหรัฐอเมริกา (AAD) และ ALADIN
+
+**ไฟล์ที่เกี่ยวข้อง:**
+
+- `apps/web/src/app/actions/analyze-actions.ts` (Logic คำนวณ)
+- `apps/web/src/types/analyze.ts` (ชื่อภาษาไทยและข้อความคำแนะนำ)
+- `apps/web/src/components/analyze/analysis-result.tsx` (UI แสดงผล)
+
+**การจัดกลุ่มสิว:**
+
+- **ไม่อักเสบ (Non-inflammatory):** สิวหัวดำ (blackhead), สิวหัวขาว (whitehead)
+- **อักเสบระดับตื้น (Shallow inflammatory):** สิวตุ่มแดง (papule), สิวหัวหนอง (pustule)
+- **อักเสบระดับลึก (Deep inflammatory):** สิวก้อนแข็ง (nodule), สิวซีสต์ (cyst)
+
+**เกณฑ์การประเมินและคำแนะนำ:**
+
+1. **SEVERE (รุนแรง):**
+   - **เกณฑ์:** อักเสบตื้น > 20 จุด **หรือ** อักเสบลึก ≥ 1 จุด
+   - **คำแนะนำ:** แจ้งเตือนถึงความเสี่ยงขั้นสูงสุดในการเกิดแผลเป็นแบบหลุม (Acne Scars) เน้นย้ำให้หลีกเลี่ยงการบีบ/กดสิวอย่างเด็ดขาด และแนะนำให้เข้าพบแพทย์ผิวหนัง (Dermatologist) โดยทันที
+
+2. **MODERATE (ปานกลาง):**
+   - **เกณฑ์:** ไม่อักเสบ > 20 จุด **หรือ** อักเสบตื้น 6 ถึง 20 จุด
+   - **คำแนะนำ:** แนะนำให้หลีกเลี่ยงการสครับผิวและเครื่องสำอางที่ก่อให้อุดตัน ปรึกษาเภสัชกรเพื่อใช้ยาทาต้านแบคทีเรีย/ลดการอักเสบ (เช่น Benzoyl Peroxide หรือ Topical Retinoids)
+
+3. **MILD (เล็กน้อย):**
+   - **เกณฑ์:** ไม่อักเสบ ≤ 20 จุด **และ** อักเสบตื้น ≤ 5 จุด
+   - **คำแนะนำ:** แนะนำการทำความสะอาดผิวหน้าอย่างถูกวิธีด้วยผลิตภัณฑ์สูตรอ่อนโยน และพิจารณาใช้ผลิตภัณฑ์เวชสำอาง (OTC) ที่มีกรดซาลิไซลิก (Salicylic Acid)
+
+---
+
+## Technical Notes (ข้อควรระวังสำหรับนักพัฒนา)
+
+**1. การบันทึกไฟล์ Binary ลง MongoDB (Prisma)**
+- การบันทึกไฟล์ (เช่น โมเดล `.pt`) ลงในฟิลด์ `Bytes` ของ Prisma/MongoDB **ต้องแปลงไฟล์เป็น `Buffer` เสมอ** (`Buffer.from(await file.arrayBuffer())`)
+- **ห้าม**ใช้ `Uint8Array` หรือ ArrayBuffer ตรงๆ เพราะใน Next.js Server Actions มันจะสูญหายและถูกบันทึกเป็นค่า `null` ในฐานข้อมูล ซึ่งจะทำให้ FastAPI ดาวน์โหลดไฟล์ไปแล้วได้ไฟล์ 0 bytes (ไฟล์พัง) จนเกิด Error ในการโหลด YOLO (`ne task for your model...`)

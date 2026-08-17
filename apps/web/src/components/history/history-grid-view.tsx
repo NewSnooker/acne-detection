@@ -19,7 +19,9 @@ export function HistoryGridView({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
       {items.map((item, index) => {
-        const imageUrl = `/api/storage/${item.imageName}`;
+        const imageUrl = item.imageProvider === "cloudinary" && item.imageUrl
+          ? item.imageUrl
+          : `/api/images/${item.imageName}`;
         const severityInfo =
           SEVERITY_LABELS[item.severity] || SEVERITY_LABELS.MILD;
 

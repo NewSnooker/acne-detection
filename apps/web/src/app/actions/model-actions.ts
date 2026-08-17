@@ -2,10 +2,10 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { writeFile, unlink } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import { requireAdminRoute } from "@/lib/auth/guards";
+import { saveModel, deleteModelFile } from "@/lib/storage/model-provider";
 
 // เช็คสิทธิ์ Admin
 
@@ -29,29 +29,20 @@ export async function uploadAiModel(formData: FormData) {
   }
 
   try {
-    // 1. จัดการเรื่องไฟล์
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // สุ่มชื่อไฟล์ใหม่กันชื่อซ้ำ
+    // 1. Save model using Provider
     const uniqueId = crypto.randomBytes(8).toString("hex");
-    const fileName = `${uniqueId}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const fileName = `${uniqueId}_${safeName}`;
+    
+    const saveResult = await saveModel(file, fileName);
+    const sizeMb = parseFloat((file.size / (1024 * 1024)).toFixed(2));
 
-    // Path สำหรับเซฟ (อ่านจาก .env.local)
-    const storageDir = path.resolve(
-      process.cwd(),
-      process.env.MODELS_PATH || "../../apps/storage/models",
-    );
-    const filePath = path.join(storageDir, fileName);
-
-    await writeFile(filePath, buffer);
-    const sizeMb = parseFloat((buffer.length / (1024 * 1024)).toFixed(2));
-
-    // 2. ยกเลิกสถานะ Active ของโมเดลเก่าทั้งหมด
-    await prisma.aiModel.updateMany({
+    // 2. ตรวจสอบว่ามีโมเดลที่ Active อยู่แล้วหรือไม่
+    const activeCount = await prisma.aiModel.count({
       where: { isActive: true },
-      data: { isActive: false },
     });
+    
+    const shouldBeActive = activeCount === 0; // ถ้ายังไม่มีโมเดลที่เปิดใช้งานเลย ให้ตัวนี้เป็นตัวแรก
 
     // 3. บันทึกข้อมูลโมเดลใหม่ลงฐานข้อมูล
     const newModel = await prisma.aiModel.create({
@@ -59,11 +50,13 @@ export async function uploadAiModel(formData: FormData) {
         name,
         version,
         description,
+        filePath: saveResult.filePath,
+        modelData: saveResult.modelData as any,
+        provider: saveResult.provider,
         fileName,
-        filePath,
         sizeMb,
-        isActive: true, // ตั้งให้เป็นตัวหลักอัตโนมัติ
-        uploadedBy: session.user?.id,
+        isActive: shouldBeActive,
+        uploadedBy: session.user.id,
       },
     });
 
@@ -96,11 +89,11 @@ export async function deleteAiModel(id: string) {
     // 2. ลบออกจากฐานข้อมูล
     await prisma.aiModel.delete({ where: { id } });
 
-    // 2. พยายามลบไฟล์จริงออกจากดิสก์
+    // 3. พยายามลบไฟล์จริง
     try {
-      await unlink(model.filePath);
+      await deleteModelFile(model.provider, model.filePath);
     } catch (fsError) {
-      console.warn("Could not delete file from disk:", fsError);
+      console.warn("Could not delete file:", fsError);
     }
 
     revalidatePath("/admin/models");
@@ -131,9 +124,9 @@ export async function deleteAiModels(ids: string[]) {
       await prisma.aiModel.delete({ where: { id } });
 
       try {
-        await unlink(model.filePath);
+        await deleteModelFile(model.provider, model.filePath);
       } catch (fsError) {
-        console.warn("Could not delete file from disk:", fsError);
+        console.warn("Could not delete file:", fsError);
       }
     }
 

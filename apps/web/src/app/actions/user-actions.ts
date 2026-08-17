@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { deleteImage } from "@/lib/storage/image-provider";
 
 export async function deleteUser(userIdToDelete: string) {
   try {
@@ -21,36 +22,31 @@ export async function deleteUser(userIdToDelete: string) {
     // 3. Find and delete associated image files
     const userAnalyses = await prisma.analysis.findMany({
       where: { userId: userIdToDelete },
-      select: { originalImage: true },
+      include: { image: true },
     });
 
-    if (userAnalyses.length > 0) {
-      const fs = await import("fs");
-      const path = await import("path");
-      
-      let storagePath = process.env.STORAGE_PATH;
-      if (!storagePath || !path.isAbsolute(storagePath)) {
-        const cwd = process.cwd();
-        if (cwd.endsWith("web")) {
-          storagePath = path.resolve(cwd, "..", "..", "apps", "images");
-        } else {
-          storagePath = path.resolve(cwd, "apps", "images");
-        }
-      }
+    const imageIds: string[] = [];
 
+    if (userAnalyses.length > 0) {
       for (const analysis of userAnalyses) {
+        if (!analysis.image) continue;
+        imageIds.push(analysis.image.id);
         try {
-          const imagePath = path.join(storagePath, analysis.originalImage);
-          if (fs.existsSync(imagePath)) {
-            await fs.promises.unlink(imagePath);
-          }
+          await deleteImage(analysis.image.fileName, analysis.image.provider);
         } catch (fsError) {
           console.error("Failed to delete user's image file:", fsError);
         }
       }
     }
 
-    // 4. Delete user (this will cascade and delete their analyses, sessions, accounts from DB)
+    // 4. Delete associated images from DB (cascades to Analysis)
+    if (imageIds.length > 0) {
+      await prisma.image.deleteMany({
+        where: { id: { in: imageIds } },
+      });
+    }
+
+    // 5. Delete user (cascades to sessions, accounts, remaining analyses)
     await prisma.user.delete({
       where: { id: userIdToDelete },
     });
@@ -82,36 +78,31 @@ export async function deleteUsers(userIdsToDelete: string[]) {
     // 3. Find and delete associated image files for all users
     const userAnalyses = await prisma.analysis.findMany({
       where: { userId: { in: idsToDelete } },
-      select: { originalImage: true },
+      include: { image: true },
     });
 
-    if (userAnalyses.length > 0) {
-      const fs = await import("fs");
-      const path = await import("path");
-      
-      let storagePath = process.env.STORAGE_PATH;
-      if (!storagePath || !path.isAbsolute(storagePath)) {
-        const cwd = process.cwd();
-        if (cwd.endsWith("web")) {
-          storagePath = path.resolve(cwd, "..", "..", "apps", "images");
-        } else {
-          storagePath = path.resolve(cwd, "apps", "images");
-        }
-      }
+    const imageIds: string[] = [];
 
+    if (userAnalyses.length > 0) {
       for (const analysis of userAnalyses) {
+        if (!analysis.image) continue;
+        imageIds.push(analysis.image.id);
         try {
-          const imagePath = path.join(storagePath, analysis.originalImage);
-          if (fs.existsSync(imagePath)) {
-            await fs.promises.unlink(imagePath);
-          }
+          await deleteImage(analysis.image.fileName, analysis.image.provider);
         } catch (fsError) {
           console.error("Failed to delete user's image file:", fsError);
         }
       }
     }
 
-    // 4. Delete users (cascade deletes DB records)
+    // 4. Delete associated images from DB (cascades to Analysis)
+    if (imageIds.length > 0) {
+      await prisma.image.deleteMany({
+        where: { id: { in: imageIds } },
+      });
+    }
+
+    // 5. Delete users (cascade deletes sessions, accounts, remaining analyses)
     await prisma.user.deleteMany({
       where: { id: { in: idsToDelete } },
     });

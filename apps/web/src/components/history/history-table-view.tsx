@@ -135,7 +135,9 @@ export function HistoryTableView({
 
   const ImageCellRenderer = (props: any) => {
     if (!props.data) return null;
-    const imageUrl = `/api/storage/${props.data.imageName}`;
+    const imageUrl = props.data.imageProvider === "cloudinary" && props.data.imageUrl
+      ? props.data.imageUrl
+      : `/api/images/${props.data.imageName}`;
     return (
       <div
         className="flex items-center h-full py-1"
