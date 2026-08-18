@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { analyzeImage } from "@/app/actions/analyze-actions";
 import { ImageUploader } from "./image-uploader";
 import { ImagePreview } from "./image-preview";
 import { AnalysisResultPanel } from "./analysis-result";
