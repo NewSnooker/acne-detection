@@ -1,6 +1,8 @@
-from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Security
+from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Security, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyHeader
+import asyncio
+import json
 import os
 import uuid
 import shutil
@@ -110,6 +112,110 @@ async def predict(
                 os.remove(local_image_path)
             except:
                 pass
+
+
+@app.websocket("/ws/predict")
+async def websocket_predict(websocket: WebSocket):
+    await websocket.accept()
+    
+    local_image_path = None
+    try:
+        # Wait for the first message which should contain image_url and model_url
+        data_text = await websocket.receive_text()
+        data = json.loads(data_text)
+        
+        image_url = data.get("image_url")
+        model_url = data.get("model_url")
+        confidence = float(data.get("confidence", 0.20))
+        
+        if not image_url or not model_url:
+            await websocket.send_json({"error": "Missing image_url or model_url"})
+            return
+
+        async def download_with_progress_ws(url: str, local_path: str, start_prog: float, end_prog: float, message: str):
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            response = await asyncio.to_thread(urllib.request.urlopen, req)
+            try:
+                total_size = int(response.headers.get('Content-Length', 0))
+                downloaded = 0
+                out_file = await asyncio.to_thread(open, local_path, 'wb')
+                try:
+                    while True:
+                        chunk = await asyncio.to_thread(response.read, 8192 * 8)
+                        if not chunk:
+                            break
+                        await asyncio.to_thread(out_file.write, chunk)
+                        downloaded += len(chunk)
+                        if total_size > 0:
+                            prog = start_prog + (downloaded / total_size) * (end_prog - start_prog)
+                            await websocket.send_json({"progress": int(prog), "status": "PROCESSING", "message": message})
+                finally:
+                    await asyncio.to_thread(out_file.close)
+            finally:
+                await asyncio.to_thread(response.close)
+
+        # 1. Download Model (if needed)
+        # 0% to 50%
+        model_filename = model_url.split("/")[-1] or f"temp_{uuid.uuid4().hex}"
+        if "?" in model_filename: model_filename = model_filename.split("?")[0]
+        if not model_filename.lower().endswith(".pt"): model_filename += ".pt"
+        local_model_path = os.path.join(settings.MODELS_PATH, model_filename)
+        
+        if not os.path.exists(local_model_path):
+            await websocket.send_json({"progress": 0, "status": "PROCESSING", "message": "กำลังดาวน์โหลดโมเดล AI..."})
+            temp_model_path = local_model_path + ".tmp"
+            await download_with_progress_ws(model_url, temp_model_path, 0, 50, "กำลังดาวน์โหลดโมเดล AI...")
+            await asyncio.to_thread(os.rename, temp_model_path, local_model_path)
+        else:
+            await websocket.send_json({"progress": 50, "status": "PROCESSING", "message": "ใช้โมเดลเดิมจากแคช..."})
+
+        # 2. Download Image
+        # 50% to 70%
+        image_filename = f"temp_{uuid.uuid4().hex}.jpg"
+        local_image_path = os.path.join(settings.STORAGE_PATH, image_filename)
+        await websocket.send_json({"progress": 50, "status": "PROCESSING", "message": "กำลังดาวน์โหลดรูปภาพ..."})
+        
+        if image_url.startswith("http"):
+            await download_with_progress_ws(image_url, local_image_path, 50, 70, "กำลังดาวน์โหลดรูปภาพ...")
+        else:
+            # If it's a local file path (unlikely from frontend, but just in case)
+            local_image_path = image_url
+            await websocket.send_json({"progress": 70, "status": "PROCESSING", "message": "เตรียมรูปภาพเสร็จสิ้น"})
+
+        # 3. Run Inference
+        # 70% to 100%
+        await websocket.send_json({"progress": 70, "status": "PROCESSING", "message": "AI กำลังวิเคราะห์สิว..."})
+        
+        service = YoloService()
+        result = await asyncio.to_thread(service.predict, local_image_path, local_model_path, confidence)
+        
+        # 4. Completed
+        await websocket.send_json({
+            "progress": 100, 
+            "status": "COMPLETED", 
+            "message": "วิเคราะห์เสร็จสิ้น!",
+            "result": result
+        })
+
+    except WebSocketDisconnect:
+        print("Client disconnected")
+    except Exception as e:
+        print(f"WebSocket Error: {e}")
+        try:
+            await websocket.send_json({"error": f"เกิดข้อผิดพลาด: {str(e)}"})
+        except:
+            pass
+    finally:
+        # Cleanup temp image
+        if local_image_path and os.path.exists(local_image_path) and not local_image_path.endswith(".pt"):
+            try:
+                os.remove(local_image_path)
+            except:
+                pass
+        try:
+            await websocket.close()
+        except:
+            pass
 
 
 @app.post("/models/upload", tags=["Models"])

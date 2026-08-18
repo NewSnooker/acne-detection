@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 const { auth } = NextAuth(authConfig);
 
-const PUBLIC_ROUTES = ["/login", "/register", "/api/auth", "/api/models"];
+const PUBLIC_ROUTES = ["/login", "/register", "/api/auth", "/api/models", "/api/analyze"];
 const ADMIN_ROUTES = ["/admin"];
 
 export default auth((req) => {

@@ -168,3 +168,19 @@ apps/
 **1. การบันทึกไฟล์ Binary ลง MongoDB (Prisma)**
 - การบันทึกไฟล์ (เช่น โมเดล `.pt`) ลงในฟิลด์ `Bytes` ของ Prisma/MongoDB **ต้องแปลงไฟล์เป็น `Buffer` เสมอ** (`Buffer.from(await file.arrayBuffer())`)
 - **ห้าม**ใช้ `Uint8Array` หรือ ArrayBuffer ตรงๆ เพราะใน Next.js Server Actions มันจะสูญหายและถูกบันทึกเป็นค่า `null` ในฐานข้อมูล ซึ่งจะทำให้ FastAPI ดาวน์โหลดไฟล์ไปแล้วได้ไฟล์ 0 bytes (ไฟล์พัง) จนเกิด Error ในการโหลด YOLO (`ne task for your model...`)
+
+---
+
+## สถาปัตยกรรม Progress Bar (WebSocket + XHR)
+
+เพื่อหลีกเลี่ยงปัญหา Serverless Timeout บน Vercel และแสดงผลความคืบหน้าที่แม่นยำให้กับผู้ใช้ (Real-time Feedback) ระบบวิเคราะห์สิวได้ถูกแบ่งการทำงานออกเป็น 2 ส่วน:
+
+1. **อัปโหลดภาพ (XHR)**
+   - เบราว์เซอร์ใช้ `XMLHttpRequest` ส่งรูปไปที่ `apps/web/src/app/api/analyze/prepare/route.ts` 
+   - ระบบจะจับ event `onprogress` จาก `xhr.upload` เพื่อแสดงเปอร์เซ็นต์ (0-30%) ตามสัดส่วนเวลาจริง
+2. **ประมวลผล AI (WebSocket)**
+   - ทันทีที่อัปโหลดเสร็จ ฝั่งเบราว์เซอร์จะต่อ `WebSocket` เข้าหา FastAPI (`@app.websocket("/ws/predict")`)
+   - FastAPI รับ URL ของรูปภาพและโมเดล ทำการดาวน์โหลดและพ่นสถานะ/เปอร์เซ็นต์กลับมาผ่าน WebSocket ตลอดเวลาแบบ Chunk-by-Chunk
+   - ฝั่ง Next.js แปลงสัดส่วนเปอร์เซ็นต์ของ WebSocket มาใส่เป็น 30% -> 95% 
+   - มีระบบ Fake Interpolation (เพิ่มทีละ 1%) คอยหลอกสายตาระหว่างช่วงที่ AI กำลังประมวลผลเพื่อให้หลอดดูสมูท ไม่หยุดนิ่ง
+   - เมื่อ FastAPI คำนวณเสร็จ จะส่งผลลัพธ์ผ่าน WebSocket เบราว์เซอร์จึงเรียก `saveAnalysisResult` ไปเซฟข้อมูลลงฐานข้อมูล (98% -> 100%)

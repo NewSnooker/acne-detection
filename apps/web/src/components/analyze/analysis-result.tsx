@@ -14,6 +14,7 @@ interface AnalysisResultPanelProps {
   result: AnalysisResult | null;
   loading: boolean;
   loadingText?: string;
+  progress?: number;
   error: string | null;
   onAnalyze: () => void;
   onUploadNew: () => void;
@@ -41,6 +42,7 @@ export function AnalysisResultPanel({
   result,
   loading,
   loadingText = "กำลังประมวลผลด้วย AI...",
+  progress = 0,
   error,
   onAnalyze,
   onUploadNew,
@@ -98,24 +100,48 @@ export function AnalysisResultPanel({
                 ระบบพร้อมทำการวิเคราะห์รูปภาพของคุณแล้ว
               </p>
             )}
-            <motion.button
-              whileTap={!loading ? { scale: 0.98 } : {}}
-              onClick={onAnalyze}
-              disabled={loading}
-              className={cn(
-                "w-full cursor-pointer h-12 bg-primary text-primary-foreground rounded-xl font-bold transition-all flex items-center justify-center disabled:opacity-70",
-                loading ? "animate-pulse" : "hover:bg-primary/90 shadow-sm",
-              )}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  {loadingText}
-                </>
-              ) : (
-                "วิเคราะห์รูปภาพ"
-              )}
-            </motion.button>
+            <motion.div className="space-y-4">
+              <motion.button
+                whileTap={!loading ? { scale: 0.98 } : {}}
+                onClick={onAnalyze}
+                className={cn(
+                  "w-full cursor-pointer h-14 rounded-xl font-bold transition-all flex items-center justify-center relative overflow-hidden",
+                  loading 
+                    ? "bg-secondary text-foreground cursor-not-allowed" 
+                    : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm disabled:opacity-50"
+                )}
+                disabled={loading}
+              >
+                {/* Gradient Progress Bar inside Button */}
+                {loading && (
+                  <div 
+                    className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 transition-all duration-300 ease-out overflow-hidden"
+                    style={{ width: `${progress}%` }}
+                  >
+                    {/* Continuous Shimmer Animation */}
+                    <motion.div 
+                      className="absolute inset-0 w-[200%] bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
+                      animate={{ x: ["-100%", "100%"] }}
+                      transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+                    />
+                  </div>
+                )}
+
+                <div className={cn(
+                  "relative z-10 flex items-center justify-center text-lg drop-shadow-sm",
+                  loading ? "text-white" : "" // Force text white when loading so it's readable over the colorful gradient
+                )}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-6 w-6 animate-spin text-white" />
+                      กำลังวิเคราะห์รูปภาพ... {progress}%
+                    </>
+                  ) : (
+                    "วิเคราะห์รูปภาพ"
+                  )}
+                </div>
+              </motion.button>
+            </motion.div>
           </motion.div>
         )}
 
