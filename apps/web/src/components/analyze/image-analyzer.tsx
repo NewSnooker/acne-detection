@@ -57,159 +57,52 @@ export function ImageAnalyzer({
   const handleAnalyze = async () => {
     if (!selectedFile) return;
     setLoading(true);
-    setLoadingText("กำลังเริ่มต้น...");
+    setLoadingText("กำลังเชื่อมต่อระบบ AI...");
+    setProgress(0);
     setError(null);
     setResult(null);
 
-    // 1. Upload File via XHR to get real upload progress
-    const formData = new FormData();
-    formData.append("image", selectedFile);
+    // Simulate progress updates for long-running Cloudinary/YOLO tasks
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev < 90) return prev + 2; // slowly ticks up to 90%
+        return prev;
+      });
+      
+      setLoadingText((prev) => {
+        if (prev === "กำลังเชื่อมต่อระบบ AI...")
+          return "กำลังอัปโหลดรูประบบ Cloud...";
+        if (prev === "กำลังอัปโหลดรูประบบ Cloud...")
+          return "AI กำลังวิเคราะห์สิว...";
+        if (prev === "AI กำลังวิเคราะห์สิว...")
+          return "กำลังรวบรวมผลลัพธ์และสร้างรายงาน...";
+        return prev;
+      });
+    }, 1500);
 
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/analyze/prepare", true);
+    try {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
 
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const percentComplete = (event.loaded / event.total) * 100;
-        const scaledProgress = Math.round(percentComplete * 0.3); // Upload = 30%
-        progressRef.current = scaledProgress;
-        setProgress(scaledProgress);
+      const res = await analyzeImage(formData);
 
-        if (Math.round(percentComplete) % 25 === 0) {
-          console.log(
-            `[Status]: กำลังอัปโหลดรูปภาพ... (${Math.round(percentComplete)}%)`,
-          );
+      if (res.error) {
+        console.error(res.error);
+        if (res.error.includes("fetch")) {
+          setError("เกิดข้อผิดพลาดในการเชื่อมต่อ API");
+        } else {
+          setError(res.error);
         }
+      } else {
+        setProgress(100);
+        setResult(res.data as AnalysisResult);
       }
-    };
-
-    xhr.onload = async () => {
-      if (xhr.status !== 200) {
-        setError("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const res = JSON.parse(xhr.responseText);
-        if (res.error) throw new Error(res.error);
-
-        const {
-          imageUrlOrPath,
-          modelUrlOrPath,
-          imageName,
-          imageUrl,
-          imageProvider,
-          modelId,
-        } = res.data;
-
-        // 2. Connect to WebSocket
-        // const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const wsUrl =
-          process.env.NEXT_PUBLIC_AI_WS_URL || "ws://localhost:8000/ws/predict";
-
-        const ws = new WebSocket(wsUrl);
-
-        ws.onopen = () => {
-          ws.send(
-            JSON.stringify({
-              image_url: imageUrlOrPath,
-              model_url: modelUrlOrPath,
-              confidence: 0.2,
-            }),
-          );
-        };
-
-        let aiThinkingInterval: NodeJS.Timeout | null = null;
-
-        ws.onmessage = async (event) => {
-          const data = JSON.parse(event.data);
-
-          if (data.error) {
-            if (aiThinkingInterval) clearInterval(aiThinkingInterval);
-            setError(data.error);
-            setLoading(false);
-            ws.close();
-            return;
-          }
-
-          if (data.status === "PROCESSING") {
-            const wsProgress = data.progress || 0;
-            const scaledProgress = 30 + Math.round(wsProgress * 0.65);
-            progressRef.current = scaledProgress;
-            setProgress(scaledProgress);
-
-            // Console log status for debugging
-            console.log(`[Status]: ${data.message} (${wsProgress}%)`);
-
-            if (
-              data.message === "AI กำลังวิเคราะห์สิว..." &&
-              !aiThinkingInterval
-            ) {
-              aiThinkingInterval = setInterval(() => {
-                setProgress((prev) => {
-                  if (prev < 95) return prev + 1;
-                  return prev;
-                });
-              }, 400);
-            }
-          }
-
-          if (data.status === "COMPLETED") {
-            if (aiThinkingInterval) clearInterval(aiThinkingInterval);
-            setProgress(98);
-            console.log("[Status]: กำลังบันทึกผลลัพธ์ลงฐานข้อมูล...");
-
-            // 3. Save result
-            const { saveAnalysisResult } =
-              await import("@/app/actions/save-analysis");
-            const saveRes = await saveAnalysisResult({
-              detections: data.result.detections,
-              counts: data.result.counts,
-              total: data.result.total,
-              modelId,
-              imageName,
-              imageUrl,
-              imageProvider,
-            });
-
-            if (saveRes.error) {
-              setError(saveRes.error);
-            } else {
-              setResult(saveRes.data as AnalysisResult);
-            }
-
-            setProgress(100);
-            setLoading(false);
-            ws.close();
-          }
-        };
-
-        ws.onerror = () => {
-          if (aiThinkingInterval) clearInterval(aiThinkingInterval);
-          setError("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์ AI");
-          setLoading(false);
-        };
-
-        ws.onclose = (event) => {
-          if (aiThinkingInterval) clearInterval(aiThinkingInterval);
-          if (!event.wasClean && loading) {
-            setError("การเชื่อมต่อขาดหาย (Connection Dropped)");
-            setLoading(false);
-          }
-        };
-      } catch (err: any) {
-        setError(err.message || "เกิดข้อผิดพลาด");
-        setLoading(false);
-      }
-    };
-
-    xhr.onerror = () => {
-      setError("ไม่สามารถติดต่อเซิร์ฟเวอร์ได้");
+    } catch (err: any) {
+      setError(err.message || "เกิดข้อผิดพลาด");
+    } finally {
+      clearInterval(progressInterval);
       setLoading(false);
-    };
-
-    xhr.send(formData);
+    }
   };
 
   const handleReset = useCallback(() => {
