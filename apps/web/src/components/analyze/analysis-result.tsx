@@ -128,13 +128,14 @@ export function AnalysisResultPanel({
                 )}
 
                 <div className={cn(
-                  "relative z-10 flex items-center justify-center text-lg drop-shadow-sm",
-                  loading ? "text-white" : "" // Force text white when loading so it's readable over the colorful gradient
+                  "relative z-10 flex items-center justify-center font-medium drop-shadow-sm",
+                  loading ? "text-white text-base" : "text-lg" 
                 )}>
                   {loading ? (
                     <>
-                      <Loader2 className="mr-2 h-6 w-6 animate-spin text-white" />
-                      {loadingText} {progress}%
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin text-white/90" />
+                      <span className="min-w-[140px] text-left">{loadingText}</span>
+                      <span className="ml-1 font-bold">{progress}%</span>
                     </>
                   ) : (
                     "วิเคราะห์รูปภาพ"

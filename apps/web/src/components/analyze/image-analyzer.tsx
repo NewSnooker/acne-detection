@@ -41,7 +41,6 @@ export function ImageAnalyzer({
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [loadingText, setLoadingText] = useState<string>("กำลังเตรียมการ...");
   const [progress, setProgress] = useState<number>(0);
-  const progressRef = useRef<number>(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -66,20 +65,16 @@ export function ImageAnalyzer({
     // Simulate progress updates for long-running Cloudinary/YOLO tasks
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
-        if (prev < 90) return prev + 2; // slowly ticks up to 90%
-        return prev;
+        const next = prev + (prev < 40 ? 5 : prev < 70 ? 3 : 1);
+
+        // Update text based on progress
+        if (next < 30) setLoadingText("อัปโหลดรูปภาพ...");
+        else if (next < 70) setLoadingText("AI กำลังวิเคราะห์...");
+        else setLoadingText("ประมวลผลลัพธ์...");
+
+        return next > 80 ? 80 : next;
       });
-      
-      setLoadingText((prev) => {
-        if (prev === "กำลังเชื่อมต่อระบบ AI...")
-          return "กำลังอัปโหลดรูประบบ Cloud...";
-        if (prev === "กำลังอัปโหลดรูประบบ Cloud...")
-          return "AI กำลังวิเคราะห์สิว...";
-        if (prev === "AI กำลังวิเคราะห์สิว...")
-          return "กำลังรวบรวมผลลัพธ์และสร้างรายงาน...";
-        return prev;
-      });
-    }, 1500);
+    }, 200);
 
     try {
       const formData = new FormData();
@@ -88,6 +83,8 @@ export function ImageAnalyzer({
       const res = await analyzeImage(formData);
 
       if (res.error) {
+        clearInterval(progressInterval);
+        setLoading(false);
         console.error(res.error);
         if (res.error.includes("fetch")) {
           setError("เกิดข้อผิดพลาดในการเชื่อมต่อ API");
@@ -95,14 +92,20 @@ export function ImageAnalyzer({
           setError(res.error);
         }
       } else {
+        clearInterval(progressInterval);
         setProgress(100);
-        setResult(res.data as AnalysisResult);
+        setLoadingText("เสร็จสิ้น!");
+
+        // ให้เวลาหลอดวิ่งไปแตะ 100% แว๊บนึง (300ms) แล้วค่อยโชว์ผลลัพธ์
+        setTimeout(() => {
+          setResult(res.data as AnalysisResult);
+          setLoading(false);
+        }, 300);
       }
     } catch (err: any) {
-      setError(err.message || "เกิดข้อผิดพลาด");
-    } finally {
       clearInterval(progressInterval);
       setLoading(false);
+      setError(err.message || "เกิดข้อผิดพลาด");
     }
   };
 
