@@ -31,12 +31,15 @@ interface ImageAnalyzerProps {
   isModelAvailable?: boolean;
 }
 
-export function ImageAnalyzer({ isModelAvailable = true }: ImageAnalyzerProps = {}) {
+export function ImageAnalyzer({
+  isModelAvailable = true,
+}: ImageAnalyzerProps = {}) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [loadingText, setLoadingText] = useState<string>("กำลังเตรียมการ...");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,7 +56,21 @@ export function ImageAnalyzer({ isModelAvailable = true }: ImageAnalyzerProps = 
   const handleAnalyze = async () => {
     if (!selectedFile) return;
     setLoading(true);
+    setLoadingText("กำลังเชื่อมต่อระบบ AI...");
     setError(null);
+
+    // Simulate progress updates for long-running Cloudinary/YOLO tasks
+    const progressInterval = setInterval(() => {
+      setLoadingText((prev) => {
+        if (prev === "กำลังเชื่อมต่อระบบ AI...")
+          return "กำลังอัปโหลดรูประบบ Cloud...";
+        if (prev === "กำลังอัปโหลดรูประบบ Cloud...")
+          return "AI กำลังวิเคราะห์สิว...";
+        if (prev === "AI กำลังวิเคราะห์สิว...")
+          return "กำลังรวบรวมผลลัพธ์และสร้างรายงาน...";
+        return prev;
+      });
+    }, 3500);
 
     const formData = new FormData();
     formData.append("image", selectedFile);
@@ -71,6 +88,7 @@ export function ImageAnalyzer({ isModelAvailable = true }: ImageAnalyzerProps = 
       setResult(res.data as AnalysisResult);
     }
 
+    clearInterval(progressInterval);
     setLoading(false);
   };
 
@@ -148,6 +166,7 @@ export function ImageAnalyzer({ isModelAvailable = true }: ImageAnalyzerProps = 
           previewUrl={previewUrl}
           result={result}
           loading={loading}
+          loadingText={loadingText}
           error={error}
           onAnalyze={handleAnalyze}
           onUploadNew={triggerUpload}

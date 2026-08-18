@@ -13,6 +13,7 @@ interface AnalysisResultPanelProps {
   previewUrl: string | null;
   result: AnalysisResult | null;
   loading: boolean;
+  loadingText?: string;
   error: string | null;
   onAnalyze: () => void;
   onUploadNew: () => void;
@@ -39,6 +40,7 @@ export function AnalysisResultPanel({
   previewUrl,
   result,
   loading,
+  loadingText = "กำลังประมวลผลด้วย AI...",
   error,
   onAnalyze,
   onUploadNew,
@@ -108,7 +110,7 @@ export function AnalysisResultPanel({
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  กำลังประมวลผลด้วย AI...
+                  {loadingText}
                 </>
               ) : (
                 "วิเคราะห์รูปภาพ"

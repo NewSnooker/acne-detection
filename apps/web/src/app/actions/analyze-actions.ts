@@ -95,7 +95,7 @@ export async function analyzeImage(formData: FormData) {
     }
 
     // โมเดลอยู่ใน MongoDB เสมอ → ส่ง URL ให้ FastAPI ดาวน์โหลด
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = process.env.INTERNAL_APP_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const activeModelPath = `${appUrl}/api/models/${activeModel.id}`;
 
     apiFormData.append("model_url_or_path", activeModelPath);
@@ -151,9 +151,9 @@ export async function analyzeImage(formData: FormData) {
     };
   } catch (error) {
     console.error("Error analyzing image:", error);
+    // ซ่อน Error เชิงเทคนิค (เช่น Prisma Error) ไม่ให้ไปแสดงที่หน้าเว็บ
     return {
-      error:
-        error instanceof Error ? error.message : "เกิดข้อผิดพลาดในระบบวิเคราห์",
+      error: "เกิดข้อผิดพลาดในการประมวลผล กรุณาลองใหม่อีกครั้ง หรือเข้าสู่ระบบใหม่",
     };
   }
 }

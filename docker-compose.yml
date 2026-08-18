@@ -61,6 +61,7 @@ services:
       - STORAGE_PATH=/app/images             # ← Linux path inside container
       - MODELS_PATH=/app/models              # ← ไม่ได้ใช้ฝั่ง web ตอน runtime
       - AI_SERVICE_URL=http://ai:8000
+      - INTERNAL_APP_URL=http://web:3000     # ← ให้ AI ใช้โหลดโมเดลกลับมา
       - DATABASE_URL=mongodb://mongodb:27017/acne_db?replicaSet=rs0
     depends_on:
       - mongodb
