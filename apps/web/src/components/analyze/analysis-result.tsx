@@ -135,7 +135,7 @@ export function AnalysisResultPanel({
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin text-white/90" />
                       <span className="min-w-[140px] text-left">{loadingText}</span>
-                      <span className="ml-1 font-bold">{progress}%</span>
+                      <span className="ml-1 font-bold">{Math.round(progress)}%</span>
                     </>
                   ) : (
                     "วิเคราะห์รูปภาพ"

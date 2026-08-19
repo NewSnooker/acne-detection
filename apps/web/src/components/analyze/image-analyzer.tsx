@@ -65,14 +65,14 @@ export function ImageAnalyzer({
     // Simulate progress updates for long-running Cloudinary/YOLO tasks
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
-        const next = prev + (prev < 40 ? 5 : prev < 70 ? 3 : 1);
+        const next = prev + (prev < 40 ? 1 : prev < 70 ? 1 : 0.3);
 
         // Update text based on progress
         if (next < 30) setLoadingText("อัปโหลดรูปภาพ...");
         else if (next < 70) setLoadingText("AI กำลังวิเคราะห์...");
         else setLoadingText("ประมวลผลลัพธ์...");
 
-        return next > 80 ? 80 : next;
+        return next > 99 ? 99 : next;
       });
     }, 200);
 
