@@ -65,7 +65,7 @@ export function ImageAnalyzer({
     // Simulate progress updates for long-running Cloudinary/YOLO tasks
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
-        const next = prev + (prev < 40 ? 1 : prev < 70 ? 1 : 0.3);
+        const next = prev + (prev < 40 ? 0.3 : prev < 70 ? 0.2 : 0.1);
 
         // Update text based on progress
         if (next < 30) setLoadingText("อัปโหลดรูปภาพ...");
