@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
-import { analyzeImage } from "@/app/actions/analyze-actions";
+import { AnalyzeService } from "@/services/analyze-service";
 import { ImageUploader } from "./image-uploader";
 import { ImagePreview } from "./image-preview";
 import { AnalysisResultPanel } from "./analysis-result";
@@ -65,7 +65,7 @@ export function ImageAnalyzer({
     // Simulate progress updates for long-running Cloudinary/YOLO tasks
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
-        const next = prev + (prev < 40 ? 0.3 : prev < 70 ? 0.2 : 0.1);
+        const next = prev + (prev < 40 ? 2 : prev < 70 ? 0.5 : 0.1);
 
         // Update text based on progress
         if (next < 30) setLoadingText("อัปโหลดรูปภาพ...");
@@ -80,7 +80,7 @@ export function ImageAnalyzer({
       const formData = new FormData();
       formData.append("image", selectedFile);
 
-      const res = await analyzeImage(formData);
+      const res = await AnalyzeService.analyzeImage(formData);
 
       if (res.error) {
         clearInterval(progressInterval);

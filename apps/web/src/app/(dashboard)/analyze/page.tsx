@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { ImageAnalyzer } from "@/components/analyze/image-analyzer";
 
-import { hasActiveModel } from "@/app/actions/model-actions";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +17,10 @@ export default async function AnalyzePage() {
     redirect("/login");
   }
 
-  const isModelAvailable = await hasActiveModel();
+  const activeModelCount = await prisma.aiModel.count({
+    where: { isActive: true },
+  });
+  const isModelAvailable = activeModelCount > 0;
 
   return (
     <div className="max-w-6xl mx-auto flex flex-col gap-6">

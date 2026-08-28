@@ -1,74 +1,67 @@
-import { v2 as cloudinary } from "cloudinary";
+import { put, del } from "@vercel/blob";
 import fs from "fs";
 import path from "path";
 
-// ─── Cloudinary Config ────────────────────────────────────────
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
 export type ImageUploadResult = {
-  originalImage: string; // fileName (local) or public_id (cloudinary)
-  imageUrl: string | null;
-  imageProvider: "local" | "cloudinary";
+  originalImage: string; // fileName (local) or blob pathname (vercel-blob)
+  imageUrl: string | null; // null for local, public URL for vercel-blob
+  imageProvider: "local" | "vercel-blob";
 };
+
+// ─── Helper ────────────────────────────────────────────────────
+
+function getStoragePath() {
+  let storagePath = process.env.STORAGE_PATH;
+  if (!storagePath || !path.isAbsolute(storagePath)) {
+    const cwd = process.cwd();
+    if (cwd.endsWith("web")) {
+      storagePath = path.resolve(cwd, "..", "..", "apps", "images");
+    } else {
+      storagePath = path.resolve(cwd, "apps", "images");
+    }
+  }
+  return storagePath;
+}
 
 // ─── Image Provider Abstraction ────────────────────────────────
 
 export async function uploadImage(file: File): Promise<ImageUploadResult> {
   const isHosted = process.env.APP_ENV === "hosted";
   const buffer = Buffer.from(await file.arrayBuffer());
+  const crypto = await import("crypto");
+  const uuid = crypto.randomUUID();
+  const extension = file.name.split(".").pop() || "jpg";
+  const fileName = `acne-ai/${uuid}.${extension}`;
 
   if (isHosted) {
-    // ─── Upload to Cloudinary ───
-    return new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: "acne-ai" },
-        (error, result) => {
-          if (error || !result) {
-            console.error("Cloudinary Upload Error:", error);
-            reject(error || new Error("Failed to upload to Cloudinary"));
-          } else {
-            resolve({
-              originalImage: result.public_id,
-              imageUrl: result.secure_url,
-              imageProvider: "cloudinary",
-            });
-          }
-        },
-      );
-      uploadStream.end(buffer);
+    // ─── Hosted: อัปโหลดขึ้น Vercel Blob (Internal Network → เร็วมาก)
+    // put() จะ Return URL กลับมาทันที ไม่ต้องทำ Background Job
+    console.log(`[Image Upload] Uploading to Vercel Blob: ${fileName}`);
+    const blob = await put(fileName, buffer, {
+      access: "public",
+      contentType: file.type || "image/jpeg",
     });
-  } else {
-    // ─── Save to Local Disk ───
-    const crypto = await import("crypto");
-    const uuid = crypto.randomUUID();
-    // Default fallback path if STORAGE_PATH is not set
-    let storagePath = process.env.STORAGE_PATH;
-    if (!storagePath || !path.isAbsolute(storagePath)) {
-      const cwd = process.cwd();
-      if (cwd.endsWith("web")) {
-        storagePath = path.resolve(cwd, "..", "..", "apps", "images");
-      } else {
-        storagePath = path.resolve(cwd, "apps", "images");
-      }
-    }
+    console.log(`[Image Upload] Vercel Blob upload success: ${blob.url}`);
 
-    // Ensure directory exists
+    return {
+      originalImage: blob.pathname, // เก็บ pathname ไว้ใช้ตอนลบ
+      imageUrl: blob.url,
+      imageProvider: "vercel-blob",
+    };
+  } else {
+    // ─── Local/Docker: เซฟลง Shared Volume ───
+    const storagePath = getStoragePath();
     if (!fs.existsSync(storagePath)) {
       fs.mkdirSync(storagePath, { recursive: true });
     }
 
-    const extension = file.name.split(".").pop() || "jpg";
-    const fileName = `${uuid}.${extension}`;
-    const filePath = path.join(storagePath, fileName);
-    
+    const localFileName = `${uuid}.${extension}`;
+    const filePath = path.join(storagePath, localFileName);
     await fs.promises.writeFile(filePath, buffer);
+    console.log(`[Image Upload] Saved to local disk: ${filePath}`);
 
     return {
-      originalImage: fileName,
+      originalImage: localFileName,
       imageUrl: null,
       imageProvider: "local",
     };
@@ -78,33 +71,32 @@ export async function uploadImage(file: File): Promise<ImageUploadResult> {
 export async function deleteImage(
   originalImage: string,
   provider: string,
+  imageUrl?: string | null,
 ): Promise<void> {
-  if (provider === "cloudinary") {
-    // ─── Delete from Cloudinary ───
+  if (provider === "vercel-blob") {
+    // ─── Delete from Vercel Blob ───
     try {
-      await cloudinary.uploader.destroy(originalImage);
+      if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        console.warn(`[Image Delete] Skipped Vercel Blob delete (${originalImage}): BLOB_READ_WRITE_TOKEN is missing.`);
+        return;
+      }
+      const target = imageUrl || originalImage;
+      await del(target);
+      console.log(`[Image Delete] Deleted from Vercel Blob: ${target}`);
     } catch (error) {
-      console.error("Failed to delete image from Cloudinary:", error);
+      console.error("[Image Delete] Failed to delete from Vercel Blob:", error);
     }
   } else {
     // ─── Delete from Local Disk ───
     try {
-      let storagePath = process.env.STORAGE_PATH;
-      if (!storagePath || !path.isAbsolute(storagePath)) {
-        const cwd = process.cwd();
-        if (cwd.endsWith("web")) {
-          storagePath = path.resolve(cwd, "..", "..", "apps", "images");
-        } else {
-          storagePath = path.resolve(cwd, "apps", "images");
-        }
-      }
-      
+      const storagePath = getStoragePath();
       const filePath = path.join(storagePath, originalImage);
       if (fs.existsSync(filePath)) {
         await fs.promises.unlink(filePath);
+        console.log(`[Image Delete] Deleted from local disk: ${filePath}`);
       }
     } catch (fsError) {
-      console.error("Failed to delete local image file:", fsError);
+      console.error("[Image Delete] Failed to delete local image file:", fsError);
     }
   }
 }

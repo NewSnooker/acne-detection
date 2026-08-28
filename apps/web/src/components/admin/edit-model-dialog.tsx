@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { editAiModel } from "@/app/actions/model-actions";
+import { useRouter } from "next/navigation";
+import { ModelService } from "@/services/model-service";
 import { Button } from "@/components/ui/button";
 import { Edit, Loader2 } from "lucide-react";
 import {
@@ -14,6 +15,7 @@ import { AiModel } from "@prisma/client";
 import { createPortal } from "react-dom";
 
 export function EditModelDialog({ model }: { model: AiModel }) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
   const [name, setName] = useState(model.name);
@@ -28,13 +30,11 @@ export function EditModelDialog({ model }: { model: AiModel }) {
     setLoading(true);
     setError("");
 
-    const data = {
+    const result = await ModelService.editModel(model.id, {
       name,
       version,
       description,
-    };
-
-    const result = await editAiModel(model.id, data);
+    });
 
     if (result.error) {
       setError(result.error);
@@ -42,6 +42,7 @@ export function EditModelDialog({ model }: { model: AiModel }) {
     } else {
       setLoading(false);
       setIsOpen(false);
+      router.refresh(); // อัปเดต UI หลังแก้ไขโมเดล
     }
   };
 

@@ -267,3 +267,54 @@ export async function getAllHistory(
 
   return { items, total, typeCounts };
 }
+
+import { deleteImage } from "@/lib/storage/image-provider";
+
+export async function deleteHistoryLogic(id: string) {
+  const analysis = await prisma.analysis.findUnique({
+    where: { id },
+    include: { image: true },
+  });
+
+  if (!analysis || !analysis.image) {
+    throw new Error("Analysis or Image not found");
+  }
+
+  // 1. Delete the image file
+  try {
+    await deleteImage(analysis.image.fileName, analysis.image.provider, analysis.image.url);
+  } catch (fsError) {
+    console.error("Failed to delete image file:", fsError);
+    throw new Error("Failed to delete image file");
+  }
+
+  // 2. Delete the Image record from DB (this will cascade delete the Analysis record)
+  await prisma.image.delete({
+    where: { id: analysis.image.id },
+  });
+}
+
+export async function deleteHistoriesLogic(ids: string[]) {
+  const analyses = await prisma.analysis.findMany({
+    where: { id: { in: ids } },
+    include: { image: true },
+  });
+
+  // 1. Delete image files
+  for (const analysis of analyses) {
+    if (!analysis.image) continue;
+    try {
+      await deleteImage(analysis.image.fileName, analysis.image.provider, analysis.image.url);
+    } catch (fsError) {
+      console.error("Failed to delete image file:", fsError);
+    }
+  }
+
+  // 2. Delete Image records from DB (cascades to Analysis records)
+  const imageIds = analyses
+    .map((a) => a.image?.id)
+    .filter(Boolean) as string[];
+  await prisma.image.deleteMany({
+    where: { id: { in: imageIds } },
+  });
+}

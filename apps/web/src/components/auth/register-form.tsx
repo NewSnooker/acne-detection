@@ -4,7 +4,7 @@ import * as React from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { registerSchema, type RegisterInput } from "@/schemas/auth"
-import { registerUser } from "@/app/actions/register-actions"
+import { AuthService } from "@/services/auth-service"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
@@ -43,7 +43,7 @@ export function RegisterForm() {
     formData.append("password", data.password)
     formData.append("confirmPassword", data.confirmPassword)
     
-    const res = await registerUser(formData)
+    const res = await AuthService.register(formData)
     
     if (res?.error) {
       setError(res.error)

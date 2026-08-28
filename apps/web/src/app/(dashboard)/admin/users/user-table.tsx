@@ -20,7 +20,7 @@ const DataGrid = dynamic(
 );
 import { DataGridToolbar } from "@/components/ui/data-grid-toolbar";
 
-import { deleteUser, deleteUsers } from "@/app/actions/user-actions";
+import { UserService } from "@/services/user-service";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -104,7 +104,7 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
     if (!userToDelete) return;
     setIsDeleting(userToDelete.id);
     try {
-      const result = await deleteUser(userToDelete.id);
+      const result = await UserService.deleteUser(userToDelete.id);
       if (result.error) {
         alert("เกิดข้อผิดพลาดในการลบบัญชีผู้ใช้");
       } else {
@@ -123,7 +123,7 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
     if (usersToDelete.length === 0) return;
     setIsBatchDeleting(true);
     try {
-      const result = await deleteUsers(usersToDelete);
+      const result = await UserService.deleteUsers(usersToDelete);
       if (result.error) {
         alert(result.error);
       } else {

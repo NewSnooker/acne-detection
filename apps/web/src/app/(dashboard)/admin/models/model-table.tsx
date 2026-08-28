@@ -7,7 +7,7 @@ import { TableLoading } from "@/components/ui/table-loading";
 import { DataGridToolbar } from "@/components/ui/data-grid-toolbar";
 import { AiModel } from "@prisma/client";
 import { ModelActions } from "@/components/admin/model-actions";
-import { deleteAiModels } from "@/app/actions/model-actions";
+import { ModelService } from "@/services/model-service";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import { CheckCircle2, Circle, Cpu, Trash2, Loader2 } from "lucide-react";
 import { SelectionChangedEvent } from "ag-grid-community";
@@ -71,7 +71,7 @@ export function ModelTable({ models }: ModelTableProps) {
     if (modelsToDelete.length === 0) return;
     setIsBatchDeleting(true);
     try {
-      const result = await deleteAiModels(modelsToDelete);
+      const result = await ModelService.deleteModels(modelsToDelete);
       if (result.error) {
         alert("เกิดข้อผิดพลาดในการลบโมเดลแบบกลุ่ม");
       } else {

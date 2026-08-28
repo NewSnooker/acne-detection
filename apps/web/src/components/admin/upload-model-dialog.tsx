@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { uploadAiModel } from "@/app/actions/model-actions";
+import { useRouter } from "next/navigation";
+import { ModelService } from "@/services/model-service";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 
 export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState("");
@@ -80,7 +82,7 @@ export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
     formData.append("version", version);
     formData.append("description", description);
 
-    const result = await uploadAiModel(formData);
+    const result = await ModelService.uploadModel(formData);
 
     if (result.error) {
       setError(result.error);
@@ -89,6 +91,7 @@ export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
       setLoading(false);
       resetForm();
       setIsOpen(false);
+      router.refresh(); // อัปเดต UI หลังอัปโหลดโมเดลสำเร็จ
       if (onSuccess) onSuccess();
     }
   };

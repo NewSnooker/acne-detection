@@ -35,3 +35,46 @@ export async function GET(
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
+
+import { auth } from "@/lib/auth";
+import { deleteModelLogic, setActiveModelLogic } from "@/lib/services/model-logic";
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const resolvedParams = await params;
+    await deleteModelLogic(resolvedParams.id);
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || "เกิดข้อผิดพลาดในการลบโมเดล" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const resolvedParams = await params;
+    await setActiveModelLogic(resolvedParams.id);
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || "เกิดข้อผิดพลาดในการเปิดใช้งานโมเดล" },
+      { status: 500 }
+    );
+  }
+}

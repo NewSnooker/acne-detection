@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Power, Trash2, Loader2 } from "lucide-react";
-import { deleteAiModel, setActiveModel } from "@/app/actions/model-actions";
+import { ModelService } from "@/services/model-service";
 import { EditModelDialog } from "./edit-model-dialog";
 import {
   AlertDialog,
@@ -25,29 +26,35 @@ import { AiModel } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 
 export function ModelActions({ model }: { model: AiModel }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [activeOpen, setActiveOpen] = useState(false);
-  const id = model.id;
+  const modelId = model.id;
   const isActive = model.isActive;
 
   const handleSetActive = async () => {
     if (isActive) return;
     setLoading(true);
-    await setActiveModel(id);
+    const res = await ModelService.toggleModelActive(modelId);
     setLoading(false);
-    setActiveOpen(false);
+    if (res?.error) {
+      alert(res.error);
+    } else {
+      setActiveOpen(false);
+      router.refresh(); // อัปเดต UI หลังเปลี่ยนสถานะโมเดล
+    }
   };
 
   const handleDelete = async () => {
     setLoading(true);
-    const result = await deleteAiModel(id);
+    const res = await ModelService.deleteModel(modelId);
     setLoading(false);
-    
-    if (result?.error) {
-      alert(`ลบไม่สำเร็จ: ${result.error}`);
+    if (res?.error) {
+      alert(res.error);
     } else {
       setDeleteOpen(false);
+      router.refresh(); // อัปเดต UI หลังลบโมเดล
     }
   };
 

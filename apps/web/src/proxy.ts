@@ -4,7 +4,13 @@ import { NextResponse } from "next/server";
 
 const { auth } = NextAuth(authConfig);
 
-const PUBLIC_ROUTES = ["/login", "/register", "/api/auth", "/api/models"];
+const PUBLIC_ROUTES = [
+  "/login",
+  "/register",
+  "/api/auth",          // NextAuth callbacks (OAuth, session, etc.)
+  "/api/account",       // Custom Auth APIs (register, etc.)
+  "/api/models",        // FastAPI ต้องดาวน์โหลดโมเดล (GET /api/models/[id]) ไม่ต้อง Login
+];
 const ADMIN_ROUTES = ["/admin"];
 
 export default auth((req) => {

@@ -25,7 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import { SEVERITY_LABELS, ACNE_COLORS, ACNE_LABELS } from "@/types/analyze";
 import { HistoryItem } from "./history-gallery";
-import { deleteHistories } from "@/app/actions/analyze-actions";
+import { AnalyzeService } from "@/services/analyze-service";
 
 const DataGrid = dynamic(
   () => import("@/components/ui/data-grid").then((mod) => mod.DataGrid),
@@ -95,7 +95,7 @@ export function HistoryTableView({
     if (historiesToDelete.length === 0) return;
     setIsBatchDeleting(true);
     try {
-      const result = await deleteHistories(historiesToDelete);
+      const result = await AnalyzeService.deleteHistories(historiesToDelete);
       if (result.error) {
         alert("เกิดข้อผิดพลาดในการลบประวัติการวิเคราะห์");
       } else {
@@ -114,7 +114,7 @@ export function HistoryTableView({
     if (!historyToDelete) return;
     setIsDeleting(historyToDelete);
     try {
-      const result = await deleteHistories([historyToDelete]);
+      const result = await AnalyzeService.deleteHistories([historyToDelete]);
       if (result.error) {
         alert("เกิดข้อผิดพลาดในการลบประวัติการวิเคราะห์");
       } else {
