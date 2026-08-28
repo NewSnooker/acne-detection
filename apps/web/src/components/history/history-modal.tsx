@@ -165,11 +165,9 @@ export function HistoryModal({
               </button>
 
               {(() => {
-                const imageUrl =
-                  selectedItem.imageProvider === "cloudinary" &&
-                  selectedItem.imageUrl
-                    ? selectedItem.imageUrl
-                    : `/api/images/${selectedItem.imageName}`;
+                const imageUrl = selectedItem.imageUrl
+                  ? selectedItem.imageUrl
+                  : `/api/images/${selectedItem.imageName}`;
                 return (
                   <ImagePreview
                     previewUrl={imageUrl}
@@ -184,11 +182,9 @@ export function HistoryModal({
             {/* Right: Results Panel */}
             <div className="h-full animate-in fade-in duration-500">
               {(() => {
-                const imageUrl =
-                  selectedItem.imageProvider === "cloudinary" &&
-                  selectedItem.imageUrl
-                    ? selectedItem.imageUrl
-                    : `/api/images/${selectedItem.imageName}`;
+                const imageUrl = selectedItem.imageUrl
+                  ? selectedItem.imageUrl
+                  : `/api/images/${selectedItem.imageName}`;
                 return (
                   <AnalysisResultPanel
                     previewUrl={imageUrl}

@@ -11,6 +11,8 @@ RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN mkdir -p storage models
+RUN mkdir -p storage models /tmp/models /tmp/images && chmod -R 777 storage models /tmp
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 7860
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]

@@ -30,14 +30,14 @@ npm run dev
 
 ## Environment
 
-|            | **Dev**                 | **Docker**                   | **Hosted**                 |
-| ---------- | ----------------------- | ---------------------------- | -------------------------- |
-| รัน        | `npm run dev`           | `docker-compose up`          | Vercel (Web) + Railway (AI)|
-| DB         | MongoDB Atlas           | MongoDB container (override) | MongoDB Atlas              |
-| รูปภาพ     | Local disk              | Local disk (volume mount)    | **Vercel Blob Storage**    |
-| โมเดล AI   | **MongoDB Binary**      | **MongoDB Binary**           | **MongoDB Binary**         |
-| AI URL     | `http://localhost:8000` | `http://ai:8000` (override)  | Railway/Public URL         |
-| Switch key | `APP_ENV=dev`           | `APP_ENV=docker`             | `APP_ENV=hosted`           |
+|            | **Dev**                 | **Docker**                   | **Hosted**                    |
+| ---------- | ----------------------- | ---------------------------- | ----------------------------- |
+| รัน        | `npm run dev`           | `docker-compose up`          | **Vercel (Web) + Render.com (AI)** |
+| DB         | MongoDB Atlas           | MongoDB container (override) | MongoDB Atlas                 |
+| รูปภาพ     | Local disk              | Local disk (volume mount)    | **Vercel Blob Storage**       |
+| โมเดล AI   | **MongoDB Binary**      | **MongoDB Binary**           | **MongoDB Binary**            |
+| AI URL     | `http://localhost:8000` | `http://ai:8000` (override)  | `https://<app>.onrender.com`  |
+| Switch key | `APP_ENV=dev`           | `APP_ENV=docker`             | `APP_ENV=hosted`              |
 
 > **Image provider switch**: `image-provider.ts` → `if APP_ENV === "hosted"` → Vercel Blob (`@vercel/blob`), else Local disk
 > **Model provider**: เก็บ MongoDB Binary เสมอ ทุก env (`modelData: Bytes`)
@@ -52,7 +52,7 @@ npm run dev
 - บันทึกใน MongoDB ด้วย `provider: "local"` และ `url: null`
 - หน้าประวัติและหน้าเว็บดึงรูปผ่าน `GET /api/images/[...path]`
 
-### 2. โหมด Hosted (`APP_ENV=hosted` บน Vercel + Railway)
+### 2. โหมด Hosted (`APP_ENV=hosted` บน Vercel + Render.com)
 - Next.js อัปโหลดรูปขึ้น **Vercel Blob Storage** ผ่านฟังก์ชัน `put()` จาก `@vercel/blob`
 - อัปโหลดใน Vercel Internal Network เร็วระดับ 0.1-0.5 วินาที ได้ Public URL ทันที
 - Next.js ส่ง **Public URL** (`https://...public.blob.vercel-storage.com/...`) ให้ FastAPI ดาวน์โหลดไปประมวลผล
@@ -78,7 +78,7 @@ npm run dev
        ↓
 4. Next.js ดึง Active Model จาก MongoDB
        ↓
-5. Next.js ยิง POST /predict ไปที่ FastAPI พร้อม:
+5. Next.js ยิง POST /predict ไปที่ FastAPI บน Render.com พร้อม:
    - image_url_or_path = URL (Vercel Blob) หรือ Absolute Path (Local)
    - model_url_or_path = http://<app>/api/models/{id}
        ↓
@@ -169,7 +169,7 @@ apps/
 │   │   └── auth-actions.ts     ← Server Actions เฉพาะ signIn credentials/google
 │   └── src/app/api/            ← Next.js Route Handlers (12 เส้น)
 ├── ai/
-│   ├── app/main.py             ← /predict endpoint (FastAPI)
+│   ├── app/main.py             ← /predict endpoint (FastAPI บน Render.com)
 │   ├── app/config.py           ← MODELS_PATH (cache dir)
 │   └── models/                 ← FastAPI model cache
 └── images/                     ← รูปภาพ local shared volume (dev/docker)
@@ -200,13 +200,17 @@ apps/
 
 ## Technical Notes (ข้อควรระวังสำหรับนักพัฒนา)
 
-1. **การบันทึกไฟล์ Binary ลง MongoDB (Prisma):**
+1. **Render.com Free Tier (Keep-Alive):**
+   - Render แพลนฟรีจะ Sleep ตัวเองหลังไม่มีคนใช้งานเกิน 15 นาที ทำให้การยิงครั้งแรกช้า (Cold Start ~30-50 วินาที)
+   - แนะนำให้ตั้ง Cron Job (เช่น `cron-job.org` หรือ `UptimeRobot`) ยิง Ping ไปที่ `GET https://<app>.onrender.com/health` ทุกๆ 5-10 นาทีเพื่อไม่ให้เซิร์ฟเวอร์หลับ
+
+2. **การบันทึกไฟล์ Binary ลง MongoDB (Prisma):**
    - ไฟล์โมเดล `.pt` ในฟิลด์ `Bytes` ของ Prisma/MongoDB **ต้องแปลงเป็น `Buffer` เสมอ** (`Buffer.from(await file.arrayBuffer())`)
    - **ห้าม** ใช้ `Uint8Array` ตรงๆ เพราะข้อมูลจะกลายเป็น `null` ในฐานข้อมูล ส่งผลให้ไฟล์โมเดลเสียหาย (0 bytes)
 
-2. **Next.js 15/16 Dynamic Route Params:**
+3. **Next.js 15/16 Dynamic Route Params:**
    - ทุก Route Handler ที่มี dynamic params (เช่น `[id]`, `[...path]`) ต้องใช้ `await params` เสมอ เพราะ params เป็น Promise
 
-3. **Vercel Blob Storage Token:**
+4. **Vercel Blob Storage Token:**
    - บน Vercel Dashboard ต้องผูก Blob Store เข้ากับโปรเจกต์ เพื่อให้ได้ `BLOB_READ_WRITE_TOKEN` อัตโนมัติ
    - หากรันโหมด `APP_ENV=hosted` ในเครื่องเพื่อทดสอบ ต้องนำ Token มาใส่ใน `.env`
