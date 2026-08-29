@@ -11,13 +11,6 @@ RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# สร้างโฟลเดอร์ storage / models ในแอพ และปลดล็อกสิทธิ์ให้ Hugging Face บันทึกไฟล์ได้
-# RUN mkdir -p storage models && chmod -R 777 storage models
-
-# EXPOSE 7860
-
-# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
-
 
 RUN mkdir -p storage models
 
