@@ -92,9 +92,15 @@ async def predict(
         else:
             return url_or_path
 
-    # Get local paths
+    # Get local paths with timing
+    import time
+    t0 = time.time()
     local_image_path = get_local_path(image_url_or_path, is_model=False)
+    t_img = time.time() - t0
+
+    t1 = time.time()
     local_model_path = get_local_path(model_url_or_path, is_model=True)
+    t_model = time.time() - t1
 
     if not Path(local_image_path).exists():
         raise HTTPException(status_code=404, detail=f"Image not found: {local_image_path}")
@@ -102,8 +108,13 @@ async def predict(
         raise HTTPException(status_code=404, detail=f"Model not found: {local_model_path}")
 
     try:
+        t2 = time.time()
         service = YoloService()
         result = service.predict(local_image_path, local_model_path, confidence)
+        t_infer = time.time() - t2
+
+        total_time = time.time() - t0
+        print(f"[FastAPI Timing] Image: {t_img:.2f}s | Model: {t_model:.2f}s | YOLO Inference: {t_infer:.2f}s | Total AI Time: {total_time:.2f}s")
         return result
     finally:
         # Cleanup temp image if it was downloaded from URL

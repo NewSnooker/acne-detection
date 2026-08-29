@@ -1,6 +1,11 @@
 import threading
+import os
 from pathlib import Path
+import torch
 from ultralytics import YOLO
+
+# ป้องกันปัญหา PyTorch สร้าง Thread มากเกินไปใน Container (ซึ่งทำให้เกิด CPU Throttling ช้า 20-30 วินาที)
+torch.set_num_threads(min(2, os.cpu_count() or 1))
 
 # ─── Class map ─────────────────────────────────────────────
 ACNE_CLASSES = {
