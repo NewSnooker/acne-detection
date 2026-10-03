@@ -93,6 +93,8 @@ apps/ai/models/*.pth
 # =========================
 # 5. OS & Editor Files
 # =========================
+docs/
+Claude outputs/
 .DS_Store
 .idea/
 .vscode/
