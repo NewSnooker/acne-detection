@@ -70,6 +70,7 @@ acne-ai-v1/
 | `dev-docs/ai-service.md` | แก้ FastAPI / YOLO inference |
 | `dev-docs/scope-traceability.md` | เช็คว่าโค้ดตรงกับขอบเขตในเล่ม (บทที่ 1) หรือยัง |
 | `dev-docs/refactor-plan.md` | **ก่อนรีแฟกเตอร์** — รายการปัญหาและลำดับที่ควรแก้ |
+| `dev-docs/performance/web.md` | ดูผลวัดความเร็วการวิเคราะห์ (Docker / รันในเครื่อง / Render) ก่อนแก้เรื่องความเร็ว |
 | `manual/*.md` | แก้พฤติกรรมที่ผู้ใช้เห็น (หน้าจอ, ข้อความ, ขั้นตอนติดตั้ง, ค่าตั้ง) — ต้องอัปเดตคู่มือให้ตรง |
 | `dev-docs/docker-quickstart-plan.md` | แก้ Docker / ข้อมูลเริ่มต้น — แผนและสถานะงาน "โหลดแล้วเปิด Docker ใช้ได้เลย" |
 
