@@ -9,6 +9,12 @@ export const ModelService = {
         method: "POST",
         body: formData,
       });
+      // 413 = ผู้ให้บริการปฏิเสธคำขอเพราะไฟล์ใหญ่เกิน (ดู dev-docs/limitations.md)
+      if (response.status === 413) {
+        throw new Error(
+          "ไฟล์ใหญ่เกินกว่าที่เซิร์ฟเวอร์นี้รับได้ (บน Vercel รับได้ไม่เกินประมาณ 4.5 MB)",
+        );
+      }
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Failed to upload model");
       return result;
