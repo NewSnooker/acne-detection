@@ -6,9 +6,9 @@ FastAPI 0.115.5 · Ultralytics 8.3.40 · PyTorch · Python 3.12 (Docker) / venv 
 
 | ไฟล์ | หน้าที่ |
 |---|---|
-| `app/main.py` | สร้าง app, CORS, API key, endpoint ทั้งหมด (`/`, `/health`, `/predict`) และ `get_local_path()` |
+| `app/main.py` | สร้าง app, CORS, API key, endpoint ทั้งหมด (`/`, `/health`, `/predict`) และ `resolve_image()` / `resolve_model()` ที่จำกัดว่าอ่านไฟล์จากที่ไหนได้บ้าง |
 | `app/services/yolo_service.py` | `ACNE_CLASSES`, cache โมเดลใน memory (`_cache` + lock), `YoloService.predict()` |
-| `app/config.py` | `Settings` (pydantic-settings): `AI_SERVICE_API_KEY`, `STORAGE_PATH`, `MODELS_PATH`, `DEBUG` |
+| `app/config.py` | `Settings` (pydantic-settings): `AI_SERVICE_API_KEY`, `STORAGE_PATH`, `MODELS_PATH`, `ALLOWED_IMAGE_HOSTS`, `ALLOWED_MODEL_HOSTS`, `DEBUG` |
 | `inspect_pt.py` | สคริปต์ดูข้างในไฟล์ `.pt` (keys, results_dict, names) — ไม่ได้อยู่ใน flow |
 | `requirements.txt` | pin เวอร์ชัน (ไม่มี torch — ติดมากับ ultralytics) |
 | `Dockerfile` | python:3.12-slim, ติดตั้ง PyTorch รุ่น CPU ก่อน `requirements.txt` |
@@ -18,13 +18,15 @@ FastAPI 0.115.5 · Ultralytics 8.3.40 · PyTorch · Python 3.12 (Docker) / venv 
 ## การทำงานของ `/predict`
 
 1. ตรวจ `X-API-Key` เทียบ `settings.AI_SERVICE_API_KEY`
-2. `get_local_path()`:
-   - ถ้า input ขึ้นต้น `http(s)://` → ดาวน์โหลดด้วย `urllib` (timeout 120 วินาที, โหลดลงไฟล์ `.tmp` แล้วค่อยย้าย) — ตอนโหลดโมเดลจะส่ง header `X-API-Key` ไปด้วย
-     - โมเดล: เซฟที่ `MODELS_PATH/<ชื่อท้าย URL>.pt` ถ้ามีไฟล์แล้วข้าม (cache hit)
-     - รูป: เซฟที่ `STORAGE_PATH/<ชื่อท้าย URL>` แล้วลบใน `finally`
-   - ถ้าไม่ใช่ URL → ใช้เป็น path บนดิสก์ตรง ๆ
-3. `YoloService().predict(image_path, model_path, confidence)`
-4. print เวลาแต่ละขั้น
+2. `resolve_image()` — รูป (ไม่ผ่านเงื่อนไขตอบ 400)
+   - URL: ต้องเป็น `https` และ host อยู่ใน `ALLOWED_IMAGE_HOSTS` (ค่าเริ่มต้นคือ Vercel Blob) → ดาวน์โหลดเป็น `STORAGE_PATH/tmp_<uuid>.<ext>` แล้วลบใน `finally`
+   - path: ต้องเป็นไฟล์ `.jpg/.jpeg/.png/.webp` ที่อยู่ใต้ `STORAGE_PATH` หรือ `<repo>/apps/images` เท่านั้น
+3. `resolve_model()` — โมเดล (ไม่ผ่านเงื่อนไขตอบ 400)
+   - URL: path ต้องเป็น `/api/models/<id 24 หลัก>` (และ host อยู่ใน `ALLOWED_MODEL_HOSTS` ถ้าตั้งไว้) → ดาวน์โหลดพร้อม header `X-API-Key` เก็บที่ `MODELS_PATH/<id>.pt` ถ้ามีไฟล์แล้วข้าม (cache hit)
+   - path: ต้องเป็นไฟล์ `.pt` ที่อยู่ใต้ `MODELS_PATH` เท่านั้น
+   - การดาวน์โหลดใช้ `urllib` timeout 120 วินาที โหลดลงไฟล์ `.tmp` แล้วค่อยย้าย
+4. `YoloService().predict(image_path, model_path, confidence)`
+5. print เวลาแต่ละขั้น
 
 ## yolo_service.py
 
@@ -50,6 +52,15 @@ ACNE_CLASSES = {0:"blackhead", 1:"cyst", 2:"nodule", 3:"papule", 4:"pustule", 5:
 ## Environment (apps/ai/.env)
 
 `AI_SERVICE_API_KEY` (ต้องตรงกับฝั่ง web), `DEBUG`, `STORAGE_PATH`, `MODELS_PATH`
+
+ไม่บังคับ:
+
+| ตัวแปร | ค่าเริ่มต้น | ใช้ทำอะไร |
+|---|---|---|
+| `ALLOWED_IMAGE_HOSTS` | `.public.blob.vercel-storage.com` | host ที่ยอมให้ดาวน์โหลดรูปผ่าน URL คั่นด้วย `,` ขึ้นต้นด้วย `.` = รวม subdomain |
+| `ALLOWED_MODEL_HOSTS` | ว่าง (ไม่จำกัด) | host ของเว็บที่ยอมให้ดาวน์โหลดโมเดล เช่น `my-app.vercel.app` ควรตั้งเมื่อ deploy จริง |
+
+ถ้าฝั่งเว็บตั้ง `STORAGE_PATH` เป็นโฟลเดอร์อื่นที่ไม่ใช่ `apps/images` ต้องตั้ง `STORAGE_PATH` ของ AI ให้เป็นโฟลเดอร์เดียวกัน ไม่เช่นนั้น `/predict` จะตอบ 400
 
 ## รัน
 

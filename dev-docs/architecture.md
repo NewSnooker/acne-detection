@@ -38,7 +38,7 @@
         header: X-API-Key
    ▼
 [FastAPI] /predict  (apps/ai/app/main.py)
-   - รูป: ถ้าเป็น URL → ดาวน์โหลดลง STORAGE_PATH (ลบทิ้งหลังจบ), ถ้าเป็น path → อ่านตรง
+   - รูป: ถ้าเป็น URL → ดาวน์โหลดลง STORAGE_PATH (ลบทิ้งหลังจบ), ถ้าเป็น path → อ่านได้เฉพาะไฟล์รูปใต้ STORAGE_PATH (URL รับเฉพาะ host ของ Vercel Blob)
    - โมเดล: ดาวน์โหลดจาก GET /api/models/{id} (ส่ง X-API-Key) → cache ที่ MODELS_PATH/{id}.pt (ครั้งถัดไปข้าม)
    - YoloService.predict() → { detections[], counts{}, total }
    ▼

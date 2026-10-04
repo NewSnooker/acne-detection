@@ -12,6 +12,8 @@
 | 1 key ฝังในโค้ด | แก้แล้ว — เอาออกจากโค้ด ค่า default สำหรับ Docker อยู่ใน `docker-compose.yml` (key เดิมยังอยู่ในประวัติ git ถ้าใช้ key นั้นกับ Render/Vercel ควรเปลี่ยน) |
 | 2 โหลดโมเดลโดยไม่ login | แก้แล้ว — ต้องส่ง `X-API-Key` หรือเป็นแอดมิน |
 | 3 endpoint เก่าใน FastAPI | ลบแล้ว |
+| 4 `/predict` รับ path/URL อะไรก็ได้ | แก้แล้ว — path ต้องอยู่ใต้ `STORAGE_PATH` / `MODELS_PATH`, URL รูปรับเฉพาะ host ที่อนุญาต, URL โมเดลต้องเป็น `/api/models/<id>` |
+| 6 รูปของผู้ใช้คนอื่น | แก้แล้ว — `/api/images` ตรวจว่าเป็นเจ้าของรูปหรือแอดมิน และตรวจ path ด้วย `path.relative` |
 | 7 Docker | แก้บางส่วน — มี `.dockerignore`, เอา `--reload` ออก; ยังใช้ `npm install` และ `--accept-data-loss` (เหตุผลใน architecture.md) |
 | 15 เช็คสิทธิ์ซ้ำ | แก้แล้ว — รวมไว้ที่ `lib/auth/guards.ts` ทุกหน้าและทุก route ใช้ชุดเดียวกัน แยก 401 กับ 403 |
 | 25 โค้ดที่ไม่ได้ใช้ | ลบแล้ว — ไฟล์ ฟังก์ชัน package และตัวแปร env ที่ไม่มีใครเรียก |
