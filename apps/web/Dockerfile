@@ -19,5 +19,6 @@ RUN DATABASE_URL="mongodb://localhost:27017/build" AUTH_SECRET="build-only" npm 
 EXPOSE 3000
 
 # 1) sync index ขึ้น MongoDB (MongoDB ไม่มี migration; คำสั่งนี้ไม่ลบข้อมูลใน collection)
-# 2) เริ่มเว็บ
-CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss && npm start"]
+# 2) สร้างแอดมินและโมเดลเริ่มต้นถ้ายังไม่มี (ถ้าพลาดจะข้ามไป ไม่ขวางการเปิดเว็บ)
+# 3) เริ่มเว็บ
+CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss && (node prisma/seed.mjs || echo '[seed] ข้าม') && npm start"]
