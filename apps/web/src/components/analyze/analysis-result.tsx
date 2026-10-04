@@ -8,6 +8,7 @@ import {
   ACNE_CARE_ADVICE,
 } from "@/types/analyze";
 import { cn } from "@/lib/utils";
+import { MedicalDisclaimer } from "./medical-disclaimer";
 
 interface AnalysisResultPanelProps {
   previewUrl: string | null;
@@ -258,6 +259,9 @@ export function AnalysisResultPanel({
                 </p>
               </motion.div>
             )}
+
+            {/* แสดงทุกครั้งที่มีผลวิเคราะห์ รวมถึงหน้าประวัติ */}
+            <MedicalDisclaimer className="mt-4" />
 
             {!readOnly && (
               <motion.div

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { ImageAnalyzer } from "@/components/analyze/image-analyzer";
+import { MedicalDisclaimer } from "@/components/analyze/medical-disclaimer";
 
 import { prisma } from "@/lib/prisma";
 
@@ -35,6 +36,8 @@ export default async function AnalyzePage() {
           </p>
         </div>
       </div>
+
+      <MedicalDisclaimer />
 
       <div className="flex-1 overflow-y-auto pb-8">
         <ImageAnalyzer isModelAvailable={isModelAvailable} />
