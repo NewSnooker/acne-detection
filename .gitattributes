@@ -1,0 +1,13 @@
+# ให้ git เก็บไฟล์ข้อความเป็น LF เสมอ (กัน diff ทั้งไฟล์จาก CRLF และกันสคริปต์พังใน container)
+* text=auto eol=lf
+
+# ไฟล์ไบนารี ห้ามแปลงขึ้นบรรทัด
+*.pt binary
+*.pth binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.docx binary

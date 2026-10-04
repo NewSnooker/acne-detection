@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+tsconfig.tsbuildinfo
+npm-debug.log*
+Dockerfile
+.dockerignore
+scratch.ts
+scratch_update.ts
