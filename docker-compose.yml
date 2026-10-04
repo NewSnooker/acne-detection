@@ -13,7 +13,8 @@ services:
     image: mongo:7
     container_name: acne_mongodb
     restart: unless-stopped
-    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    # --quiet: ไม่พิมพ์ log ทุกครั้งที่มีการเชื่อมต่อ (healthcheck เชื่อมต่อเข้ามาเป็นระยะ)
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017", "--quiet"]
     volumes:
       - mongodb_data:/data/db
     healthcheck:
@@ -24,7 +25,7 @@ services:
         - --quiet
         - --eval
         - "try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongodb:27017' }] }) } if (!db.hello().isWritablePrimary) { quit(1) }"
-      interval: 5s
+      interval: 10s
       timeout: 10s
       retries: 30
       start_period: 5s
