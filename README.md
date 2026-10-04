@@ -1,8 +1,27 @@
-# AcneAI — System Context
+# AcneAI — ระบบตรวจจับและจำแนกชนิดสิวจากภาพถ่ายใบหน้า
 
-## เริ่มใช้งานด้วย Docker (แนะนำ)
+เว็บแอปพลิเคชันที่ให้ผู้ใช้อัปโหลดภาพถ่ายใบหน้า แล้วใช้ AI (Object Detection) ตรวจจับสิว 6 ชนิด ประเมินระดับความรุนแรง และให้คำแนะนำการดูแลผิวเบื้องต้น
 
-ต้องมี Docker Desktop (Docker Compose v2.24 ขึ้นไป)
+> ผลจากระบบเป็นการคัดกรองเบื้องต้นเท่านั้น ไม่สามารถทดแทนการวินิจฉัยของแพทย์ผิวหนังได้
+
+<a id="toc"></a>
+
+## สารบัญ
+
+- [เริ่มใช้งานใน 3 คำสั่ง](#quick-start)
+- [คู่มือ](#manuals)
+- [ระบบทำอะไรได้บ้าง](#features)
+- [เทคโนโลยีที่ใช้](#stack)
+- [โครงสร้างโปรเจค](#structure)
+- [เอกสารสำหรับนักพัฒนา](#dev-docs)
+
+---
+
+<a id="quick-start"></a>
+
+## เริ่มใช้งานใน 3 คำสั่ง
+
+ต้องมี [Docker Desktop](https://www.docker.com/products/docker-desktop/) เปิดอยู่ในเครื่อง
 
 ```bash
 git clone https://github.com/NewSnooker/acne-detection.git
@@ -16,250 +35,114 @@ docker compose up --build
 | --- | --- |
 | `admin@acne.local` | `Admin1234` |
 
-- ไม่ต้องสร้างไฟล์ `.env` ระบบสร้างบัญชีแอดมินและใส่โมเดล AI เริ่มต้นให้เองตอนเปิดครั้งแรก
-- build ครั้งแรกใช้เวลาหลายนาที เพราะต้องดาวน์โหลด PyTorch
-- วิเคราะห์รูปครั้งแรกจะช้ากว่าปกติ เพราะ AI ต้องโหลดโมเดลเข้าหน่วยความจำ
-- หยุดระบบ: `docker compose down` (ข้อมูลยังอยู่) ลบข้อมูลทั้งหมด: `docker compose down -v`
+ไม่ต้องสร้างไฟล์ `.env` ระบบสร้างบัญชีแอดมินและใส่โมเดล AI เริ่มต้นให้เองตอนเปิดครั้งแรก
+ขั้นตอนแบบละเอียดอยู่ใน [คู่มือเริ่มต้นใช้งาน](manual/01-getting-started.md)
 
-### เปลี่ยนค่าเริ่มต้น (ไม่บังคับ)
-
-คัดลอก `.env.example` เป็น `.env` ไว้ข้าง `docker-compose.yml` แล้วแก้ค่าที่ต้องการ เช่น port ของเว็บ รหัสผ่านแอดมินเริ่มต้น หรือ `AUTH_SECRET`
-
-### เปิดการเข้าสู่ระบบด้วย Google (ไม่บังคับ)
-
-ถ้าไม่ตั้งค่า ปุ่ม Google จะแจ้งว่ายังไม่ได้ตั้งค่า ส่วนอื่นของระบบใช้ได้ตามปกติ
-
-1. สร้าง OAuth Client ใน Google Cloud Console และเพิ่ม Authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
-2. สร้างไฟล์ `apps/web/.env` ใส่สองบรรทัดนี้
-
-   ```
-   GOOGLE_CLIENT_ID=ค่าที่ได้จาก Google
-   GOOGLE_CLIENT_SECRET=ค่าที่ได้จาก Google
-   ```
-
-3. สั่ง `docker compose up -d` อีกครั้ง
-
-### Docker สำหรับพัฒนา
-
-เปิด port ของ MongoDB (27017) และ AI (8000) ออกมาที่เครื่อง และเปิด hot reload ฝั่ง AI
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
-```
+[↑ กลับไปสารบัญ](#toc)
 
 ---
 
-## How to Run (การรันโปรเจกต์แบบ Local ไม่ใช้ Docker)
+<a id="manuals"></a>
 
-**1. รันฝั่ง AI (FastAPI)**
+## คู่มือ
 
-```bash
-cd apps\ai
-venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
-```
+| คู่มือ | สำหรับใคร | เนื้อหา |
+| --- | --- | --- |
+| [1. เริ่มต้นใช้งาน](manual/01-getting-started.md) | คนที่เพิ่งโหลดโปรแกรมมา | ติดตั้ง เปิดระบบครั้งแรก หยุด เปิดใหม่ อัปเดต ล้างข้อมูล |
+| [2. คู่มือผู้ใช้ทั่วไป](manual/02-user-guide.md) | ผู้ใช้ทั่วไป | สมัครสมาชิก วิเคราะห์สิว อ่านผล ประวัติ ภาพรวมของฉัน |
+| [3. คู่มือผู้ดูแลระบบ](manual/03-admin-guide.md) | แอดมิน | จัดการผู้ใช้ จัดการโมเดล AI ประวัติทั้งหมด ภาพรวมระบบ |
+| [4. การตั้งค่า](manual/04-configuration.md) | คนติดตั้งระบบ | เปลี่ยน port รหัสแอดมินเริ่มต้น เปิด Google login |
+| [5. แก้ปัญหา](manual/05-troubleshooting.md) | ทุกคน | อาการที่พบบ่อยและวิธีแก้ |
+| [6. คู่มือนักพัฒนา](manual/06-developer-guide.md) | นักพัฒนา | รันแบบไม่ใช้ Docker โครงสร้างโค้ด การ deploy |
 
-**2. รันฝั่ง Web (Next.js)**
-
-```bash
-cd apps\web
-npm run dev
-```
-
----
-
-## Stack
-
-- **Web**: Next.js 16 (App Router, API Routes, Auth.js)
-- **AI Service**: FastAPI + YOLO (Ultralytics)
-- **Database**: MongoDB (Prisma ORM) — Atlas (hosted/dev) / Container (docker)
-- **Image Storage**: Local disk (dev/docker) | Vercel Blob Storage (hosted)
-- **Model Storage**: MongoDB Binary (`modelData: Bytes`) — ทุก environment
+[↑ กลับไปสารบัญ](#toc)
 
 ---
 
-## Environment
+<a id="features"></a>
 
-|            | **Dev**                 | **Docker**                   | **Hosted**                    |
-| ---------- | ----------------------- | ---------------------------- | ----------------------------- |
-| รัน        | `npm run dev`           | `docker-compose up`          | **Vercel (Web) + Render.com (AI)** |
-| DB         | MongoDB Atlas           | MongoDB container (override) | MongoDB Atlas                 |
-| รูปภาพ     | Local disk              | Local disk (volume mount)    | **Vercel Blob Storage**       |
-| โมเดล AI   | **MongoDB Binary**      | **MongoDB Binary**           | **MongoDB Binary**            |
-| AI URL     | `http://localhost:8000` | `http://ai:8000` (override)  | `https://<app>.onrender.com`  |
-| Switch key | `APP_ENV=dev`           | `APP_ENV=docker`             | `APP_ENV=hosted`              |
+## ระบบทำอะไรได้บ้าง
 
-> **Image provider switch**: `image-provider.ts` → `if APP_ENV === "hosted"` → Vercel Blob (`@vercel/blob`), else Local disk
-> **Model provider**: เก็บ MongoDB Binary เสมอ ทุก env (`modelData: Bytes`)
+**ผู้ใช้ทั่วไป**
 
----
+- เข้าสู่ระบบด้วยอีเมลและรหัสผ่าน หรือบัญชี Google
+- อัปโหลดภาพถ่ายใบหน้า (JPEG, PNG) เพื่อตรวจจับสิว
+- ดูภาพผลลัพธ์พร้อมกรอบสีแยกตามชนิดสิว ระดับความรุนแรง และคำแนะนำ
+- ดูประวัติการตรวจย้อนหลังและภาพรวมสถิติของตนเอง
 
-## Architecture: Image Storage
+**ผู้ดูแลระบบ**
 
-### 1. โหมด Local / Docker (`APP_ENV=dev` หรือ `docker`)
-- รูปถูกเซฟลงโฟลเดอร์ Local / Shared Volume (`/apps/images/`)
-- Next.js ส่ง **Absolute Path** ให้ FastAPI อ่านไฟล์จากดิสก์โดยตรง (เร็วระดับ 0.01-0.05 วินาที)
-- บันทึกใน MongoDB ด้วย `provider: "local"` และ `url: null`
-- หน้าประวัติและหน้าเว็บดึงรูปผ่าน `GET /api/images/[...path]`
+- ลบผู้ใช้งาน
+- เพิ่ม ลบ แก้ไข ค้นหา และเลือกโมเดล AI ที่ใช้งาน
+- ดูประวัติการใช้งานของผู้ใช้ทั้งหมด
+- ดูภาพรวมระบบ: การเติบโตของผู้ใช้ สถิติการสแกน สัดส่วนชนิดสิว
 
-### 2. โหมด Hosted (`APP_ENV=hosted` บน Vercel + Render.com)
-- Next.js อัปโหลดรูปขึ้น **Vercel Blob Storage** ผ่านฟังก์ชัน `put()` จาก `@vercel/blob`
-- อัปโหลดใน Vercel Internal Network เร็วระดับ 0.1-0.5 วินาที ได้ Public URL ทันที
-- Next.js ส่ง **Public URL** (`https://...public.blob.vercel-storage.com/...`) ให้ FastAPI ดาวน์โหลดไปประมวลผล
-- บันทึกใน MongoDB ด้วย `provider: "vercel-blob"` และ `url: blob.url`
-- หน้าประวัติและหน้าเว็บแสดงผลผ่าน `url` ของ Vercel Blob โดยตรง
+**ชนิดสิวที่ตรวจจับ**
 
-### การลบรูปภาพ (`deleteImage`)
-- `provider === "vercel-blob"`: เรียก `del(targetUrl)` จาก `@vercel/blob` (ต้องมี `BLOB_READ_WRITE_TOKEN`)
-- `provider === "local"`: เรียก `fs.promises.unlink()` ลบไฟล์ออกจากดิสก์
+| ชนิด | ชื่อภาษาอังกฤษ | กลุ่ม |
+| --- | --- | --- |
+| สิวหัวดำ | Blackhead | ไม่อักเสบ |
+| สิวหัวขาว | Whitehead | ไม่อักเสบ |
+| สิวตุ่มแดง | Papule | อักเสบระดับตื้น |
+| สิวหัวหนอง | Pustule | อักเสบระดับตื้น |
+| สิวก้อนแข็ง | Nodule | อักเสบระดับลึก |
+| สิวซีสต์ | Cyst | อักเสบระดับลึก |
+
+[↑ กลับไปสารบัญ](#toc)
 
 ---
 
-## Flow: สแกนสิว (Analyze)
+<a id="stack"></a>
 
-```
-1. ผู้ใช้อัปโหลดรูป (หน้าเว็บ)
-       ↓
-2. Next.js API (POST /api/analyze) ตรวจสอบ Session และ User ใน MongoDB
-       ↓
-3. บันทึกรูปตาม Environment:
-   - Dev/Docker → เซฟลงดิสก์
-   - Hosted → อัปโหลดขึ้น Vercel Blob ได้ Public URL
-       ↓
-4. Next.js ดึง Active Model จาก MongoDB
-       ↓
-5. Next.js ยิง POST /predict ไปที่ FastAPI บน Render.com พร้อม:
-   - image_url_or_path = URL (Vercel Blob) หรือ Absolute Path (Local)
-   - model_url_or_path = http://<app>/api/models/{id}
-       ↓
-6. FastAPI รับข้อมูล:
-   - รูป: ดาวน์โหลดจาก URL หรืออ่านจาก Path ตรงๆ
-   - โมเดล: ดาวน์โหลดจาก /api/models/{id} → Cache ไว้ที่ /app/models/ (ถ้ามี cache แล้ว โหลดเลย)
-       ↓
-7. FastAPI รัน YOLO inference → return JSON (detections, counts, total)
-       ↓
-8. Next.js คำนวณ Severity (AAD/ALADIN) → บันทึกลง MongoDB → ส่ง JSON กลับหน้าเว็บ
-```
+## เทคโนโลยีที่ใช้
+
+| ส่วน | เทคโนโลยี |
+| --- | --- |
+| เว็บ (หน้าบ้าน + หลังบ้าน) | Next.js 16, React 19, TypeScript, Tailwind CSS |
+| AI | FastAPI, Ultralytics (YOLO), PyTorch |
+| ฐานข้อมูล | MongoDB + Prisma ORM |
+| ยืนยันตัวตน | Auth.js (NextAuth) + Google |
+| สภาพแวดล้อม | Docker, Docker Compose |
+
+[↑ กลับไปสารบัญ](#toc)
 
 ---
 
-## Flow: อัปโหลดและจัดการโมเดล (Admin)
+<a id="structure"></a>
+
+## โครงสร้างโปรเจค
 
 ```
-1. Admin เลือกไฟล์ .pt → POST /api/models/create
-       ↓
-2. Next.js รับไฟล์ → แปลงเป็น Buffer → บันทึกลง MongoDB:
-   AiModel { modelData: <Binary Bytes>, provider: "mongodb", fileName, sizeMb, isActive }
-       ↓
-3. โมเดลพร้อมใช้งานทันที ทุกเซิร์ฟเวอร์ดึงผ่าน GET /api/models/[id] ได้ตรงกัน
+acne-detection/
+├── README.md                ← หน้านี้
+├── manual/                  ← คู่มือการใช้งาน
+├── docker-compose.yml       ← เปิดทั้งระบบด้วยคำสั่งเดียว
+├── docker-compose.dev.yml   ← ส่วนเสริมสำหรับนักพัฒนา
+├── .env.example             ← ค่าที่เปลี่ยนได้ (ไม่บังคับ)
+├── apps/
+│   ├── web/                 ← เว็บ Next.js
+│   ├── ai/                  ← บริการ AI (FastAPI + YOLO)
+│   └── images/              ← รูปที่ผู้ใช้อัปโหลด (สร้างเองตอนใช้งาน)
+├── dev-docs/                ← เอกสารอธิบายโค้ดสำหรับนักพัฒนา
+└── CLAUDE.md                ← แผนที่โปรเจคสำหรับ AI ผู้ช่วยเขียนโค้ด
 ```
 
-### FastAPI Model Cache
-```
-FastAPI รับ model_url_or_path = "https://<app>/api/models/[id]"
-       ↓
-เช็คว่ามีไฟล์ใน /app/models/<filename> ไหม?
-  - มีแล้ว (Cache hit)  → โหลดโมเดลรันได้ทันที
-  - ไม่มี (Cache miss) → Download Binary จาก URL → เซฟแคชที่ /app/models/ → โหลดรัน
-```
-
-> `/app/models/` ในฝั่ง FastAPI = **Cache เท่านั้น** ไม่ใช่ source of truth
-> Source of truth = MongoDB `modelData` field ในตาราง `AiModel`
+[↑ กลับไปสารบัญ](#toc)
 
 ---
 
-## สถาปัตยกรรม API Routes & Server Actions
+<a id="dev-docs"></a>
 
-โปรเจกต์นี้แยกการทำงานเป็น **API Routes 100%** สำหรับการทำ CRUD ทั้งหมด และใช้ Client Services ในการเรียก `fetch()`:
+## เอกสารสำหรับนักพัฒนา
 
-### API Endpoints ทั้งหมด (12 เส้น)
+| ไฟล์ | เนื้อหา |
+| --- | --- |
+| [manual/06-developer-guide.md](manual/06-developer-guide.md) | เริ่มพัฒนา: รันแบบไม่ใช้ Docker คำสั่งที่ใช้บ่อย |
+| [dev-docs/architecture.md](dev-docs/architecture.md) | ภาพรวมระบบ ขั้นตอนการวิเคราะห์สิว การเก็บรูปและโมเดล |
+| [dev-docs/web-app.md](dev-docs/web-app.md) | โครงสร้างฝั่งเว็บ |
+| [dev-docs/ai-service.md](dev-docs/ai-service.md) | บริการ AI |
+| [dev-docs/api-reference.md](dev-docs/api-reference.md) | รายการ API |
+| [dev-docs/data-model.md](dev-docs/data-model.md) | โครงสร้างฐานข้อมูล |
+| [dev-docs/system-context.md](dev-docs/system-context.md) | บันทึกระบบฉบับเดิม (รวมการ deploy บน Vercel + Render) |
 
-| หมวด | Method & Path | ผู้เรียก / สิทธิ์ | รายละเอียดการทำงาน |
-|---|---|---|---|
-| **Account** | `POST /api/account/register` | Public | สมัครสมาชิกใหม่ (แฮชรหัสผ่าน บันทึกลง MongoDB) |
-| | `POST /api/account/login` | Public | ตรวจสอบ Credentials ผ่าน API |
-| | `GET / POST /api/auth/[...nextauth]` | Browser | NextAuth Session, Google OAuth, Callbacks |
-| **Analyze** | `POST /api/analyze` | User / Admin | วิเคราะห์สิว (เซฟรูป → ส่ง AI → ประเมิน Severity → บันทึก DB) |
-| | `DELETE /api/analyze/history` | Admin Only | ลบประวัติการวิเคราะห์ (เดี่ยว `{ id }` หรือกลุ่ม `{ ids: [] }`) พร้อมลบรูป |
-| **Images** | `GET /api/images/[...path]` | Browser | ดึงไฟล์รูปจาก Local Disk (โหมด Dev/Docker) |
-| **Models** | `GET /api/models/[id]` | FastAPI (ส่ง `X-API-Key`) / Admin | ส่ง Binary (.pt) ของโมเดลจาก MongoDB ให้ดาวน์โหลด |
-| | `POST /api/models/create` | Admin Only | อัปโหลดโมเดล .pt แปลงเป็น Binary บันทึกลง MongoDB |
-| | `PUT /api/models/[id]` | Admin Only | สลับตั้งค่าให้โมเดลนี้เป็นโมเดลหลัก (`isActive: true`) |
-| | `PUT /api/models/[id]/edit` | Admin Only | แก้ไขชื่อ, เวอร์ชั่น, หรือคำอธิบายโมเดล |
-| | `DELETE /api/models/[id]` | Admin Only | ลบโมเดลเดี่ยวออกจาก MongoDB |
-| | `DELETE /api/models` | Admin Only | ลบโมเดลแบบกลุ่ม (ป้องกันการลบโมเดลที่กำลัง Active) |
-| **Users** | `DELETE /api/users/[id]` | Admin Only | ลบผู้ใช้เดี่ยว พร้อมกวาดลบรูปและประวัติทั้งหมด (กันลบตัวเอง) |
-| | `DELETE /api/users` | Admin Only | ลบผู้ใช้แบบกลุ่มพร้อมเคลียร์รูปและประวัติทั้งหมด |
-
-### ข้อยกเว้น Server Actions
-- เหลือเฉพาะ `src/app/actions/auth-actions.ts` (`loginWithCredentials`, `loginWithGoogle`) สำหรับฟอร์ม Login เท่านั้น เนื่องจาก NextAuth v5 กำหนดให้การเซ็ต Cookie ต้องทำงานใน Server Action Context
-
----
-
-## โครงสร้างไฟล์สำคัญ
-
-```
-apps/
-├── web/
-│   ├── src/lib/storage/
-│   │   ├── image-provider.ts   ← switch Local (disk) / Hosted (Vercel Blob)
-│   │   └── model-provider.ts   ← MongoDB Binary เสมอ
-│   ├── src/lib/services/       ← Business logic ชั้นใน (Prisma queries)
-│   │   ├── analyze-logic.ts    ← คำนวณ severity, ยิงหา FastAPI
-│   │   ├── auth-logic.ts       ← registerUserLogic
-│   │   ├── history-service.ts  ← get / delete history logic
-│   │   ├── model-logic.ts      ← CRUD model logic
-│   │   └── user-logic.ts       ← delete user & cascade logic
-│   ├── src/services/           ← Client-side API fetchers
-│   │   ├── analyze-service.ts  ← fetch /api/analyze
-│   │   ├── auth-service.ts     ← fetch /api/account/register
-│   │   ├── model-service.ts    ← fetch /api/models
-│   │   └── user-service.ts     ← fetch /api/users
-│   ├── src/app/actions/
-│   │   └── auth-actions.ts     ← Server Actions เฉพาะ signIn credentials/google
-│   └── src/app/api/            ← Next.js Route Handlers (12 เส้น)
-├── ai/
-│   ├── app/main.py             ← /predict endpoint (FastAPI บน Render.com)
-│   ├── app/config.py           ← MODELS_PATH (cache dir)
-│   └── models/                 ← FastAPI model cache
-└── images/                     ← รูปภาพ local shared volume (dev/docker)
-```
-
----
-
-## กฎการประเมินความรุนแรงของสิว (Severity Rules)
-
-การคำนวณและประเมินระดับความรุนแรง อ้างอิงตามแนวทางสถาบันโรคผิวหนังแห่งสหรัฐอเมริกา (AAD) และ ALADIN
-
-**ไฟล์ที่เกี่ยวข้อง:**
-- `apps/web/src/lib/services/analyze-logic.ts` (Logic คำนวณ `calculateSeverity`)
-- `apps/web/src/types/analyze.ts` (ชื่อภาษาไทยและข้อความคำแนะนำ)
-- `apps/web/src/components/analyze/analysis-result.tsx` (UI แสดงผล)
-
-**การจัดกลุ่มสิว:**
-- **ไม่อักเสบ (Non-inflammatory):** สิวหัวดำ (blackhead), สิวหัวขาว (whitehead)
-- **อักเสบระดับตื้น (Shallow inflammatory):** สิวตุ่มแดง (papule), สิวหัวหนอง (pustule)
-- **อักเสบระดับลึก (Deep inflammatory):** สิวก้อนแข็ง (nodule), สิวซีสต์ (cyst)
-
-**เกณฑ์การประเมิน:**
-1. **SEVERE (รุนแรง):** อักเสบตื้น > 20 จุด **หรือ** อักเสบลึก ≥ 1 จุด
-2. **MODERATE (ปานกลาง):** ไม่อักเสบ > 20 จุด **หรือ** อักเสบตื้น 6 ถึง 20 จุด
-3. **MILD (เล็กน้อย):** ไม่อักเสบ ≤ 20 จุด **และ** อักเสบตื้น ≤ 5 จุด
-
----
-
-## Technical Notes (ข้อควรระวังสำหรับนักพัฒนา)
-
-1. **Render.com Free Tier (Keep-Alive):**
-   - Render แพลนฟรีจะ Sleep ตัวเองหลังไม่มีคนใช้งานเกิน 15 นาที ทำให้การยิงครั้งแรกช้า (Cold Start ~30-50 วินาที)
-   - แนะนำให้ตั้ง Cron Job (เช่น `cron-job.org` หรือ `UptimeRobot`) ยิง Ping ไปที่ `GET https://<app>.onrender.com/health` ทุกๆ 5-10 นาทีเพื่อไม่ให้เซิร์ฟเวอร์หลับ
-
-2. **การบันทึกไฟล์ Binary ลง MongoDB (Prisma):**
-   - ไฟล์โมเดล `.pt` ในฟิลด์ `Bytes` ของ Prisma/MongoDB **ต้องแปลงเป็น `Buffer` เสมอ** (`Buffer.from(await file.arrayBuffer())`)
-   - **ห้าม** ใช้ `Uint8Array` ตรงๆ เพราะข้อมูลจะกลายเป็น `null` ในฐานข้อมูล ส่งผลให้ไฟล์โมเดลเสียหาย (0 bytes)
-
-3. **Next.js 15/16 Dynamic Route Params:**
-   - ทุก Route Handler ที่มี dynamic params (เช่น `[id]`, `[...path]`) ต้องใช้ `await params` เสมอ เพราะ params เป็น Promise
-
-4. **Vercel Blob Storage Token:**
-   - บน Vercel Dashboard ต้องผูก Blob Store เข้ากับโปรเจกต์ เพื่อให้ได้ `BLOB_READ_WRITE_TOKEN` อัตโนมัติ
-   - หากรันโหมด `APP_ENV=hosted` ในเครื่องเพื่อทดสอบ ต้องนำ Token มาใส่ใน `.env`
+[↑ กลับไปสารบัญ](#toc)
