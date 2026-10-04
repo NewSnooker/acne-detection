@@ -7,14 +7,17 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
 
+# ติดตั้ง PyTorch รุ่น CPU ก่อน (ถ้าปล่อยให้ ultralytics ดึงเอง จะได้รุ่น CUDA ที่ใหญ่หลาย GB)
+RUN pip install --default-timeout=1000 --no-cache-dir torch torchvision \
+        --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
+
+# .env, venv และไฟล์โมเดลถูกกันไว้ด้วย .dockerignore
 COPY . .
 
+RUN mkdir -p storage models images
 
-RUN mkdir -p storage models
+EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
-
-
-
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

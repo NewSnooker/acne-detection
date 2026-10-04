@@ -1,46 +1,51 @@
+# ─── AcneAI ─────────────────────────────────────────────────
+# เริ่มใช้งาน:  docker compose up --build   แล้วเปิด http://localhost:3000
+# รันได้โดยไม่ต้องมีไฟล์ .env — ค่าเริ่มต้นทั้งหมดอยู่ในไฟล์นี้
+# อยากเปลี่ยนค่า: สร้างไฟล์ .env ข้างไฟล์นี้ (ดูตัวอย่างใน .env.example)
+# สำหรับพัฒนา (เปิด port เพิ่ม, hot reload): ดู docker-compose.dev.yml
+
+# key ที่ web ใช้เรียก ai — ต้องเป็นค่าเดียวกันทั้งสองฝั่ง จึงประกาศไว้ที่เดียว
+x-ai-key: &ai-key ${AI_SERVICE_API_KEY:-acne-local-docker-key}
+
 services:
-  # ─── MongoDB ───────────────────────────────────────────────
+  # ─── MongoDB (replica set — Prisma ต้องใช้) ────────────────
   mongodb:
     image: mongo:7
     container_name: acne_mongodb
     restart: unless-stopped
     command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
-    ports:
-      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    healthcheck:
+      # ตั้ง replica set ให้เองถ้ายังไม่เคยตั้ง แล้วรอจนเขียนข้อมูลได้
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongodb:27017' }] }) } if (!db.hello().isWritablePrimary) { quit(1) }"
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 5s
     networks:
       - acne_network
 
-  mongo-setup:
-    image: mongo:7
-    container_name: acne_mongo_setup
-    depends_on:
-      - mongodb
-    restart: "no"
-    command: >
-      bash -c "sleep 3 && mongosh --host mongodb:27017 --eval 'try { rs.status().ok } catch (e) { rs.initiate({_id: \"rs0\", members: [{_id: 0, host: \"mongodb:27017\"}]}) }'"
-    networks:
-      - acne_network
-
-  # ─── FastAPI (AI Service) ────────────────────────────────
+  # ─── FastAPI (AI Service) — ไม่เปิด port ออกนอก network ─────
   ai:
     build:
       context: ./apps/ai
       dockerfile: Dockerfile
     container_name: acne_ai
     restart: unless-stopped
-    ports:
-      - "8000:8000"
     volumes:
-      - ./apps/ai:/app                       # Source code
-      - ./apps/images:/app/images            # Shared images (same as web)
-      - ./apps/ai/models:/app/models         # AI models
-    env_file:
-      - ./apps/ai/.env
+      - ./apps/images:/app/images            # รูปที่ผู้ใช้อัปโหลด (ใช้ร่วมกับ web)
+      - ./apps/ai/models:/app/models         # cache ไฟล์โมเดลที่โหลดมาจาก web
     environment:
-      - STORAGE_PATH=/app/images
-      - MODELS_PATH=/app/models
+      AI_SERVICE_API_KEY: *ai-key
+      STORAGE_PATH: /app/images
+      MODELS_PATH: /app/models
+      DEBUG: "false"
     networks:
       - acne_network
 
@@ -52,20 +57,30 @@ services:
     container_name: acne_web
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${WEB_PORT:-3000}:3000"
     volumes:
-      - ./apps/images:/app/images            # Shared images (same as ai)
+      - ./apps/images:/app/images            # รูปที่ผู้ใช้อัปโหลด (ใช้ร่วมกับ ai)
     env_file:
-      - ./apps/web/.env
+      # ไม่บังคับ — มีไว้ใส่ค่าเสริม เช่น GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
+      - path: ./apps/web/.env
+        required: false
     environment:
-      - STORAGE_PATH=/app/images             # ← Linux path inside container
-      - MODELS_PATH=/app/models              # ← ไม่ได้ใช้ฝั่ง web ตอน runtime
-      - AI_SERVICE_URL=http://ai:8000
-      - INTERNAL_APP_URL=http://web:3000     # ← ให้ AI ใช้โหลดโมเดลกลับมา
-      - DATABASE_URL=mongodb://mongodb:27017/acne_db?replicaSet=rs0
+      # ค่าในส่วนนี้ชนะค่าใน apps/web/.env เสมอ
+      DATABASE_URL: mongodb://mongodb:27017/acne_db?replicaSet=rs0
+      AUTH_SECRET: ${AUTH_SECRET:-acne-local-docker-secret-change-me}
+      AUTH_TRUST_HOST: "true"
+      AI_SERVICE_URL: http://ai:8000
+      AI_SERVICE_API_KEY: *ai-key
+      INTERNAL_APP_URL: http://web:3000     # ai ใช้ URL นี้โหลดไฟล์โมเดลจาก web
+      STORAGE_PATH: /app/images
+      APP_ENV: docker
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@acne.local}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin1234}
     depends_on:
-      - mongodb
-      - ai
+      mongodb:
+        condition: service_healthy
+      ai:
+        condition: service_started
     networks:
       - acne_network
 

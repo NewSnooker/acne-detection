@@ -1,0 +1,23 @@
+# ─── ส่วนเสริมสำหรับพัฒนา ────────────────────────────────────
+# ใช้คู่กับไฟล์หลัก:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+#
+# เพิ่มจากไฟล์หลัก:
+# - เปิด port MongoDB (27017) และ AI (8000) ออกมาที่เครื่อง
+# - mount ซอร์สโค้ด AI เข้า container และเปิด hot reload
+
+services:
+  mongodb:
+    ports:
+      - "27017:27017"
+
+  ai:
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./apps/ai:/app
+      - ./apps/images:/app/images
+      - ./apps/ai/models:/app/models
+    environment:
+      DEBUG: "true"
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
