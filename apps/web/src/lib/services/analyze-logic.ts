@@ -30,7 +30,11 @@ export async function callFastApiForPrediction(
   activeModelId: string,
 ): Promise<AnalysisResult> {
   const fastApiUrl = process.env.AI_SERVICE_URL || "http://localhost:8000";
-  const apiKey = process.env.AI_SERVICE_API_KEY || "1juc+3JyvBqyZpRe9Ar9+cd05WWWyMgORKTfE512PVk";
+  // key ต้องมาจาก env เท่านั้น (ใน Docker กำหนดไว้ที่ docker-compose.yml)
+  const apiKey = process.env.AI_SERVICE_API_KEY;
+  if (!apiKey) {
+    throw new Error("ระบบยังไม่ได้ตั้งค่า AI_SERVICE_API_KEY กรุณาติดต่อผู้ดูแลระบบ");
+  }
   const ACCURACY_THRESHOLD = process.env.AI_CONFIDENCE_THRESHOLD ? parseFloat(process.env.AI_CONFIDENCE_THRESHOLD) : 0.25;
 
   const apiFormData = new FormData();
@@ -40,7 +44,7 @@ export async function callFastApiForPrediction(
     apiFormData.append("image_url_or_path", imageResult.imageUrl);
   } else {
     // Local/Docker: ส่ง Absolute Path ของไฟล์ใน Shared Volume
-    let storagePath = process.env.STORAGE_PATH || path.resolve(process.cwd(), "apps", "images");
+    const storagePath = process.env.STORAGE_PATH || path.resolve(process.cwd(), "apps", "images");
     apiFormData.append(
       "image_url_or_path",
       path.join(storagePath, imageResult.originalImage),

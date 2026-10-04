@@ -1,11 +1,24 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { deleteModelLogic, setActiveModelLogic } from "@/lib/services/model-logic";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // ไฟล์โมเดลโหลดได้เฉพาะ AI service (ส่ง header X-API-Key) หรือผู้ดูแลระบบที่เข้าสู่ระบบอยู่
+    const apiKey = process.env.AI_SERVICE_API_KEY;
+    const hasValidKey =
+      Boolean(apiKey) && request.headers.get("x-api-key") === apiKey;
+    if (!hasValidKey) {
+      const session = await auth();
+      if (session?.user?.role !== "ADMIN") {
+        return new NextResponse("Unauthorized", { status: 401 });
+      }
+    }
+
     const { id } = await params;
     const model = await prisma.aiModel.findUnique({
       where: { id },
@@ -35,9 +48,6 @@ export async function GET(
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
-
-import { auth } from "@/lib/auth";
-import { deleteModelLogic, setActiveModelLogic } from "@/lib/services/model-logic";
 
 export async function DELETE(
   req: Request,
