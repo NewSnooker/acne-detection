@@ -82,6 +82,8 @@ acne-ai-v1/
 npm run dev                 # http://localhost:3000
 npm run build               # prisma generate && next build
 npm run lint
+npm run typecheck           # tsc --noEmit
+npm test                    # ชุดทดสอบ (Vitest)
 npx prisma generate         # หลังแก้ schema.prisma
 npx prisma db push          # sync schema ขึ้น MongoDB (ไม่มี migration สำหรับ MongoDB)
 
