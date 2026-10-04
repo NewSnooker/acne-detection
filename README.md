@@ -143,6 +143,7 @@ acne-detection/
 | [dev-docs/ai-service.md](dev-docs/ai-service.md) | บริการ AI |
 | [dev-docs/api-reference.md](dev-docs/api-reference.md) | รายการ API |
 | [dev-docs/data-model.md](dev-docs/data-model.md) | โครงสร้างฐานข้อมูล |
+| [dev-docs/limitations.md](dev-docs/limitations.md) | ข้อจำกัดที่ทราบของระบบและสาเหตุ |
 | [dev-docs/system-context.md](dev-docs/system-context.md) | บันทึกระบบฉบับเดิม (รวมการ deploy บน Vercel + Render) |
 
 [↑ กลับไปสารบัญ](#toc)
