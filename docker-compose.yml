@@ -17,6 +17,7 @@ services:
     command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017", "--quiet"]
     volumes:
       - mongodb_data:/data/db
+      - mongodb_config:/data/configdb   # ตั้งชื่อไว้ ไม่ให้ Docker สร้าง volume ชื่อสุ่ม
     healthcheck:
       # ตั้ง replica set ให้เองถ้ายังไม่เคยตั้ง แล้วรอจนเขียนข้อมูลได้
       test:
@@ -87,6 +88,7 @@ services:
 
 volumes:
   mongodb_data:
+  mongodb_config:
 
 networks:
   acne_network:
