@@ -21,7 +21,7 @@
 |---|---|---|---|
 | 1.3.2.1 | เข้า/ออกจากระบบ | ✅ | เหมือน admin (+ มีหน้า `/register` ซึ่งเล่มไม่ได้เขียนไว้) |
 | 1.3.2.2 | เข้าด้วย Google | ✅ | |
-| 1.3.2.3 | อัปโหลดภาพ **JPEG และ PNG** | ⚠️ | `image-analyzer.tsx` ใช้ `accept="image/*"` และ `/api/analyze` ไม่ตรวจชนิด/ขนาดไฟล์ → รับ webp, gif ฯลฯ ได้ |
+| 1.3.2.3 | อัปโหลดภาพ **JPEG และ PNG** | ✅ | `lib/validation/image-file.ts` ใช้ร่วมกันทั้งหน้าเว็บและ `/api/analyze`: รับเฉพาะ JPEG/PNG ไม่เกิน 10 MB และฝั่ง API ตรวจเนื้อไฟล์จริง (magic bytes) |
 | 1.3.2.4 | ดูระดับความรุนแรง + คำแนะนำ | ✅ | `analysis-result.tsx`, `ACNE_CARE_ADVICE` (คำแนะนำไม่แสดงเมื่อไม่พบสิว) |
 | 1.3.2.5 | ดูประวัติย้อนหลังของตนเอง | ✅ | `/history`, `getUserHistory` |
 | 1.3.2.6 | ภาพรวมของผู้ใช้ (สถิติ, กราฟจำนวนสิว, สัดส่วนประเภท) | ✅ | `/statistics`, `statistics-dashboard.tsx` |

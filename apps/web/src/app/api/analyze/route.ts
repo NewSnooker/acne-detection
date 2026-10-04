@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { uploadImage } from "@/lib/storage/image-provider";
 import { callFastApiForPrediction, calculateSeverity } from "@/lib/services/analyze-logic";
 import { Prisma } from "@prisma/client";
+import { detectImageKind, validateImageFile } from "@/lib/validation/image-file";
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,9 +28,25 @@ export async function POST(req: NextRequest) {
 
     // 2. รับไฟล์รูปภาพจาก Request
     const formData = await req.formData();
-    const file = formData.get("image") as File;
-    if (!file) {
+    const file = formData.get("image");
+    if (!(file instanceof File)) {
       return NextResponse.json({ error: "ไม่พบไฟล์รูปภาพ" }, { status: 400 });
+    }
+
+    // 2.1 ตรวจชนิดและขนาดไฟล์ (รับเฉพาะ JPEG/PNG ตามขอบเขตข้อ 1.3.2.3)
+    const invalid = validateImageFile(file);
+    if (invalid) {
+      return NextResponse.json({ error: invalid }, { status: 400 });
+    }
+
+    // 2.2 ตรวจเนื้อไฟล์จริง ไม่เชื่อชนิดไฟล์ที่ฝั่งผู้ใช้ส่งมาอย่างเดียว
+    const head = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+    const imageKind = detectImageKind(head);
+    if (!imageKind) {
+      return NextResponse.json(
+        { error: "ไฟล์นี้ไม่ใช่รูปภาพ JPEG หรือ PNG ที่ถูกต้อง" },
+        { status: 400 }
+      );
     }
 
     // 3. หาโมเดลที่ทำงานอยู่ (Active Model)
@@ -47,7 +64,7 @@ export async function POST(req: NextRequest) {
     // 4. อัปโหลดรูปภาพลงระบบ
     // - Local/Docker: เซฟลง Shared Volume → ส่ง path ให้ FastAPI โดยตรง (เร็วมาก)
     // - Hosted: Upload ขึ้น Vercel Blob (Internal Network เร็วมาก) → ได้ URL กลับมาทันที
-    const imageResult = await uploadImage(file);
+    const imageResult = await uploadImage(file, imageKind);
 
     // 5. ส่งให้ AI วิเคราะห์
     const result = await callFastApiForPrediction(imageResult, activeModel.id);

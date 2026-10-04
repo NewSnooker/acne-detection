@@ -11,6 +11,9 @@ export const AnalyzeService = {
         method: "POST",
         body: formData,
       });
+      if (response.status === 413) {
+        throw new Error("ไฟล์รูปภาพใหญ่เกินกว่าที่เซิร์ฟเวอร์รับได้ กรุณาเลือกไฟล์ที่เล็กลง");
+      }
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Failed to analyze image");
       return result;

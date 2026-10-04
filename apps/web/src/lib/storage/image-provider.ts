@@ -25,12 +25,16 @@ export function getStoragePath() {
 
 // ─── Image Provider Abstraction ────────────────────────────────
 
-export async function uploadImage(file: File): Promise<ImageUploadResult> {
+export async function uploadImage(
+  file: File,
+  kind: "jpeg" | "png",
+): Promise<ImageUploadResult> {
   const isHosted = process.env.APP_ENV === "hosted";
   const buffer = Buffer.from(await file.arrayBuffer());
   const crypto = await import("crypto");
   const uuid = crypto.randomUUID();
-  const extension = file.name.split(".").pop() || "jpg";
+  // กำหนดนามสกุลจากชนิดไฟล์ที่ตรวจแล้ว ไม่ใช้ชื่อไฟล์ที่ผู้ใช้ส่งมา
+  const extension = kind === "png" ? "png" : "jpg";
   const fileName = `acne-ai/${uuid}.${extension}`;
 
   if (isHosted) {
@@ -39,7 +43,7 @@ export async function uploadImage(file: File): Promise<ImageUploadResult> {
     console.log(`[Image Upload] Uploading to Vercel Blob: ${fileName}`);
     const blob = await put(fileName, buffer, {
       access: "public",
-      contentType: file.type || "image/jpeg",
+      contentType: kind === "png" ? "image/png" : "image/jpeg",
     });
     console.log(`[Image Upload] Vercel Blob upload success: ${blob.url}`);
 

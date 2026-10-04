@@ -7,6 +7,7 @@ import { ImageUploader } from "./image-uploader";
 import { ImagePreview } from "./image-preview";
 import { AnalysisResultPanel } from "./analysis-result";
 import { AnalysisResult } from "@/types/analyze";
+import { IMAGE_ACCEPT, validateImageFile } from "@/lib/validation/image-file";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -46,12 +47,20 @@ export function ImageAnalyzer({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
-      setResult(null);
-      setError(null);
+    if (!file) return;
+
+    // รับเฉพาะ JPEG/PNG และจำกัดขนาด (ฝั่ง API ตรวจซ้ำอีกชั้น)
+    const invalid = validateImageFile(file);
+    if (invalid) {
+      setError(invalid);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
     }
+
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    setResult(null);
+    setError(null);
   };
 
   const handleAnalyze = async () => {
@@ -137,7 +146,7 @@ export function ImageAnalyzer({
         type="file"
         ref={fileInputRef}
         className="hidden"
-        accept="image/*"
+        accept={IMAGE_ACCEPT}
         onChange={handleFileSelect}
       />
 

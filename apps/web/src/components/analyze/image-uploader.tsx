@@ -2,6 +2,7 @@ import { useState } from "react";
 import { UploadCloud, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { MAX_IMAGE_SIZE_MB } from "@/lib/validation/image-file";
 
 interface ImageUploaderProps {
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -33,7 +34,8 @@ export function ImageUploader({
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
+    if (file) {
+      // ส่งต่อทุกไฟล์ ให้ onFileSelect ตรวจชนิด/ขนาดและแจ้งข้อความเอง
       // Create a mock event to match the input signature
       const mockEvent = {
         target: { files: [file] },
@@ -88,7 +90,7 @@ export function ImageUploader({
       </motion.div>
       <h3 className="text-xl font-medium mb-2">อัปโหลดรูปภาพใบหน้า</h3>
       <p className="text-muted-foreground mb-6">
-        ลากและวางรูปภาพที่นี่ หรือคลิกเพื่อเลือกไฟล์ (รองรับ JPG, PNG)
+        ลากและวางรูปภาพที่นี่ หรือคลิกเพื่อเลือกไฟล์ (รองรับ JPEG, PNG ขนาดไม่เกิน {MAX_IMAGE_SIZE_MB} MB)
       </p>
       <motion.button
         whileHover={{ scale: 1.05 }}
