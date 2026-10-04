@@ -4,6 +4,8 @@ import { signIn } from "@/lib/auth";
 import { AuthError } from "next-auth";
 import { loginSchema } from "@/schemas/auth";
 import { registerUserLogic } from "@/lib/services/auth-logic";
+import { isGoogleEnabled } from "@/lib/auth/google";
+import { redirect } from "next/navigation";
 
 /**
  * Login ด้วย Credentials — ต้องเป็น Server Action เพื่อให้ NextAuth set session cookie ได้
@@ -40,6 +42,10 @@ export async function loginWithCredentials(formData: FormData) {
  * Login ด้วย Google — Redirect ไป Google OAuth
  */
 export async function loginWithGoogle() {
+  // ยังไม่ได้ตั้งค่า Google OAuth → กลับไปหน้า login พร้อมข้อความแจ้ง
+  if (!isGoogleEnabled()) {
+    redirect("/login?error=GoogleNotConfigured");
+  }
   await signIn("google", { redirectTo: "/analyze" });
 }
 

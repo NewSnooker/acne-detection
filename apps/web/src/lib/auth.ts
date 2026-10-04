@@ -6,15 +6,21 @@ import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/schemas/auth";
 import bcrypt from "bcryptjs";
 import { authConfig } from "./auth.config";
+import { isGoogleEnabled } from "./auth/google";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
+    // ลงทะเบียน Google เฉพาะเมื่อมี GOOGLE_CLIENT_ID และ GOOGLE_CLIENT_SECRET
+    ...(isGoogleEnabled()
+      ? [
+          Google({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+          }),
+        ]
+      : []),
     Credentials({
       async authorize(credentials) {
         const parsed = loginSchema.safeParse(credentials);
