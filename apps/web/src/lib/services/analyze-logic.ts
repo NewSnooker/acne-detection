@@ -1,5 +1,6 @@
 import { AnalysisResult } from "@/types/analyze";
 import path from "path";
+import { getStoragePath } from "@/lib/storage/image-provider";
 
 // Heuristic for Severity (AAD / ALADIN)
 export function calculateSeverity(
@@ -44,7 +45,8 @@ export async function callFastApiForPrediction(
     apiFormData.append("image_url_or_path", imageResult.imageUrl);
   } else {
     // Local/Docker: ส่ง Absolute Path ของไฟล์ใน Shared Volume
-    const storagePath = process.env.STORAGE_PATH || path.resolve(process.cwd(), "apps", "images");
+    // ใช้โฟลเดอร์เดียวกับตอนเซฟรูป (ถ้าไม่ได้ตั้ง STORAGE_PATH จะเป็น apps/images)
+    const storagePath = getStoragePath();
     apiFormData.append(
       "image_url_or_path",
       path.join(storagePath, imageResult.originalImage),

@@ -10,7 +10,7 @@ export type ImageUploadResult = {
 
 // ─── Helper ────────────────────────────────────────────────────
 
-function getStoragePath() {
+export function getStoragePath() {
   let storagePath = process.env.STORAGE_PATH;
   if (!storagePath || !path.isAbsolute(storagePath)) {
     const cwd = process.cwd();
