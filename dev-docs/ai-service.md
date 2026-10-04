@@ -6,7 +6,7 @@ FastAPI 0.115.5 · Ultralytics 8.3.40 · PyTorch · Python 3.12 (Docker) / venv 
 
 | ไฟล์ | หน้าที่ |
 |---|---|
-| `app/main.py` | สร้าง app, CORS, API key, endpoint ทั้งหมด (`/health`, `/predict`) และ `get_local_path()` |
+| `app/main.py` | สร้าง app, CORS, API key, endpoint ทั้งหมด (`/`, `/health`, `/predict`) และ `get_local_path()` |
 | `app/services/yolo_service.py` | `ACNE_CLASSES`, cache โมเดลใน memory (`_cache` + lock), `YoloService.predict()` |
 | `app/config.py` | `Settings` (pydantic-settings): `AI_SERVICE_API_KEY`, `STORAGE_PATH`, `MODELS_PATH`, `DEBUG` |
 | `inspect_pt.py` | สคริปต์ดูข้างในไฟล์ `.pt` (keys, results_dict, names) — ไม่ได้อยู่ใน flow |

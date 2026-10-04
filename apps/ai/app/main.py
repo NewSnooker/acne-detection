@@ -97,6 +97,12 @@ def get_local_path(url_or_path: str, is_model: bool = False) -> str:
                 pass
 
 
+@app.get("/", tags=["Health"])
+async def root():
+    """หน้าแรก — ให้ตัวตรวจสถานะของผู้ให้บริการ (เช่น Render) และคนที่เปิด URL ตรง ๆ ได้คำตอบ 200"""
+    return {"status": "ok", "service": "acne-ai", "health": "/health"}
+
+
 @app.get("/health", tags=["Health"])
 async def health():
     return {"status": "ok", "service": "acne-ai"}

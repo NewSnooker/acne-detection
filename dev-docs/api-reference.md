@@ -42,6 +42,7 @@
 
 | Method | Path | Auth | ใช้งานจริง | รายละเอียด |
 |---|---|---|---|---|
+| GET | `/` | — | ตัวตรวจสถานะของ Render / เปิด URL ตรง | `{status:"ok"}` |
 | GET | `/health` | — | ใช้ ping | `{status:"ok"}` |
 | POST | `/predict` | `X-API-Key` | **ใช่** | form: `image_url_or_path`, `model_url_or_path`, `confidence` (default 0.20) |
 | GET | `/docs` | — | เปิดเมื่อ `DEBUG=true` | Swagger |
