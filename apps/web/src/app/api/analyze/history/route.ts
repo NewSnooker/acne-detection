@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireAdminApi } from "@/lib/auth/guards";
 import { deleteHistoryLogic, deleteHistoriesLogic } from "@/lib/services/history-service";
 
 export async function DELETE(req: NextRequest) {
   try {
-    const session = await auth();
-    // เฉพาะ ADMIN เท่านั้นที่ลบประวัติได้
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const guard = await requireAdminApi();
+    if (!guard.ok) return guard.response;
 
     const body = await req.json();
 

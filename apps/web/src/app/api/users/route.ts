@@ -1,20 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireAdminApi } from "@/lib/auth/guards";
 import { deleteUsersLogic } from "@/lib/services/user-logic";
 
 export async function DELETE(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const guard = await requireAdminApi();
+    if (!guard.ok) return guard.response;
 
     const body = await req.json();
     if (!body.ids || !Array.isArray(body.ids)) {
       return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
     }
 
-    const count = await deleteUsersLogic(body.ids, session.user.id);
+    const count = await deleteUsersLogic(body.ids, guard.session.user.id);
     
     return NextResponse.json({ success: true, count });
   } catch (error: any) {

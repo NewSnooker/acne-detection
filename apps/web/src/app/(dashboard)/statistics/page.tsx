@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireUserPage } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 import { StatisticsDashboard } from "@/components/statistics/statistics-dashboard";
 
@@ -14,11 +13,7 @@ export default async function StatisticsPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login");
-  }
+  const session = await requireUserPage();
 
   const params = await searchParams;
   const startParam = params.start as string | undefined;

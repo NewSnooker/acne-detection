@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireUserPage } from "@/lib/auth/guards";
 import { ImageAnalyzer } from "@/components/analyze/image-analyzer";
 import { MedicalDisclaimer } from "@/components/analyze/medical-disclaimer";
 
@@ -12,11 +11,7 @@ export const metadata = {
 };
 
 export default async function AnalyzePage() {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login");
-  }
+  await requireUserPage();
 
   const activeModelCount = await prisma.aiModel.count({
     where: { isActive: true },

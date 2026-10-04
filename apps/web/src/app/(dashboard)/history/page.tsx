@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireUserPage } from "@/lib/auth/guards";
 import { getUserHistory } from "@/lib/services/history-service";
 import { HistoryGallery } from "@/components/history/history-gallery";
 
@@ -20,11 +19,7 @@ export default async function HistoryPage({
     view?: string;
   }>;
 }) {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login");
-  }
+  const session = await requireUserPage();
 
   const params = await searchParams;
 

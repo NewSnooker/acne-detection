@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireAdminPage } from "@/lib/auth/guards";
 import { getAllHistory } from "@/lib/services/history-service";
 import { HistoryGallery } from "@/components/history/history-gallery";
 
@@ -20,12 +19,7 @@ export default async function AdminHistoryPage({
     view?: string;
   }>;
 }) {
-  const session = await auth();
-
-  // ตรวจสอบสิทธิ์ว่าต้องเป็น ADMIN เท่านั้น
-  if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/analyze");
-  }
+  await requireAdminPage();
 
   const params = await searchParams;
 

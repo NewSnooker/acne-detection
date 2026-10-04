@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { requireAdminApi } from "@/lib/auth/guards";
 import { deleteModelLogic, setActiveModelLogic } from "@/lib/services/model-logic";
 
 export async function GET(
@@ -13,10 +13,8 @@ export async function GET(
     const hasValidKey =
       Boolean(apiKey) && request.headers.get("x-api-key") === apiKey;
     if (!hasValidKey) {
-      const session = await auth();
-      if (session?.user?.role !== "ADMIN") {
-        return new NextResponse("Unauthorized", { status: 401 });
-      }
+      const guard = await requireAdminApi();
+      if (!guard.ok) return guard.response;
     }
 
     const { id } = await params;
@@ -54,10 +52,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const guard = await requireAdminApi();
+    if (!guard.ok) return guard.response;
     const resolvedParams = await params;
     await deleteModelLogic(resolvedParams.id);
     return NextResponse.json({ success: true });
@@ -74,10 +70,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const guard = await requireAdminApi();
+    if (!guard.ok) return guard.response;
     const resolvedParams = await params;
     await setActiveModelLogic(resolvedParams.id);
     return NextResponse.json({ success: true });

@@ -19,7 +19,7 @@
 | DELETE | `/api/users` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม |
 
 รูปแบบ response: สำเร็จ `{ success: true, ... }` / ผิดพลาด `{ error: "ข้อความไทย" }`
-ไม่ผ่านสิทธิ์คืน 401 ทั้งกรณีไม่ login และ role ไม่ถึง
+ไม่ผ่านสิทธิ์: 401 เมื่อยังไม่ login, 403 เมื่อ role ไม่ถึง (ตรวจด้วย `lib/auth/guards.ts`)
 
 การอ่านข้อมูล (list ผู้ใช้/โมเดล/ประวัติ/สถิติ) **ไม่มี API** — server component เรียก Prisma ตรงผ่าน `lib/services/*-service.ts`
 

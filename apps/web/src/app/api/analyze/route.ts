@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireUserApi } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 import { uploadImage } from "@/lib/storage/image-provider";
 import { callFastApiForPrediction, calculateSeverity } from "@/lib/services/analyze-logic";
@@ -9,10 +9,9 @@ import { detectImageKind, validateImageFile } from "@/lib/validation/image-file"
 export async function POST(req: NextRequest) {
   try {
     // 1. เช็คสิทธิ์การเข้าใช้งาน และตรวจสอบว่ามี User อยู่จริงใน DB
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const guard = await requireUserApi();
+    if (!guard.ok) return guard.response;
+    const { session } = guard;
 
     const userExists = await prisma.user.findUnique({
       where: { id: session.user.id },

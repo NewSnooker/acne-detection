@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireAdminApi } from "@/lib/auth/guards";
 import { deleteUserLogic } from "@/lib/services/user-logic";
 
 export async function DELETE(
@@ -7,13 +7,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const guard = await requireAdminApi();
+    if (!guard.ok) return guard.response;
 
     const resolvedParams = await params;
-    await deleteUserLogic(resolvedParams.id, session.user.id);
+    await deleteUserLogic(resolvedParams.id, guard.session.user.id);
     
     return NextResponse.json({ success: true });
   } catch (error: any) {

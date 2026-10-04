@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireAdminPage } from "@/lib/auth/guards";
 import { getAdminStatistics } from "@/lib/services/statistics-service";
 import { AdminStatisticsDashboard } from "@/components/statistics/admin-statistics-dashboard";
 
@@ -10,11 +9,7 @@ export const metadata = {
 export default async function AdminStatisticsPage(props: {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const session = await auth();
-
-  if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/analyze");
-  }
+  await requireAdminPage();
 
   const searchParams = await props.searchParams;
   let startDateStr = searchParams?.start as string | undefined;

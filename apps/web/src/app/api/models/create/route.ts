@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireAdminApi } from "@/lib/auth/guards";
 import { uploadModelLogic } from "@/lib/services/model-logic";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const guard = await requireAdminApi();
+    if (!guard.ok) return guard.response;
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
@@ -15,7 +13,7 @@ export async function POST(req: NextRequest) {
     const version = formData.get("version") as string;
     const description = formData.get("description") as string;
 
-    const newModel = await uploadModelLogic(file, name, version, description, session.user.id);
+    const newModel = await uploadModelLogic(file, name, version, description, guard.session.user.id);
 
     return NextResponse.json({ success: true, model: newModel });
   } catch (error: any) {

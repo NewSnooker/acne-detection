@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireAdminPage } from "@/lib/auth/guards";
 import { getAllUsers } from "@/lib/services/user-service";
 import { UserTable } from "./user-table";
 
@@ -8,11 +7,7 @@ export const metadata = {
 };
 
 export default async function AdminUsersPage() {
-  const session = await auth();
-
-  if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/analyze");
-  }
+  const session = await requireAdminPage();
 
   const users = await getAllUsers();
 

@@ -1,5 +1,5 @@
 import { getAdminModels } from "@/lib/services/model-service";
-import { requireAdminRoute } from "@/lib/auth/guards";
+import { requireAdminPage } from "@/lib/auth/guards";
 import { UploadModelDialog } from "@/components/admin/upload-model-dialog";
 import { ModelTable } from "./model-table";
 
@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default async function AdminModelsPage() {
-  await requireAdminRoute();
+  await requireAdminPage();
   const models = await getAdminModels();
 
   return (
