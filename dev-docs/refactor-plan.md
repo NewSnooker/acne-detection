@@ -5,7 +5,7 @@
 
 ---
 
-## สถานะ (อัปเดต 2026-10-04, branch `docker-quickstart`)
+## สถานะ (อัปเดต 2026-10-04)
 
 | ข้อ | สถานะ |
 |---|---|
@@ -13,6 +13,8 @@
 | 2 โหลดโมเดลโดยไม่ login | แก้แล้ว — ต้องส่ง `X-API-Key` หรือเป็นแอดมิน |
 | 3 endpoint เก่าใน FastAPI | ลบแล้ว |
 | 7 Docker | แก้บางส่วน — มี `.dockerignore`, เอา `--reload` ออก; ยังใช้ `npm install` และ `--accept-data-loss` (เหตุผลใน architecture.md) |
+| 25 โค้ดที่ไม่ได้ใช้ | ลบแล้ว — ไฟล์ ฟังก์ชัน package และตัวแปร env ที่ไม่มีใครเรียก |
+| 27 test | เริ่มแล้ว — `analyze-logic.test.ts` ทดสอบ `calculateSeverity` 15 กรณี (`npm test`); ฝั่ง Python ยังไม่มี |
 | 28 `.gitattributes` | เพิ่มแล้ว |
 | 31 `.env.example` ไม่ตรงโค้ด | แก้แล้ว (`APP_ENV=hosted`) |
 | 32 แอดมินคนแรก | ใน Docker ใช้ seed แล้ว; โหมด dev ยังใช้กฎ "คนแรกที่สมัครเป็น ADMIN" |

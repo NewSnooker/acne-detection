@@ -102,9 +102,9 @@ model AiModel {
 // ─── Image Registry ───────────────────────────────────────
 model Image {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  fileName    String   // ชื่อไฟล์ (local) หรือ public_id (cloudinary)
-  url         String?  // Public URL ของ Cloudinary
-  provider    String   @default("local") // "local" หรือ "cloudinary"
+  fileName    String   // ชื่อไฟล์ (local) หรือ pathname (vercel-blob)
+  url         String?  // Public URL ของ Vercel Blob (local = null)
+  provider    String   @default("local") // "local" หรือ "vercel-blob"
   createdAt   DateTime @default(now())
 
   analysis    Analysis?

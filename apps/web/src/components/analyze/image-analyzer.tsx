@@ -71,7 +71,7 @@ export function ImageAnalyzer({
     setError(null);
     setResult(null);
 
-    // Simulate progress updates for long-running Cloudinary/YOLO tasks
+    // Simulate progress updates for long-running upload/YOLO tasks
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         const next = prev + (prev < 40 ? 2 : prev < 70 ? 0.5 : 0.1);

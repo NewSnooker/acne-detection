@@ -35,7 +35,6 @@ VerificationToken                (Auth.js)
 
 ### Image
 `id, fileName, url?, provider ("local" | "vercel-blob"), createdAt`
-(comment ใน schema ยังเขียนว่า cloudinary — ล้าสมัย)
 
 ### Analysis
 | field | type | หมายเหตุ |

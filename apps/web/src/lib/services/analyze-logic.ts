@@ -41,7 +41,7 @@ export async function callFastApiForPrediction(
   const apiFormData = new FormData();
   
   if (imageResult.imageUrl) {
-    // Hosted (Vercel Blob หรือ Cloudinary): ส่ง Public URL ให้ FastAPI ดาวน์โหลด
+    // Hosted (Vercel Blob): ส่ง Public URL ให้ FastAPI ดาวน์โหลด
     apiFormData.append("image_url_or_path", imageResult.imageUrl);
   } else {
     // Local/Docker: ส่ง Absolute Path ของไฟล์ใน Shared Volume

@@ -41,13 +41,13 @@ Server component (page.tsx)
 | `lib/services/auth-logic.ts` | `registerUserLogic` | คนแรก = ADMIN |
 | `lib/services/history-service.ts` | `getUserHistory`, `getAllHistory`, `deleteHistoryLogic`, `deleteHistoriesLogic` | ดึงทั้งหมดแล้ว filter ใน memory |
 | `lib/services/model-logic.ts` | `uploadModelLogic`, `deleteModelLogic`, `deleteModelsLogic`, `setActiveModelLogic`, `editModelLogic` | |
-| `lib/services/model-service.ts` | `getAdminModels`, `getActiveModel` (ไม่ถูกใช้) | |
-| `lib/services/statistics-service.ts` | `getAdminStatistics`, `getUserAnalytics` (ไม่ถูกใช้) | |
+| `lib/services/model-service.ts` | `getAdminModels` | |
+| `lib/services/statistics-service.ts` | `getAdminStatistics` | |
 | `lib/services/user-logic.ts` | `deleteUserLogic`, `deleteUsersLogic` | ลบรูป → Image → User |
-| `lib/services/user-service.ts` | `getAllUsers`, `getUsers` (ไม่ถูกใช้) | |
+| `lib/services/user-service.ts` | `getAllUsers` | |
 | `lib/storage/image-provider.ts` | `uploadImage`, `deleteImage` | local / vercel-blob |
 | `lib/storage/model-provider.ts` | `saveModel`, `deleteModelFile` | คืน Buffer เก็บลง Mongo |
-| `lib/auth/guards.ts` | `requireAdminRoute`, `requireAuthRoute` (ไม่ถูกใช้) | ใช้จริงหน้าเดียวคือ admin/models |
+| `lib/auth/guards.ts` | `requireAdminRoute` | ใช้จริงหน้าเดียวคือ admin/models |
 | `lib/auth/google.ts` | `isGoogleEnabled` | true เมื่อมี `GOOGLE_CLIENT_ID` และ `GOOGLE_CLIENT_SECRET` ใช้ใน `auth.ts`, หน้า login, `loginWithGoogle` |
 
 ชื่อไฟล์ซ้ำกันสองที่ (ระวังสับสน): `src/services/model-service.ts` (client fetch) กับ `src/lib/services/model-service.ts` (server Prisma) และ `user-service.ts` เช่นกัน
@@ -91,4 +91,3 @@ type: `Detection { type, confidence, bbox{x1,y1,x2,y2} }`, `AnalysisResult`
 | `APP_ENV` | `"hosted"` = Vercel Blob |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob |
 | `STORAGE_PATH` | โฟลเดอร์รูป (absolute) ถ้าไม่ตั้งจะเดาจาก cwd |
-| `NEXT_PUBLIC_AI_WS_URL`, `NEXT_PUBLIC_STORAGE_URL`, `MODELS_PATH` | อยู่ใน `.env.example` แต่โค้ดฝั่ง web **ไม่ได้ใช้** |

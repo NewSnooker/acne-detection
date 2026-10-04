@@ -8,10 +8,3 @@ export async function requireAdminRoute() {
   }
   return session;
 }
-export async function requireAuthRoute() {
-  const session = await auth();
-  if (!session) {
-    redirect("/login");
-  }
-  return session;
-}

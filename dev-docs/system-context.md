@@ -133,7 +133,6 @@ FastAPI รับ model_url_or_path = "https://<app>/api/models/[id]"
 | หมวด | Method & Path | ผู้เรียก / สิทธิ์ | รายละเอียดการทำงาน |
 |---|---|---|---|
 | **Account** | `POST /api/account/register` | Public | สมัครสมาชิกใหม่ (แฮชรหัสผ่าน บันทึกลง MongoDB) |
-| | `POST /api/account/login` | Public | ตรวจสอบ Credentials ผ่าน API |
 | | `GET / POST /api/auth/[...nextauth]` | Browser | NextAuth Session, Google OAuth, Callbacks |
 | **Analyze** | `POST /api/analyze` | User / Admin | วิเคราะห์สิว (เซฟรูป → ส่ง AI → ประเมิน Severity → บันทึก DB) |
 | | `DELETE /api/analyze/history` | Admin Only | ลบประวัติการวิเคราะห์ (เดี่ยว `{ id }` หรือกลุ่ม `{ ids: [] }`) พร้อมลบรูป |

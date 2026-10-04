@@ -6,7 +6,6 @@
 |---|---|---|---|---|
 | GET/POST | `/api/auth/[...nextauth]` | public | — | Auth.js handlers |
 | POST | `/api/account/register` | public | JSON `{name,email,password,confirmPassword}` | `registerUserLogic` |
-| POST | `/api/account/login` | public | JSON `{email,password}` | **ไม่มีใครเรียก** (ฟอร์มใช้ Server Action) |
 | POST | `/api/analyze` | login | multipart `image` | upload → FastAPI → severity → บันทึก |
 | DELETE | `/api/analyze/history` | ADMIN | JSON `{id}` หรือ `{ids:[]}` | `deleteHistoryLogic` / `deleteHistoriesLogic` |
 | GET | `/api/images/[...path]` | login (ผ่าน proxy) ไม่เช็คเจ้าของรูป | — | อ่านไฟล์จากดิสก์ |

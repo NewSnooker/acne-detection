@@ -14,10 +14,3 @@ export async function getAdminModels() {
   });
   return models.map((model) => ({ ...model, modelData: null }));
 }
-
-export async function getActiveModel() {
-  return await prisma.aiModel.findFirst({
-    where: { isActive: true },
-    orderBy: { createdAt: "desc" },
-  });
-}
