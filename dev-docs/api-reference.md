@@ -8,7 +8,7 @@
 | POST | `/api/account/register` | public | JSON `{name,email,password,confirmPassword}` | `registerUserLogic` |
 | POST | `/api/analyze` | login | multipart `image` | upload → FastAPI → severity → บันทึก |
 | DELETE | `/api/analyze/history` | ADMIN | JSON `{id}` หรือ `{ids:[]}` | `deleteHistoryLogic` / `deleteHistoriesLogic` |
-| GET | `/api/images/[...path]` | login (ผ่าน proxy) ไม่เช็คเจ้าของรูป | — | อ่านไฟล์จากดิสก์ |
+| GET | `/api/images/[...path]` | login + เป็นเจ้าของรูป (หรือ ADMIN) | — | อ่านไฟล์จากดิสก์ (รูปคนอื่นตอบ 404, cache แบบ private) |
 | GET | `/api/models/[id]` | header `X-API-Key` (= `AI_SERVICE_API_KEY`) หรือ ADMIN | — | ส่งไฟล์ `.pt` จาก MongoDB (FastAPI เรียก) |
 | PUT | `/api/models/[id]` | ADMIN | — | ตั้งเป็น active |
 | DELETE | `/api/models/[id]` | ADMIN | — | ลบโมเดล (ไม่กันตัว active) |
