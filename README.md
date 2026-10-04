@@ -1,6 +1,55 @@
 # AcneAI — System Context
 
-## How to Run (การรันโปรเจกต์แบบ Local)
+## เริ่มใช้งานด้วย Docker (แนะนำ)
+
+ต้องมี Docker Desktop (Docker Compose v2.24 ขึ้นไป)
+
+```bash
+git clone https://github.com/NewSnooker/acne-detection.git
+cd acne-detection
+docker compose up --build
+```
+
+รอจน log ของ `acne_web` ขึ้นคำว่า `Ready` แล้วเปิด <http://localhost:3000>
+
+| บัญชีผู้ดูแลระบบเริ่มต้น | รหัสผ่าน |
+| --- | --- |
+| `admin@acne.local` | `Admin1234` |
+
+- ไม่ต้องสร้างไฟล์ `.env` ระบบสร้างบัญชีแอดมินและใส่โมเดล AI เริ่มต้นให้เองตอนเปิดครั้งแรก
+- build ครั้งแรกใช้เวลาหลายนาที เพราะต้องดาวน์โหลด PyTorch
+- วิเคราะห์รูปครั้งแรกจะช้ากว่าปกติ เพราะ AI ต้องโหลดโมเดลเข้าหน่วยความจำ
+- หยุดระบบ: `docker compose down` (ข้อมูลยังอยู่) ลบข้อมูลทั้งหมด: `docker compose down -v`
+
+### เปลี่ยนค่าเริ่มต้น (ไม่บังคับ)
+
+คัดลอก `.env.example` เป็น `.env` ไว้ข้าง `docker-compose.yml` แล้วแก้ค่าที่ต้องการ เช่น port ของเว็บ รหัสผ่านแอดมินเริ่มต้น หรือ `AUTH_SECRET`
+
+### เปิดการเข้าสู่ระบบด้วย Google (ไม่บังคับ)
+
+ถ้าไม่ตั้งค่า ปุ่ม Google จะแจ้งว่ายังไม่ได้ตั้งค่า ส่วนอื่นของระบบใช้ได้ตามปกติ
+
+1. สร้าง OAuth Client ใน Google Cloud Console และเพิ่ม Authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
+2. สร้างไฟล์ `apps/web/.env` ใส่สองบรรทัดนี้
+
+   ```
+   GOOGLE_CLIENT_ID=ค่าที่ได้จาก Google
+   GOOGLE_CLIENT_SECRET=ค่าที่ได้จาก Google
+   ```
+
+3. สั่ง `docker compose up -d` อีกครั้ง
+
+### Docker สำหรับพัฒนา
+
+เปิด port ของ MongoDB (27017) และ AI (8000) ออกมาที่เครื่อง และเปิด hot reload ฝั่ง AI
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
+
+---
+
+## How to Run (การรันโปรเจกต์แบบ Local ไม่ใช้ Docker)
 
 **1. รันฝั่ง AI (FastAPI)**
 
@@ -132,7 +181,7 @@ FastAPI รับ model_url_or_path = "https://<app>/api/models/[id]"
 | **Analyze** | `POST /api/analyze` | User / Admin | วิเคราะห์สิว (เซฟรูป → ส่ง AI → ประเมิน Severity → บันทึก DB) |
 | | `DELETE /api/analyze/history` | Admin Only | ลบประวัติการวิเคราะห์ (เดี่ยว `{ id }` หรือกลุ่ม `{ ids: [] }`) พร้อมลบรูป |
 | **Images** | `GET /api/images/[...path]` | Browser | ดึงไฟล์รูปจาก Local Disk (โหมด Dev/Docker) |
-| **Models** | `GET /api/models/[id]` | FastAPI / Admin | ส่ง Binary (.pt) ของโมเดลจาก MongoDB ให้ดาวน์โหลด |
+| **Models** | `GET /api/models/[id]` | FastAPI (ส่ง `X-API-Key`) / Admin | ส่ง Binary (.pt) ของโมเดลจาก MongoDB ให้ดาวน์โหลด |
 | | `POST /api/models/create` | Admin Only | อัปโหลดโมเดล .pt แปลงเป็น Binary บันทึกลง MongoDB |
 | | `PUT /api/models/[id]` | Admin Only | สลับตั้งค่าให้โมเดลนี้เป็นโมเดลหลัก (`isActive: true`) |
 | | `PUT /api/models/[id]/edit` | Admin Only | แก้ไขชื่อ, เวอร์ชั่น, หรือคำอธิบายโมเดล |

@@ -48,6 +48,7 @@ Server component (page.tsx)
 | `lib/storage/image-provider.ts` | `uploadImage`, `deleteImage` | local / vercel-blob |
 | `lib/storage/model-provider.ts` | `saveModel`, `deleteModelFile` | คืน Buffer เก็บลง Mongo |
 | `lib/auth/guards.ts` | `requireAdminRoute`, `requireAuthRoute` (ไม่ถูกใช้) | ใช้จริงหน้าเดียวคือ admin/models |
+| `lib/auth/google.ts` | `isGoogleEnabled` | true เมื่อมี `GOOGLE_CLIENT_ID` และ `GOOGLE_CLIENT_SECRET` ใช้ใน `auth.ts`, หน้า login, `loginWithGoogle` |
 
 ชื่อไฟล์ซ้ำกันสองที่ (ระวังสับสน): `src/services/model-service.ts` (client fetch) กับ `src/lib/services/model-service.ts` (server Prisma) และ `user-service.ts` เช่นกัน
 
@@ -76,6 +77,7 @@ type: `Detection { type, confidence, bbox{x1,y1,x2,y2} }`, `AnalysisResult`
 - ไม่ login + ไม่ public → redirect `/login`
 - path ขึ้นต้น `/admin` + role ไม่ใช่ ADMIN → redirect `/analyze`
 - **API ฝั่ง admin ไม่ได้ขึ้นต้น `/admin`** จึงต้องเช็ค role เองใน route handler ทุกตัว
+- `/api/models` เป็น public ในชั้น proxy (ให้ FastAPI เข้าได้โดยไม่ต้อง login) แต่ `GET /api/models/[id]` ตรวจ `X-API-Key` หรือ session แอดมินเองใน route
 
 ## Environment variables (apps/web/.env)
 
@@ -84,7 +86,7 @@ type: `Detection { type, confidence, bbox{x1,y1,x2,y2} }`, `AnalysisResult`
 | `AUTH_SECRET`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `AUTH_TRUST_HOST` | Auth.js |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `lib/auth.ts` |
 | `DATABASE_URL` | Prisma |
-| `AI_SERVICE_URL`, `AI_SERVICE_API_KEY`, `AI_CONFIDENCE_THRESHOLD` (optional, default 0.25) | `analyze-logic.ts` |
+| `AI_SERVICE_URL`, `AI_SERVICE_API_KEY` (บังคับ ไม่มีค่าสำรองในโค้ด), `AI_CONFIDENCE_THRESHOLD` (optional, default 0.25) | `analyze-logic.ts`, `api/models/[id]/route.ts` |
 | `NEXT_PUBLIC_APP_URL`, `INTERNAL_APP_URL` | URL ที่ FastAPI ใช้โหลดโมเดล |
 | `APP_ENV` | `"hosted"` = Vercel Blob |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob |

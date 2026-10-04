@@ -10,7 +10,7 @@
 | POST | `/api/analyze` | login | multipart `image` | upload → FastAPI → severity → บันทึก |
 | DELETE | `/api/analyze/history` | ADMIN | JSON `{id}` หรือ `{ids:[]}` | `deleteHistoryLogic` / `deleteHistoriesLogic` |
 | GET | `/api/images/[...path]` | login (ผ่าน proxy) ไม่เช็คเจ้าของรูป | — | อ่านไฟล์จากดิสก์ |
-| GET | `/api/models/[id]` | **public — ไม่มี auth** | — | ส่งไฟล์ `.pt` จาก MongoDB (FastAPI เรียก) |
+| GET | `/api/models/[id]` | header `X-API-Key` (= `AI_SERVICE_API_KEY`) หรือ ADMIN | — | ส่งไฟล์ `.pt` จาก MongoDB (FastAPI เรียก) |
 | PUT | `/api/models/[id]` | ADMIN | — | ตั้งเป็น active |
 | DELETE | `/api/models/[id]` | ADMIN | — | ลบโมเดล (ไม่กันตัว active) |
 | PUT | `/api/models/[id]/edit` | ADMIN | JSON `{name,version,description?}` | แก้ข้อมูล |
@@ -29,7 +29,7 @@
 | ชื่อ | ใช้ที่ |
 |---|---|
 | `loginWithCredentials(formData)` | `login-form.tsx` |
-| `loginWithGoogle()` | `login-form.tsx` (`<form action>`) |
+| `loginWithGoogle()` | `login-form.tsx` (`<form action>`) — ถ้าไม่มี env ของ Google จะ redirect ไป `/login?error=GoogleNotConfigured` |
 | `registerUser(formData)` | ไม่ถูกใช้ (ซ้ำกับ `/api/account/register`) |
 
 ### Client fetch wrappers (`src/services`)
@@ -44,9 +44,6 @@
 |---|---|---|---|---|
 | GET | `/health` | — | ใช้ ping | `{status:"ok"}` |
 | POST | `/predict` | `X-API-Key` | **ใช่** | form: `image_url_or_path`, `model_url_or_path`, `confidence` (default 0.20) |
-| WS | `/ws/predict` | **ไม่มี** | ไม่ (โค้ดเก่า) | ส่ง progress ระหว่างโหลดโมเดล/รูป |
-| POST | `/models/upload` | `X-API-Key` | ไม่ (โค้ดเก่า) | เซฟ `.pt` ลงดิสก์ |
-| DELETE | `/models/{filename}` | `X-API-Key` | ไม่ (โค้ดเก่า) | ลบไฟล์ + clear cache |
 | GET | `/docs` | — | เปิดเมื่อ `DEBUG=true` | Swagger |
 
 ### Response ของ `/predict`

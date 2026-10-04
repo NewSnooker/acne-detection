@@ -30,10 +30,12 @@ acne-ai-v1/
 ├── CLAUDE.md                 ← ไฟล์นี้
 ├── dev-docs/             ← เอกสารสำหรับนักพัฒนา/AI (ดูตารางด้านล่าง)
 ├── README.md                 ← system context เดิม (บางจุดล้าสมัย ยึด dev-docs เป็นหลัก)
-├── docker-compose.yml        ← mongodb (replica set) + ai + web
+├── docker-compose.yml        ← mongodb (replica set) + ai + web (รันได้โดยไม่มี .env)
+├── docker-compose.dev.yml    ← ส่วนเสริมสำหรับพัฒนา
 ├── apps/
 │   ├── web/                  ← Next.js 16, React 19, TS, Tailwind 4, Prisma 6, Auth.js v5
 │   │   ├── prisma/schema.prisma
+│   │   ├── prisma/seed.mjs           ← สร้างแอดมิน + โมเดลเริ่มต้น (รันตอน container เริ่ม)
 │   │   └── src/
 │   │       ├── proxy.ts              ← middleware ของ Next 16 (กัน route ที่ต้อง login / admin)
 │   │       ├── app/(auth)/           ← /login, /register
@@ -67,6 +69,7 @@ acne-ai-v1/
 | `dev-docs/ai-service.md` | แก้ FastAPI / YOLO inference |
 | `dev-docs/scope-traceability.md` | เช็คว่าโค้ดตรงกับขอบเขตในเล่ม (บทที่ 1) หรือยัง |
 | `dev-docs/refactor-plan.md` | **ก่อนรีแฟกเตอร์** — รายการปัญหาและลำดับที่ควรแก้ |
+| `dev-docs/docker-quickstart-plan.md` | แก้ Docker / ข้อมูลเริ่มต้น — แผนและสถานะงาน "โหลดแล้วเปิด Docker ใช้ได้เลย" |
 
 ## คำสั่งที่ใช้บ่อย
 
@@ -81,8 +84,13 @@ npx prisma db push          # sync schema ขึ้น MongoDB (ไม่มี 
 # AI (apps/ai) — Windows
 venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 
-# Docker ทั้งระบบ
-docker-compose up --build
+# Docker ทั้งระบบ (ไม่ต้องมี .env — แอดมินเริ่มต้น admin@acne.local / Admin1234)
+docker compose up --build
+# Docker สำหรับพัฒนา (เปิด port 8000/27017 + hot reload ฝั่ง ai)
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+
+# ข้อมูลเริ่มต้น (apps/web) — สร้างแอดมินและใส่โมเดลเริ่มต้นถ้ายังไม่มี
+npm run db:seed
 ```
 
 ยังไม่มี test และ CI ในโปรเจค
@@ -99,6 +107,7 @@ docker-compose up --build
 8. สิทธิ์ admin ต้องเช็ค **ทั้ง** ใน `proxy.ts` (หน้า `/admin/*`) **และ** ในทุก route handler (`session.user.role === "ADMIN"`)
 9. ห้าม commit `.env`, ไฟล์ `.pt`, รูปใน `apps/images/`
 10. UI และข้อความ error เป็นภาษาไทย
+11. ห้ามฝัง key หรือ secret ในโค้ด — ค่าเริ่มต้นสำหรับ Docker อยู่ใน `docker-compose.yml` ที่เดียว และ `AI_SERVICE_API_KEY` ของ web กับ ai ต้องเป็นค่าเดียวกัน
 
 ## ศัพท์ในโปรเจค
 

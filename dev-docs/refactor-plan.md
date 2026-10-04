@@ -5,6 +5,21 @@
 
 ---
 
+## สถานะ (อัปเดต 2026-10-04, branch `docker-quickstart`)
+
+| ข้อ | สถานะ |
+|---|---|
+| 1 key ฝังในโค้ด | แก้แล้ว — เอาออกจากโค้ด ค่า default สำหรับ Docker อยู่ใน `docker-compose.yml` (key เดิมยังอยู่ในประวัติ git ถ้าใช้ key นั้นกับ Render/Vercel ควรเปลี่ยน) |
+| 2 โหลดโมเดลโดยไม่ login | แก้แล้ว — ต้องส่ง `X-API-Key` หรือเป็นแอดมิน |
+| 3 endpoint เก่าใน FastAPI | ลบแล้ว |
+| 7 Docker | แก้บางส่วน — มี `.dockerignore`, เอา `--reload` ออก; ยังใช้ `npm install` และ `--accept-data-loss` (เหตุผลใน architecture.md) |
+| 28 `.gitattributes` | เพิ่มแล้ว |
+| 31 `.env.example` ไม่ตรงโค้ด | แก้แล้ว (`APP_ENV=hosted`) |
+| 32 แอดมินคนแรก | ใน Docker ใช้ seed แล้ว; โหมด dev ยังใช้กฎ "คนแรกที่สมัครเป็น ADMIN" |
+| ใหม่ | อัปโหลดไฟล์ใหญ่กว่า 10 MB ผ่าน route ที่มี `proxy.ts` จะถูกตัด (ค่า default ของ `experimental.proxyClientMaxBodySize`) — กระทบการอัปโหลดโมเดลขนาดใหญ่ |
+
+---
+
 ## P0 — ความปลอดภัย (ทำก่อนรีแฟกเตอร์)
 
 | # | ปัญหา | ที่ไหน | แก้อย่างไร |

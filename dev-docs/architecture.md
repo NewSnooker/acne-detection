@@ -21,7 +21,6 @@
 | URL ที่ ai ใช้โหลดโมเดล | `NEXT_PUBLIC_APP_URL` | `INTERNAL_APP_URL=http://web:3000` | `NEXT_PUBLIC_APP_URL` |
 
 สวิตช์เดียวที่โค้ดเช็คคือ `process.env.APP_ENV === "hosted"` ใน `lib/storage/image-provider.ts`
-(`.env.example` เขียนว่า `APP_ENV=host` ซึ่ง **ไม่ตรง** กับโค้ด — ดู refactor-plan)
 
 ## Flow หลัก: วิเคราะห์สิว
 
@@ -40,7 +39,7 @@
    ▼
 [FastAPI] /predict  (apps/ai/app/main.py)
    - รูป: ถ้าเป็น URL → ดาวน์โหลดลง STORAGE_PATH (ลบทิ้งหลังจบ), ถ้าเป็น path → อ่านตรง
-   - โมเดล: ดาวน์โหลดจาก GET /api/models/{id} → cache ที่ MODELS_PATH/{id}.pt (ครั้งถัดไปข้าม)
+   - โมเดล: ดาวน์โหลดจาก GET /api/models/{id} (ส่ง X-API-Key) → cache ที่ MODELS_PATH/{id}.pt (ครั้งถัดไปข้าม)
    - YoloService.predict() → { detections[], counts{}, total }
    ▼
 [Next] 6. calculateSeverity(counts)  → MILD | MODERATE | SEVERE
@@ -94,11 +93,22 @@ MILD     กรณีที่เหลือ
 - Provider: Google, Credentials (bcrypt)
 - `lib/auth.config.ts` = config ที่ edge-safe (callbacks ใส่ `id`, `role` ลง token/session) ใช้ใน `proxy.ts`
 - `lib/auth.ts` = config เต็ม (adapter + providers) ใช้ฝั่ง server
-- ผู้ใช้คนแรกที่สมัครผ่านฟอร์มได้ role `ADMIN` (`lib/services/auth-logic.ts`) ที่เหลือเป็น `USER`
+- ผู้ใช้คนแรกที่สมัครผ่านฟอร์มได้ role `ADMIN` (`lib/services/auth-logic.ts`) ที่เหลือเป็น `USER` — ใน Docker `prisma/seed.mjs` สร้างแอดมินไว้ก่อนแล้ว คนที่สมัครทีหลังจึงเป็น `USER`
+- Google provider ถูกลงทะเบียนเฉพาะเมื่อมี `GOOGLE_CLIENT_ID` และ `GOOGLE_CLIENT_SECRET` (`lib/auth/google.ts`) ถ้าไม่มี ปุ่ม Google ในหน้า login จะแจ้งเตือนแทน
 - `role` ถูกฝังใน JWT ตอน login — เปลี่ยน role ใน DB แล้วต้อง login ใหม่ถึงจะมีผล
 
 ## Docker
 
-`docker-compose.yml`: `mongodb` + `mongo-setup` (rs.initiate) + `ai` (mount source + images + models) + `web` (mount images)
-- web container รัน `prisma db push --accept-data-loss` ทุกครั้งที่ start
-- ai container รัน uvicorn ด้วย `--reload`
+`docker-compose.yml` รันได้โดยไม่มีไฟล์ `.env` (รายละเอียดและสถานะ: `docker-quickstart-plan.md`)
+
+| service | สาระสำคัญ |
+|---|---|
+| `mongodb` | replica set `rs0` — healthcheck เรียก `rs.initiate` เองถ้ายังไม่ได้ตั้ง ไม่เปิด port ออก host |
+| `ai` | ไม่เปิด port ออก host, mount `apps/images` และ `apps/ai/models` (cache), PyTorch รุ่น CPU |
+| `web` | port 3000, รอ `mongodb` healthy, ตอนเริ่มรัน `prisma db push` → `node prisma/seed.mjs` → `npm start` |
+
+- ค่า default ทั้งหมดอยู่ใน `environment:` ของ compose — `AI_SERVICE_API_KEY` ประกาศครั้งเดียว (`x-ai-key`) ใช้ทั้ง web และ ai
+- ค่าใน `environment:` ชนะค่าใน `apps/web/.env` (ซึ่งเป็นไฟล์ไม่บังคับ ใช้ใส่ `GOOGLE_CLIENT_ID/SECRET`)
+- เปลี่ยนค่า default ได้ด้วย `.env` ที่ root (ดู `.env.example`)
+- `docker-compose.dev.yml`: เปิด port 27017/8000, mount ซอร์ส ai, `--reload`
+- `prisma db push` ยังใช้ `--accept-data-loss` เพราะถ้า Prisma เตือนเรื่อง index แล้วไม่มี flag นี้ container จะเริ่มไม่ได้ (บน MongoDB คำสั่งนี้จัดการแค่ index ไม่ลบเอกสาร)
