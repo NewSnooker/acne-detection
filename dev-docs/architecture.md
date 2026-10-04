@@ -103,12 +103,12 @@ MILD     กรณีที่เหลือ
 
 | service | สาระสำคัญ |
 |---|---|
-| `mongodb` | replica set `rs0` — healthcheck เรียก `rs.initiate` เองถ้ายังไม่ได้ตั้ง ไม่เปิด port ออก host |
+| `mongodb` | replica set `rs0` — healthcheck เรียก `rs.initiate` เองถ้ายังไม่ได้ตั้ง เปิด port 27017 ให้เฉพาะเครื่องนี้ (`127.0.0.1`) เปลี่ยนได้ด้วย `MONGO_PORT` |
 | `ai` | ไม่เปิด port ออก host, mount `apps/images` และ `apps/ai/models` (cache), PyTorch รุ่น CPU |
 | `web` | port 3000, รอ `mongodb` healthy, ตอนเริ่มรัน `prisma db push` → `node prisma/seed.mjs` → `npm start` |
 
 - ค่า default ทั้งหมดอยู่ใน `environment:` ของ compose — `AI_SERVICE_API_KEY` ประกาศครั้งเดียว (`x-ai-key`) ใช้ทั้ง web และ ai
 - ค่าใน `environment:` ชนะค่าใน `apps/web/.env` (ซึ่งเป็นไฟล์ไม่บังคับ ใช้ใส่ `GOOGLE_CLIENT_ID/SECRET`)
 - เปลี่ยนค่า default ได้ด้วย `.env` ที่ root (ดู `.env.example`)
-- `docker-compose.dev.yml`: เปิด port 27017/8000, mount ซอร์ส ai, `--reload`
+- `docker-compose.dev.yml`: เปิด port 8000, mount ซอร์ส ai, `--reload`
 - `prisma db push` ยังใช้ `--accept-data-loss` เพราะถ้า Prisma เตือนเรื่อง index แล้วไม่มี flag นี้ container จะเริ่มไม่ได้ (บน MongoDB คำสั่งนี้จัดการแค่ index ไม่ลบเอกสาร)

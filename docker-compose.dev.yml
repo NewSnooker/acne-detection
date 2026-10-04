@@ -3,14 +3,10 @@
 #   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 #
 # เพิ่มจากไฟล์หลัก:
-# - เปิด port MongoDB (27017) และ AI (8000) ออกมาที่เครื่อง
+# - เปิด port ของ AI (8000) ออกมาที่เครื่อง
 # - mount ซอร์สโค้ด AI เข้า container และเปิด hot reload
 
 services:
-  mongodb:
-    ports:
-      - "27017:27017"
-
   ai:
     ports:
       - "8000:8000"

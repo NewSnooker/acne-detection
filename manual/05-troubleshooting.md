@@ -13,7 +13,7 @@
 **เปิดระบบไม่ขึ้น**
 
 - [สั่ง docker compose แล้ว error ทันที](#compose-error)
-- [port 3000 ถูกใช้อยู่](#port-in-use)
+- [port 3000 หรือ 27017 ถูกใช้อยู่](#port-in-use)
 - [build นานมากหรือค้าง](#slow-build)
 - [เว็บเปิดไม่ขึ้นหรือ container เว็บ restart วน](#web-restart)
 
@@ -70,11 +70,14 @@ docker compose ps               # ดูว่าแต่ละส่วนท�
 
 <a id="port-in-use"></a>
 
-## port 3000 ถูกใช้อยู่
+## port 3000 หรือ 27017 ถูกใช้อยู่
 
 ข้อความประมาณ `port is already allocated` หรือ `address already in use`
 
-เปลี่ยน port ตาม [เปลี่ยน port ของเว็บ](04-configuration.md#port) หรือปิดโปรแกรมที่ใช้ port 3000 อยู่
+| port | ใช้ทำอะไร | วิธีแก้ |
+| --- | --- | --- |
+| 3000 | เว็บ | ตั้ง `WEB_PORT` ตาม [เปลี่ยน port ของเว็บ](04-configuration.md#port) หรือปิดโปรแกรมที่ใช้ port นี้อยู่ |
+| 27017 | ฐานข้อมูล MongoDB | มักเกิดเมื่อเครื่องมี MongoDB ติดตั้งอยู่แล้ว ให้สร้างไฟล์ `.env` ข้าง `docker-compose.yml` ใส่ `MONGO_PORT=27018` แล้วสั่ง `docker compose up -d` |
 
 [↑ สารบัญ](#toc)
 

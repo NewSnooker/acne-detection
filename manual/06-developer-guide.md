@@ -11,6 +11,7 @@
 - [เลือกวิธีรัน](#choose)
 - [วิธีที่ 1 Docker สำหรับพัฒนา](#docker-dev)
 - [วิธีที่ 2 รันแบบไม่ใช้ Docker](#local)
+- [ดูข้อมูลในฐานข้อมูลของ Docker](#database)
 - [คำสั่งที่ใช้บ่อย](#commands)
 - [ไฟล์ตั้งค่าและตัวแปร](#env)
 - [โครงสร้างโค้ดโดยย่อ](#structure)
@@ -26,7 +27,7 @@
 | วิธี | เหมาะกับ | ข้อสังเกต |
 | --- | --- | --- |
 | Docker ปกติ (`docker compose up --build`) | ทดสอบทั้งระบบเหมือนผู้ใช้จริง | แก้โค้ดแล้วต้อง build ใหม่ |
-| Docker สำหรับพัฒนา | แก้โค้ดฝั่ง AI | AI โหลดโค้ดใหม่เองเมื่อแก้ไฟล์ และเปิด port 8000, 27017 |
+| Docker สำหรับพัฒนา | แก้โค้ดฝั่ง AI | AI โหลดโค้ดใหม่เองเมื่อแก้ไฟล์ และเปิด port 8000 |
 | ไม่ใช้ Docker | แก้โค้ดฝั่งเว็บ | เว็บโหลดหน้าใหม่เองเมื่อแก้ไฟล์ (`npm run dev`) |
 
 [↑ สารบัญ](#toc)
@@ -43,7 +44,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 เพิ่มจาก Docker ปกติ:
 
-- เปิด port ของ MongoDB (27017) และ AI (8000) ออกมาที่เครื่อง
+- เปิด port ของ AI (8000) ออกมาที่เครื่อง
 - mount โฟลเดอร์ `apps/ai` เข้า container และเปิด hot reload
 - เปิดหน้า API docs ของ AI ที่ <http://localhost:8000/docs>
 
@@ -98,6 +99,22 @@ npm run dev
 `npm run db:seed` สร้างแอดมินเริ่มต้นและใส่โมเดลเริ่มต้นถ้ายังไม่มี ถ้าไม่รัน คนแรกที่สมัครผ่านหน้าเว็บจะได้เป็นผู้ดูแลระบบ
 
 คำสั่งด้านบนเป็นของ Windows บน macOS/Linux ใช้ `venv/bin/pip`, `venv/bin/python` และ `cp` แทน
+
+[↑ สารบัญ](#toc)
+
+---
+
+<a id="database"></a>
+
+## ดูข้อมูลในฐานข้อมูลของ Docker
+
+MongoDB ใน Docker เปิด port ให้เฉพาะเครื่องนี้ ต่อด้วย MongoDB Compass หรือเครื่องมืออื่นได้ที่
+
+```
+mongodb://localhost:27017/acne_db?directConnection=true
+```
+
+ต้องมี `directConnection=true` เพราะฐานข้อมูลเป็น replica set ถ้าเปลี่ยน `MONGO_PORT` ให้แก้เลข port ตาม
 
 [↑ สารบัญ](#toc)
 
