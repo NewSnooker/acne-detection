@@ -1,39 +1,20 @@
 import NextAuth from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 import { NextResponse } from "next/server";
+import { resolveRedirect } from "@/lib/auth/route-access";
 
 const { auth } = NextAuth(authConfig);
-
-const PUBLIC_ROUTES = [
-  "/login",
-  "/register",
-  "/api/auth",          // NextAuth callbacks (OAuth, session, etc.)
-  "/api/account",       // Custom Auth APIs (register, etc.)
-  "/api/models",        // FastAPI ต้องดาวน์โหลดโมเดล (GET /api/models/[id]) ไม่ต้อง Login
-];
-const ADMIN_ROUTES = ["/admin"];
 
 export default auth((req) => {
   const { nextUrl } = req;
   const session = req.auth;
-  const isLoggedIn = !!session;
 
-  const isPublic = PUBLIC_ROUTES.some((r) => nextUrl.pathname.startsWith(r));
-  const isAdmin = ADMIN_ROUTES.some((r) => nextUrl.pathname.startsWith(r));
-
-  if (isLoggedIn && nextUrl.pathname === "/login") {
-    return NextResponse.redirect(new URL("/analyze", nextUrl));
-  }
-
-  if (!isLoggedIn && !isPublic) {
-    return NextResponse.redirect(new URL("/login", nextUrl));
-  }
-
-  if (
-    isAdmin &&
-    (session?.user as any)?.role !== "ADMIN"
-  ) {
-    return NextResponse.redirect(new URL("/analyze", nextUrl));
+  const target = resolveRedirect(
+    nextUrl.pathname,
+    session ? { role: (session.user as any)?.role } : null,
+  );
+  if (target) {
+    return NextResponse.redirect(new URL(target, nextUrl));
   }
 
   return NextResponse.next();
