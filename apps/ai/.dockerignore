@@ -11,3 +11,8 @@ storage
 images
 Dockerfile
 .dockerignore
+tests
+requirements-dev.txt
+pytest.ini
+.pytest_cache
+inspect_pt.py
