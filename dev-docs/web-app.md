@@ -48,6 +48,8 @@ Server component (page.tsx)
 | `lib/storage/image-provider.ts` | `uploadImage`, `deleteImage` | local / vercel-blob |
 | `lib/storage/model-provider.ts` | `saveModel`, `deleteModelFile` | คืน Buffer เก็บลง Mongo |
 | `lib/auth/guards.ts` | `requireUserPage`, `requireAdminPage` (หน้าเว็บ: redirect), `requireUserApi`, `requireAdminApi` (API: ตอบ 401/403) | จุดเดียวสำหรับตรวจสิทธิ์ ทุกหน้าและทุก route ใช้ชุดนี้ |
+| `lib/auth/credentials.ts` | `authorizeCredentials` | ตรวจอีเมลและรหัสผ่านตอนเข้าสู่ระบบ ใช้ใน `auth.ts` |
+| `lib/auth/route-access.ts` | `resolveRedirect`, `PUBLIC_ROUTES`, `ADMIN_ROUTES` | กติกากันหน้าเว็บ ใช้ใน `proxy.ts` |
 | `lib/auth/google.ts` | `isGoogleEnabled` | true เมื่อมี `GOOGLE_CLIENT_ID` และ `GOOGLE_CLIENT_SECRET` ใช้ใน `auth.ts`, หน้า login, `loginWithGoogle` |
 
 ชื่อไฟล์ซ้ำกันสองที่ (ระวังสับสน): `src/services/model-service.ts` (client fetch) กับ `src/lib/services/model-service.ts` (server Prisma) และ `user-service.ts` เช่นกัน

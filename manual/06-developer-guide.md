@@ -132,7 +132,11 @@ mongodb://localhost:27017/acne_db?directConnection=true
 | `npm run build` | สร้าง Prisma Client แล้ว build เว็บ |
 | `npm run lint` | ตรวจโค้ดด้วย ESLint |
 | `npm run typecheck` | ตรวจ type (`tsc --noEmit`) |
-| `npm test` | รันชุดทดสอบ (Vitest) เช่น เกณฑ์ระดับความรุนแรง |
+| `npm test` | รันชุดทดสอบฝั่งเว็บ (Vitest) |
+
+ฝั่ง AI สั่งใน `apps/ai`: `venv\Scripts\pip install -r requirements-dev.txt` หนึ่งครั้ง แล้วรัน `venv\Scripts\python.exe -m pytest`
+
+รายการว่าทดสอบอะไรบ้าง: [dev-docs/testing.md](../dev-docs/testing.md)
 | `npx prisma generate` | สร้าง Prisma Client ใหม่หลังแก้ `schema.prisma` |
 | `npx prisma db push` | ส่งโครงสร้างขึ้น MongoDB |
 | `npm run db:seed` | สร้างแอดมินและโมเดลเริ่มต้นถ้ายังไม่มี |
@@ -198,7 +202,7 @@ apps/ai/app/
 
 ## ก่อน commit
 
-1. `npm run typecheck` และ `npm test` ผ่าน
+1. `npm run typecheck` และ `npm test` ผ่าน ถ้าแก้ฝั่ง AI ให้รัน `pytest` ด้วย
 2. `npm run lint` ไม่มี error ในไฟล์ที่แก้
 3. ถ้าแก้ Docker หรือ seed: ทดสอบด้วย `docker compose up --build` ในโฟลเดอร์ที่ clone ใหม่และไม่มีไฟล์ `.env`
 4. ถ้าแก้เกณฑ์ระดับความรุนแรง (`calculateSeverity`) ต้องแก้ให้ตรงกับเอกสารโครงงาน และแก้ชุดทดสอบ `analyze-logic.test.ts` ให้ตรงกันด้วย

@@ -15,4 +15,3 @@ tests
 requirements-dev.txt
 pytest.ini
 .pytest_cache
-inspect_pt.py

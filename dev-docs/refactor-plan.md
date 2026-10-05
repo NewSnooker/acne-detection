@@ -17,7 +17,7 @@
 | 7 Docker | แก้บางส่วน — มี `.dockerignore`, เอา `--reload` ออก; ยังใช้ `npm install` และ `--accept-data-loss` (เหตุผลใน architecture.md) |
 | 15 เช็คสิทธิ์ซ้ำ | แก้แล้ว — รวมไว้ที่ `lib/auth/guards.ts` ทุกหน้าและทุก route ใช้ชุดเดียวกัน แยก 401 กับ 403 |
 | 25 โค้ดที่ไม่ได้ใช้ | ลบแล้ว — ไฟล์ ฟังก์ชัน package และตัวแปร env ที่ไม่มีใครเรียก |
-| 27 test | เริ่มแล้ว — `analyze-logic.test.ts` ทดสอบ `calculateSeverity` 15 กรณี (`npm test`); ฝั่ง Python ยังไม่มี |
+| 27 test | ทำแล้วเฉพาะฟีเจอร์สำคัญ — เว็บ 164 กรณี (Vitest), AI 37 กรณี (pytest) ดู `testing.md` |
 | 28 `.gitattributes` | เพิ่มแล้ว |
 | 31 `.env.example` ไม่ตรงโค้ด | แก้แล้ว (`APP_ENV=hosted`) |
 | 32 แอดมินคนแรก | ใน Docker ใช้ seed แล้ว; โหมด dev ยังใช้กฎ "คนแรกที่สมัครเป็น ADMIN" |

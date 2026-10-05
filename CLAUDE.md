@@ -73,6 +73,7 @@ acne-ai-v1/
 | `dev-docs/performance/web.md` | ดูผลวัดความเร็วการวิเคราะห์ (Docker / รันในเครื่อง / Render) ก่อนแก้เรื่องความเร็ว |
 | `dev-docs/limitations.md` | ข้อจำกัดที่ทราบและสาเหตุ (เช่น อัปโหลดโมเดลบน Vercel ไม่ได้) — อ่านก่อนลงมือแก้เรื่องที่อาจเป็นข้อจำกัดอยู่แล้ว |
 | `manual/*.md` | แก้พฤติกรรมที่ผู้ใช้เห็น (หน้าจอ, ข้อความ, ขั้นตอนติดตั้ง, ค่าตั้ง) — ต้องอัปเดตคู่มือให้ตรง |
+| `dev-docs/testing.md` | เขียนหรือรันชุดทดสอบ — รายการไฟล์ทดสอบเทียบกับขอบเขตในเล่ม และสิ่งที่ยังไม่ครอบคลุม |
 | `dev-docs/docker-quickstart-plan.md` | แก้ Docker / ข้อมูลเริ่มต้น — แผนและสถานะงาน "โหลดแล้วเปิด Docker ใช้ได้เลย" |
 
 ## คำสั่งที่ใช้บ่อย
@@ -89,6 +90,7 @@ npx prisma db push          # sync schema ขึ้น MongoDB (ไม่มี 
 
 # AI (apps/ai) — Windows
 venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
+venv\Scripts\python.exe -m pytest   # ชุดทดสอบ (ติดตั้ง requirements-dev.txt ก่อน)
 
 # Docker ทั้งระบบ (ไม่ต้องมี .env — แอดมินเริ่มต้น admin@acne.local / Admin1234)
 docker compose up --build
