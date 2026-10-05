@@ -33,6 +33,8 @@
 
 **อื่น ๆ**
 
+- [สั่ง pip แล้วขึ้น Fatal error in launcher](#pip-launcher)
+
 - [รูปในประวัติไม่แสดง / log ขึ้น ENOENT](#image-missing)
 - [log ของ MongoDB ขึ้น "Connection ended" ไม่หยุด](#mongo-log)
 - [มี volume ชื่อเป็นตัวอักษรยาว ๆ ใน Docker](#anonymous-volume)
@@ -204,6 +206,26 @@ docker compose ps               # ดูว่าแต่ละส่วนท�
 | ไฟล์ไม่ใช่ `.pt` | ใช้ไฟล์ `.pt` จากการเทรนด้วย Ultralytics YOLO |
 | ไฟล์ใหญ่กว่า 10 MB (Docker / รันในเครื่อง) | รุ่นนี้ยังรับไฟล์ใหญ่กว่า 10 MB ไม่ได้ ใช้โมเดลขนาดเล็ก |
 | ใช้งานบน Vercel แล้วขึ้น error 413 | เป็นข้อจำกัดของ Vercel ที่รับคำขอได้ไม่เกินประมาณ 4.5 MB จึงอัปโหลดโมเดลบน Vercel ไม่ได้ ให้อัปโหลดผ่าน Docker หรือรันในเครื่องที่ต่อฐานข้อมูลเดียวกันแทน |
+
+[↑ สารบัญ](#toc)
+
+---
+
+<a id="pip-launcher"></a>
+
+## สั่ง pip แล้วขึ้น Fatal error in launcher
+
+ตัวอย่าง: `Fatal error in launcher: Unable to create process using ...`
+
+**สาเหตุ:** โฟลเดอร์ `venv` ถูกสร้างไว้ตอนโปรเจคอยู่ที่ path อื่น (เช่น เคยชื่อโฟลเดอร์อื่น หรือคัดลอกมา) ไฟล์ `pip.exe` จำ path เดิมไว้
+
+**วิธีแก้:** เรียก pip ผ่าน python แทน
+
+```bash
+venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+หรือลบโฟลเดอร์ `venv` แล้วสร้างใหม่ด้วย `python -m venv venv`
 
 [↑ สารบัญ](#toc)
 

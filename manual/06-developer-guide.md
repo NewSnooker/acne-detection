@@ -63,7 +63,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ```bash
 cd apps/ai
 python -m venv venv
-venv\Scripts\pip install -r requirements.txt
+venv\Scripts\python.exe -m pip install -r requirements.txt
 copy .env.example .env
 venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 ```
@@ -134,7 +134,7 @@ mongodb://localhost:27017/acne_db?directConnection=true
 | `npm run typecheck` | ตรวจ type (`tsc --noEmit`) |
 | `npm test` | รันชุดทดสอบฝั่งเว็บ (Vitest) |
 
-ฝั่ง AI สั่งใน `apps/ai`: `venv\Scripts\pip install -r requirements-dev.txt` หนึ่งครั้ง แล้วรัน `venv\Scripts\python.exe -m pytest`
+ฝั่ง AI สั่งใน `apps/ai`: ติดตั้งหนึ่งครั้งด้วย `venv\Scripts\python.exe -m pip install -r requirements-dev.txt` จากนั้นรัน `venv\Scripts\python.exe -m pytest`
 
 รายการว่าทดสอบอะไรบ้าง: [dev-docs/testing.md](../dev-docs/testing.md)
 | `npx prisma generate` | สร้าง Prisma Client ใหม่หลังแก้ `schema.prisma` |

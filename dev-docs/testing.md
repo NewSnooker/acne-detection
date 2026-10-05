@@ -11,7 +11,7 @@ npm install        # ครั้งแรก
 npm test
 
 # AI (apps/ai) — pytest
-venv\Scripts\pip install -r requirements-dev.txt   # ครั้งแรก
+venv\Scripts\python.exe -m pip install -r requirements-dev.txt   # ครั้งแรก
 venv\Scripts\python.exe -m pytest
 ```
 
