@@ -8,6 +8,8 @@ export const PUBLIC_ROUTES = [
   "/api/account", // Custom Auth APIs (register, etc.)
   "/api/models", // FastAPI ต้องดาวน์โหลดโมเดล (GET /api/models/[id]) — route ตรวจสิทธิ์เองด้วย X-API-Key
 ];
+// หน้าสาธารณะที่ต้องตรงทั้ง path (ใช้ startsWith กับ "/" ไม่ได้ เพราะจะเปิดทุกหน้า)
+export const PUBLIC_PAGES = ["/", "/knowledge"];
 export const ADMIN_ROUTES = ["/admin"];
 
 export type RouteVisitor = { role?: string | null } | null;
@@ -19,7 +21,8 @@ export type RouteVisitor = { role?: string | null } | null;
  */
 export function resolveRedirect(pathname: string, visitor: RouteVisitor): string | null {
   const isLoggedIn = visitor !== null;
-  const isPublic = PUBLIC_ROUTES.some((r) => pathname.startsWith(r));
+  const isPublic =
+    PUBLIC_PAGES.includes(pathname) || PUBLIC_ROUTES.some((r) => pathname.startsWith(r));
   const isAdminRoute = ADMIN_ROUTES.some((r) => pathname.startsWith(r));
 
   // เข้าสู่ระบบแล้วไม่ต้องเห็นหน้า login อีก

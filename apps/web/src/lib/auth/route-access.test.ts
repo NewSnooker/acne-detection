@@ -8,14 +8,14 @@ const ADMIN = { role: "ADMIN" };
 
 describe("resolveRedirect", () => {
   describe("ยังไม่เข้าสู่ระบบ", () => {
-    it.each(["/analyze", "/history", "/statistics", "/admin/users", "/", "/api/analyze", "/api/images/a.jpg", "/api/users"])(
+    it.each(["/analyze", "/history", "/statistics", "/admin/users", "/knowledge/x", "/api/analyze", "/api/images/a.jpg", "/api/users"])(
       "เข้า %s ถูกพาไปหน้า /login",
       (path) => {
         expect(resolveRedirect(path, GUEST)).toBe("/login");
       },
     );
 
-    it.each(["/login", "/register", "/api/auth/callback/google", "/api/account/register"])(
+    it.each(["/", "/knowledge", "/login", "/register", "/api/auth/callback/google", "/api/account/register"])(
       "เข้า %s ได้โดยไม่ต้องเข้าสู่ระบบ",
       (path) => {
         expect(resolveRedirect(path, GUEST)).toBeNull();
