@@ -8,7 +8,8 @@ alias: `@/*` → `src/*`
 
 | Path | ไฟล์ | สิทธิ์ | ทำอะไร |
 |---|---|---|---|
-| `/` | `app/page.tsx` | ตามโค้ดเป็น landing แต่ `proxy.ts` ไม่ได้ใส่ใน PUBLIC_ROUTES → คนไม่ login ถูกเด้งไป `/login` | Landing |
+| `/` | `app/(public)/page.tsx` | public | Landing: hero, สิว 6 ชนิด (ภาพจริง), ค่าประเมินโมเดลหลัก, ความรุนแรง, FAQ, disclaimer |
+| `/knowledge` | `app/(public)/knowledge/page.tsx` | public | ความรู้ดูแลผิวแบบองค์รวม (ข้อ 1.3.3.4) สาเหตุ ชนิดสิว เมื่อไรควรพบแพทย์ |
 | `/login` | `app/(auth)/login/page.tsx` → `components/auth/login-form.tsx` | public | Credentials + Google |
 | `/register` | `app/(auth)/register/page.tsx` → `register-form.tsx` | public | สมัครสมาชิก |
 | `/analyze` | `app/(dashboard)/analyze/page.tsx` → `components/analyze/*` | login | อัปโหลด + ดูผล |
@@ -19,7 +20,9 @@ alias: `@/*` → `src/*`
 | `/admin/statistics` | `admin/statistics/page.tsx` → `admin-statistics-dashboard.tsx` | ADMIN | ภาพรวมระบบ |
 | `/admin/history` | `admin/history/page.tsx` | ADMIN | ประวัติทุกคน + ลบ |
 
-Layout: `app/(dashboard)/layout.tsx` (Sidebar + Header, เช็ค session), `app/(auth)/layout.tsx`
+Layout: `app/(dashboard)/layout.tsx` (Sidebar + Header, เช็ค session), `app/(auth)/layout.tsx`, `app/(public)/layout.tsx` (header/footer หน้าสาธารณะ + เครดิตชุดข้อมูล CC BY 4.0)
+หน้าสาธารณะกำหนดใน `PUBLIC_PAGES` (`lib/auth/route-access.ts`) แบบตรงทั้ง path — ห้ามใส่ `/` ใน `PUBLIC_ROUTES` เพราะเช็คด้วย `startsWith`
+เนื้อหาความรู้: `components/knowledge/` (`content.ts` ข้อความ, `acne-samples.ts` กรอบของภาพใน `public/landing/` ซึ่ง proxy ไม่กัน)
 เมนู: `components/layout/sidebar.tsx` (`userNav`, `adminNav`)
 
 ## ชั้นของโค้ด (ปัจจุบัน)

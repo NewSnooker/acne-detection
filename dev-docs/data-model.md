@@ -31,7 +31,7 @@ VerificationToken                (Auth.js)
 | isActive | Boolean | ควรมี true ได้ตัวเดียว (บังคับด้วยโค้ด ไม่ใช่ DB) |
 | uploadedBy | ObjectId → User | |
 
-ไม่มี field เก็บค่าประเมินโมเดล (Recall, F1, mAP) — ดู scope-traceability ข้อ 1.3.3.3
+ค่าประเมินโมเดล (ข้อ 1.3.3.3): `mAP50`, `precision`, `recall`, `f1Score`, `accuracy` — `Float?` เก็บเป็นร้อยละ 0–100 แอดมินกรอกในหน้าแก้ไขโมเดล (`parseModelMetrics` ตรวจช่วงค่า) ไม่ได้อ่านจากไฟล์ `.pt`
 
 ### Image
 `id, fileName, url?, provider ("local" | "vercel-blob"), createdAt`
