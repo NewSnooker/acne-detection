@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, CircleCheck, ClipboardList, Upload } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { calculateSeverity } from "@/lib/services/analyze-logic";
+import { ACNE_CARE_ADVICE, ACNE_COLORS, ACNE_LABELS, SEVERITY_LABELS } from "@/types/analyze";
 import { Button } from "@/components/ui/button";
 import { MedicalDisclaimer } from "@/components/analyze/medical-disclaimer";
 import { AcneTypeGrid } from "@/components/knowledge/acne-type-grid";
@@ -9,6 +11,7 @@ import { ModelMetrics } from "@/components/knowledge/model-metrics";
 import { SeverityLevels } from "@/components/knowledge/severity-levels";
 import { SampleImage } from "@/components/knowledge/sample-image";
 import { ACNE_SAMPLES } from "@/components/knowledge/acne-samples";
+import { ACNE_GROUPS, SEVERITY_INFO } from "@/components/knowledge/content";
 
 const STEPS = [
   { icon: BookOpen, title: "อ่านคำแนะนำก่อนเริ่ม", desc: "รู้วิธีดูแลผิวองค์รวมเบื้องต้น ทั้งการนอน ความเครียด และอาหาร ก่อนเข้าสู่การวิเคราะห์" },
@@ -41,7 +44,12 @@ export default async function HomePage() {
       select: { name: true, version: true, mAP50: true, precision: true, recall: true, f1Score: true, accuracy: true },
     })
     .catch(() => null);
+  // ผลตัวอย่างในภาพหลัก คำนวณจากกรอบจริงของภาพด้วยเกณฑ์เดียวกับระบบ
   const hero = ACNE_SAMPLES.hero;
+  const counts: Record<string, number> = {};
+  for (const b of hero.boxes) counts[b.cls] = (counts[b.cls] ?? 0) + 1;
+  const severity = calculateSeverity(counts);
+  const severityInfo = SEVERITY_INFO.find((s) => s.key === severity)!;
 
   return (
     <>
@@ -80,10 +88,33 @@ export default async function HomePage() {
         </div>
 
         <figure className="overflow-hidden rounded-3xl border bg-card shadow-xl">
-          <SampleImage src={hero.src} boxes={hero.boxes} alt="ตัวอย่างภาพใบหน้าพร้อมกรอบแยกชนิดสิว" showLabels priority />
-          <figcaption className="flex flex-wrap items-center justify-between gap-2 p-4 text-sm">
-            <span className="text-muted-foreground">ตัวอย่างกรอบสีแยกชนิดสิว จากภาพจริงในชุดข้อมูล</span>
-            <span className="font-semibold">{hero.boxes.length} จุด</span>
+          <SampleImage src={hero.src} boxes={hero.boxes} alt="ตัวอย่างภาพใบหน้าพร้อมกรอบแยกชนิดสิว" priority className="aspect-[4/3]" />
+          <figcaption className="flex flex-col gap-4 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs text-muted-foreground">ตัวอย่างผลการประเมิน</p>
+                <p className="text-2xl font-semibold">{SEVERITY_LABELS[severity].label}</p>
+              </div>
+              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${severityInfo.tone}`}>{severityInfo.en}</span>
+            </div>
+            <dl className="grid grid-cols-3 gap-2 text-sm">
+              {ACNE_GROUPS.map((g) => (
+                <div key={g.key} className="rounded-xl bg-muted/60 px-3 py-2">
+                  <dt className="text-xs text-muted-foreground">{g.label}</dt>
+                  <dd className="text-lg font-semibold tabular-nums">{g.types.reduce((sum, t) => sum + (counts[t] ?? 0), 0)}</dd>
+                </div>
+              ))}
+            </dl>
+            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              {Object.entries(counts).map(([cls, n]) => (
+                <li key={cls} className="flex items-center gap-1.5">
+                  <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full ring-1 ring-black/10" style={{ backgroundColor: ACNE_COLORS[cls] }} />
+                  {ACNE_LABELS[cls]} <span className="text-muted-foreground">{n}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="border-t pt-3 text-sm leading-relaxed text-foreground/80">{ACNE_CARE_ADVICE[severity]}</p>
+            <p className="text-xs text-muted-foreground">จากภาพจริงในชุดข้อมูลที่ใช้ฝึกโมเดล</p>
           </figcaption>
         </figure>
       </section>

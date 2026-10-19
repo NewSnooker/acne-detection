@@ -10,5 +10,5 @@ export const ACNE_SAMPLES: Record<string, { src: string; boxes: SampleBox[] }> =
   pustule: { src: "/landing/pustule.jpg", boxes: [{ cls: "pustule", x: 29.1, y: 63.4, w: 11.1, h: 8.0 }] },
   nodule: { src: "/landing/nodule.jpg", boxes: [{ cls: "nodule", x: 20.6, y: 45.3, w: 24.8, h: 17.6 }, { cls: "nodule", x: 45.7, y: 49.6, w: 19.2, h: 9.8 }, { cls: "nodule", x: 46.6, y: 58.5, w: 16.6, h: 9.4 }, { cls: "nodule", x: 42.3, y: 31.0, w: 23.0, h: 14.5 }] },
   cyst: { src: "/landing/cyst.jpg", boxes: [{ cls: "cyst", x: 37.3, y: 22.1, w: 22.0, h: 19.6 }] },
-  hero: { src: "/landing/hero.jpg", boxes: [{ cls: "papule", x: 32.8, y: 25.0, w: 4.5, h: 3.8 }, { cls: "whitehead", x: 61.3, y: 60.9, w: 4.3, h: 3.1 }, { cls: "blackhead", x: 26.2, y: 79.5, w: 3.4, h: 4.5 }, { cls: "nodule", x: 41.0, y: 88.3, w: 6.0, h: 5.5 }, { cls: "whitehead", x: 53.4, y: 92.5, w: 3.8, h: 3.8 }, { cls: "whitehead", x: 55.6, y: 93.0, w: 3.1, h: 3.4 }] },
+  hero: { src: "/landing/hero.jpg", boxes: [{ cls: "blackhead", x: 33.5, y: 54.5, w: 3.6, h: 2.7 }, { cls: "whitehead", x: 55.0, y: 59.0, w: 2.9, h: 2.7 }, { cls: "blackhead", x: 49.5, y: 61.8, w: 2.9, h: 3.8 }, { cls: "pustule", x: 66.4, y: 63.4, w: 2.4, h: 2.7 }, { cls: "papule", x: 56.2, y: 63.5, w: 3.6, h: 3.4 }, { cls: "papule", x: 48.2, y: 69.1, w: 4.5, h: 4.5 }] },
 };
