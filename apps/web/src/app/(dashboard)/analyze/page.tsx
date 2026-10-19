@@ -1,6 +1,7 @@
 import { requireUserPage } from "@/lib/auth/guards";
 import { ImageAnalyzer } from "@/components/analyze/image-analyzer";
 import { MedicalDisclaimer } from "@/components/analyze/medical-disclaimer";
+import { HolisticCare } from "@/components/knowledge/holistic-care";
 
 import { prisma } from "@/lib/prisma";
 
@@ -31,6 +32,9 @@ export default async function AnalyzePage() {
           </p>
         </div>
       </div>
+
+      {/* ข้อ 1.3.3.4: คำแนะนำองค์รวมก่อนเข้าสู่การประมวลผลภาพ */}
+      <HolisticCare compact />
 
       <MedicalDisclaimer />
 
