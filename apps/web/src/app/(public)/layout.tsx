@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 const NAV = [
   { href: "/#types", label: "ชนิดของสิว" },
   { href: "/#model", label: "ความแม่นยำ" },
+  { href: "/#severity", label: "ระดับความรุนแรง" },
   { href: "/knowledge", label: "ความรู้ดูแลผิว" },
   { href: "/#faq", label: "คำถามที่พบบ่อย" },
 ];
@@ -16,10 +17,10 @@ export default async function PublicLayout({ children }: { children: React.React
 
   return (
     <div className="flex min-h-[100dvh] flex-col">
-      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tight">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <ScanFace className="h-5 w-5" aria-hidden="true" />
             </span>
             <span>

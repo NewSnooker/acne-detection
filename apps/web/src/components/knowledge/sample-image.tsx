@@ -21,31 +21,28 @@ export function SampleImage({
 }) {
   return (
     <div className={cn("relative aspect-square overflow-hidden bg-muted", className)}>
-      {/* ขยายเล็กน้อยเพื่อตัดขอบดำของภาพบางใบ กรอบขยายตามไปด้วยจึงยังตรงตำแหน่ง */}
-      <div className="absolute inset-0 scale-[1.04]">
-        <Image src={src} alt={alt} fill priority={priority} sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
-        {boxes.map((b, i) => (
-          <div
-            key={i}
-            aria-hidden="true"
-            className="absolute rounded-[3px] border-2"
-            style={{ left: `${b.x}%`, top: `${b.y}%`, width: `${b.w}%`, height: `${b.h}%`, borderColor: ACNE_COLORS[b.cls] }}
-          >
-            {showLabels && (
-              <span
-                className={cn(
-                  "absolute -top-5 left-[-2px] whitespace-nowrap rounded-sm px-1 text-[10px] font-medium leading-4",
-                  // สีอ่อนต้องใช้ตัวอักษรเข้มจึงจะอ่านออก
-                  b.cls === "whitehead" || b.cls === "pustule" ? "text-slate-900" : "text-white",
-                )}
-                style={{ backgroundColor: ACNE_COLORS[b.cls] }}
-              >
-                {ACNE_LABELS[b.cls]}
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
+      <Image src={src} alt={alt} fill priority={priority} sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
+      {boxes.map((b, i) => (
+        <div
+          key={i}
+          aria-hidden="true"
+          className="absolute rounded-[3px] border-2"
+          style={{ left: `${b.x}%`, top: `${b.y}%`, width: `${b.w}%`, height: `${b.h}%`, borderColor: ACNE_COLORS[b.cls] }}
+        >
+          {showLabels && (
+            <span
+              className={cn(
+                "absolute -top-5 left-[-2px] whitespace-nowrap rounded-sm px-1 text-[10px] font-medium leading-4",
+                // สีอ่อนต้องใช้ตัวอักษรเข้มจึงจะอ่านออก
+                b.cls === "whitehead" || b.cls === "pustule" ? "text-slate-900" : "text-white",
+              )}
+              style={{ backgroundColor: ACNE_COLORS[b.cls] }}
+            >
+              {ACNE_LABELS[b.cls]}
+            </span>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
