@@ -27,9 +27,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // ตัวแปรฟอนต์ต้องอยู่ที่ <html> เพราะ --font-sans ของ Tailwind อ่านค่าที่ :root
   return (
-    <html lang="th" suppressHydrationWarning>
-      <body className={`${inter.variable} ${notoSansThai.variable} font-sans antialiased`}>
+    <html lang="th" className={`${inter.variable} ${notoSansThai.variable}`} suppressHydrationWarning>
+      <body className="font-sans antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
