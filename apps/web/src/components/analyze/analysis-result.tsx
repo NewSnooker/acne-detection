@@ -254,7 +254,7 @@ export function AnalysisResultPanel({
                 <h3 className="font-semibold mb-2 flex items-center gap-2 text-primary">
                   <span className="text-lg">💡</span> คำแนะนำการดูแลผิว
                 </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
+                <p className="text-sm leading-relaxed text-foreground/80">
                   {ACNE_CARE_ADVICE[result.severity] || "แนะนำให้ปรึกษาแพทย์ผู้เชี่ยวชาญด้านผิวหนัง"}
                 </p>
               </motion.div>

@@ -9,7 +9,7 @@ const ICONS = { sleep: Moon, stress: Brain, food: Apple };
 export function HolisticCare({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (
-      <section aria-labelledby="holistic-title" className="rounded-xl border bg-card p-4 shadow-sm">
+      <section aria-labelledby="holistic-title" className="rounded-xl border border-primary/25 bg-primary/5 p-4">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 id="holistic-title" className="text-base">
             ก่อนเริ่มวิเคราะห์: ดูแลผิวแบบองค์รวม
@@ -22,11 +22,11 @@ export function HolisticCare({ compact = false }: { compact?: boolean }) {
           {HOLISTIC_TIPS.map((tip) => {
             const Icon = ICONS[tip.key];
             return (
-              <li key={tip.key} className="flex items-start gap-3 rounded-lg bg-muted/50 p-3">
+              <li key={tip.key} className="flex items-start gap-3 rounded-lg border bg-card p-3">
                 <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
                 <div className="text-sm">
                   <p className="font-semibold">{tip.title}</p>
-                  <p className="text-muted-foreground">{tip.short}</p>
+                  <p className="text-foreground/75">{tip.short}</p>
                 </div>
               </li>
             );
