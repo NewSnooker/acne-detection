@@ -1,11 +1,16 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Inter, Noto_Sans_Thai } from "next/font/google"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import "./globals.css"
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+})
+
+const notoSansThai = Noto_Sans_Thai({
+  subsets: ["thai"],
+  variable: "--font-thai",
 })
 
 export const metadata: Metadata = {
@@ -24,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="th" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${notoSansThai.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
