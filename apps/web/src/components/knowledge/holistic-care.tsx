@@ -41,7 +41,7 @@ export function HolisticCare({ compact = false }: { compact?: boolean }) {
       {HOLISTIC_TIPS.map((tip) => {
         const Icon = ICONS[tip.key];
         return (
-          <article key={tip.key} className="flex flex-col gap-4 rounded-2xl border bg-card p-6 shadow-sm">
+          <article key={tip.key} className="flex flex-col gap-4 rounded-3xl border bg-card p-6">
             <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Icon className="h-6 w-6" aria-hidden="true" />
             </span>
