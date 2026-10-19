@@ -42,6 +42,16 @@ export const ACNE_LABELS: Record<string, string> = {
   no_acne: "หน้าใสไร้สิว",
 };
 
+// ค่าประเมินโมเดล (ข้อ 1.3.3.3) — key ตรงกับ field ใน AiModel, ค่าเป็นร้อยละ
+export const MODEL_METRICS = [
+  { key: "mAP50", label: "mAP@0.5", desc: "ความแม่นยำเฉลี่ยของการตรวจจับสิวทั้ง 6 ชนิด" },
+  { key: "precision", label: "Precision", desc: "ที่ระบบบอกว่าเป็นสิว ถูกต้องจริงกี่เปอร์เซ็นต์" },
+  { key: "recall", label: "Recall", desc: "สิวจริงทั้งหมด ระบบหาเจอกี่เปอร์เซ็นต์" },
+  { key: "f1Score", label: "F1-score", desc: "ค่าสมดุลระหว่าง Precision และ Recall" },
+  { key: "accuracy", label: "Accuracy", desc: "สัดส่วนการทำนายที่ถูกต้องทั้งหมด" },
+] as const;
+export type ModelMetricKey = (typeof MODEL_METRICS)[number]["key"];
+
 export const ACNE_CARE_ADVICE: Record<string, string> = {
   MILD: "ระบบจะแนะนำการทำความสะอาดใบหน้าอย่างถูกวิธีด้วยผลิตภัณฑ์สูตรอ่อนโยน และแนะนำให้พิจารณาใช้ผลิตภัณฑ์เวชสำอาง (OTC) ที่มีส่วนผสมของกรดซาลิไซลิก (Salicylic Acid) เพื่อช่วยละลายสิ่งอุดตัน",
   MODERATE: "ระบบจะแนะนำให้หลีกเลี่ยงการสครับผิวหน้าและการใช้เครื่องสำอางที่ก่อให้เกิดการอุดตัน พร้อมทั้งแนะนำให้ปรึกษาเภสัชกรเพื่อเลือกใช้ยาทาที่มีฤทธิ์ต้านเชื้อแบคทีเรียและลดการอักเสบ เช่น เบนโซอิลเปอร์ออกไซด์ (Benzoyl Peroxide) หรือเรตินอยด์ชนิดทา (Topical Retinoids)",

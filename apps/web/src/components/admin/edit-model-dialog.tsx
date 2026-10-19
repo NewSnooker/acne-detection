@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/tooltip";
 import { AiModel } from "@prisma/client";
 import { createPortal } from "react-dom";
+import { MODEL_METRICS } from "@/types/analyze";
 
 export function EditModelDialog({ model }: { model: AiModel }) {
   const router = useRouter();
@@ -21,6 +22,9 @@ export function EditModelDialog({ model }: { model: AiModel }) {
   const [name, setName] = useState(model.name);
   const [version, setVersion] = useState(model.version);
   const [description, setDescription] = useState(model.description || "");
+  const [metrics, setMetrics] = useState<Record<string, string>>(() =>
+    Object.fromEntries(MODEL_METRICS.map(({ key }) => [key, model[key]?.toString() ?? ""])),
+  );
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -34,6 +38,7 @@ export function EditModelDialog({ model }: { model: AiModel }) {
       name,
       version,
       description,
+      ...metrics,
     });
 
     if (result.error) {
@@ -114,6 +119,30 @@ export function EditModelDialog({ model }: { model: AiModel }) {
                         className="w-full h-20 rounded-md border bg-background px-3 py-2 text-sm resize-none"
                       />
                     </div>
+                    <fieldset>
+                      <legend className="text-sm font-medium mb-1">
+                        ค่าประเมินโมเดล (%) — เว้นว่างได้
+                      </legend>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {MODEL_METRICS.map(({ key, label }) => (
+                          <div key={key}>
+                            <label htmlFor={`metric-${key}`} className="text-xs text-muted-foreground mb-1 block">
+                              {label}
+                            </label>
+                            <input
+                              id={`metric-${key}`}
+                              type="number"
+                              min={0}
+                              max={100}
+                              step="any"
+                              value={metrics[key]}
+                              onChange={(e) => setMetrics((m) => ({ ...m, [key]: e.target.value }))}
+                              className="w-full h-10 rounded-md border bg-background px-3 py-2 text-sm"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </fieldset>
                   </div>
 
                   <div className="pt-4 flex justify-end gap-3 border-t">

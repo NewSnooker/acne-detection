@@ -84,7 +84,7 @@ export const ModelService = {
    * แก้ไขข้อมูลโมเดล (ชื่อ, เวอร์ชั่น, คำอธิบาย)
    * ยิงไปที่: PUT /api/models/[id]/edit
    */
-  editModel: async (id: string, data: { name: string; version: string; description?: string }): Promise<{ success?: boolean; error?: string }> => {
+  editModel: async (id: string, data: Record<string, string>): Promise<{ success?: boolean; error?: string }> => {
     try {
       const response = await fetch(`/api/models/${id}/edit`, {
         method: "PUT",

@@ -12,6 +12,7 @@ import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import { CheckCircle2, Circle, Cpu, Trash2, Loader2 } from "lucide-react";
 import { SelectionChangedEvent } from "ag-grid-community";
 import { Button } from "@/components/ui/button";
+import { MODEL_METRICS } from "@/types/analyze";
 
 const DataGrid = dynamic(
   () => import("@/components/ui/data-grid").then((mod) => mod.DataGrid),
@@ -208,6 +209,20 @@ export function ModelTable({ models }: ModelTableProps) {
         filter: "agTextColumnFilter",
         filterValueGetter: (params: any) =>
           params.data?.isActive ? "ใช้งานอยู่" : "ไม่ได้ใช้",
+      },
+      {
+        colId: "metrics",
+        headerName: "ค่าประเมิน (%)",
+        flex: 1.5,
+        minWidth: 200,
+        sortable: false,
+        valueGetter: (params: any) =>
+          MODEL_METRICS.filter(({ key }) => params.data?.[key] != null)
+            .map(({ key, label }) => `${label} ${params.data[key]}`)
+            .join(" · ") || "ยังไม่กรอก",
+        wrapText: true,
+        autoHeight: true,
+        cellClass: "text-xs leading-relaxed py-2",
       },
       {
         field: "sizeMb",

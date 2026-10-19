@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { saveModel, deleteModelFile } from "@/lib/storage/model-provider";
+import { MODEL_METRICS, type ModelMetricKey } from "@/types/analyze";
 
 export async function uploadModelLogic(file: File, name: string, version: string, description: string, userId: string) {
   if (!file || !file.name.endsWith(".pt")) {
@@ -97,13 +98,38 @@ export async function setActiveModelLogic(id: string) {
   });
 }
 
-export async function editModelLogic(id: string, data: { name: string; version: string; description?: string }) {
+type ModelMetricInput = Partial<Record<ModelMetricKey, unknown>>;
+
+// แปลงค่าประเมินที่แอดมินกรอก: ว่าง = null, ต้องเป็นตัวเลข 0–100, ไม่ส่งมา = ไม่แก้
+export function parseModelMetrics(input: ModelMetricInput) {
+  const result: Partial<Record<ModelMetricKey, number | null>> = {};
+  for (const { key, label } of MODEL_METRICS) {
+    const raw = input[key];
+    if (raw === undefined) continue;
+    if (raw === null || raw === "") {
+      result[key] = null;
+      continue;
+    }
+    const value = Number(raw);
+    if (!Number.isFinite(value) || value < 0 || value > 100) {
+      throw new Error(`ค่า ${label} ต้องเป็นตัวเลข 0–100`);
+    }
+    result[key] = value;
+  }
+  return result;
+}
+
+export async function editModelLogic(
+  id: string,
+  data: { name: string; version: string; description?: string } & ModelMetricInput,
+) {
   await prisma.aiModel.update({
     where: { id },
     data: {
       name: data.name,
       version: data.version,
       description: data.description || null,
+      ...parseModelMetrics(data),
     },
   });
 }

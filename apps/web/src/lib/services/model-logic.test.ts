@@ -154,4 +154,20 @@ describe("editModelLogic", () => {
       data: { name: "ใหม่", version: "v2", description: null },
     });
   });
+
+  it("บันทึกค่าประเมินโมเดล ช่องว่างเป็น null", async () => {
+    await editModelLogic("m1", { name: "n", version: "v", mAP50: "85.5", recall: 70, f1Score: "" });
+
+    expect(db.aiModel.update).toHaveBeenCalledWith({
+      where: { id: "m1" },
+      data: { name: "n", version: "v", description: null, mAP50: 85.5, recall: 70, f1Score: null },
+    });
+  });
+
+  it.each([-1, 100.1, "abc"])("ไม่รับค่าประเมิน %s", async (value) => {
+    await expect(editModelLogic("m1", { name: "n", version: "v", precision: value })).rejects.toThrow(
+      "Precision ต้องเป็นตัวเลข 0–100",
+    );
+    expect(db.aiModel.update).not.toHaveBeenCalled();
+  });
 });

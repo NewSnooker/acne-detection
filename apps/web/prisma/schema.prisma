@@ -91,6 +91,12 @@ model AiModel {
   fileName    String
   sizeMb      Float
   isActive    Boolean  @default(true)
+  // ค่าประเมินโมเดล (ข้อ 1.3.3.3) เก็บเป็นร้อยละ 0–100 แอดมินกรอกจากผลทดสอบ ไม่มี = null
+  mAP50       Float?
+  precision   Float?
+  recall      Float?
+  f1Score     Float?
+  accuracy    Float?
   uploadedBy  String   @db.ObjectId
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
