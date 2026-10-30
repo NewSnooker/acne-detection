@@ -2,6 +2,8 @@
 
 import { useTheme } from "next-themes";
 import { useMounted } from "@/hooks/use-mounted";
+import type { Prisma } from "@prisma/client";
+import { readCounts } from "@/lib/acne-counts";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import { ACNE_COLORS, ACNE_LABELS } from "@/types/analyze";
@@ -10,7 +12,7 @@ const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 interface AcneTypesChartProps {
   data?: {
-    counts: any; // Record<string, number>
+    counts: Prisma.JsonValue;
     total: number;
   }[];
   preAggregated?: { type: string; count: number }[];
@@ -65,10 +67,9 @@ export function AcneTypesChart({
       if (item.total === 0) {
         clearSkinCount++;
       } else {
+        const counts = readCounts(item.counts);
         types.forEach((type) => {
-          if (item.counts?.[type]) {
-            aggregatedCounts[type] += item.counts[type];
-          }
+          aggregatedCounts[type] += counts[type] ?? 0;
         });
       }
     });

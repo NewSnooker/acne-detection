@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -47,7 +48,7 @@ beforeEach(() => {
 });
 
 const get = (...segments: string[]) =>
-  GET(new Request("http://localhost/api/images/x") as any, {
+  GET(new Request("http://localhost/api/images/x") as NextRequest, {
     params: Promise.resolve({ path: segments }),
   });
 

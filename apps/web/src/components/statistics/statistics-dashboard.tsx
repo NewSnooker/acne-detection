@@ -15,13 +15,14 @@ import { SeverityDonutChart } from "./severity-donut-chart";
 import { AcneTypesChart } from "./acne-types-chart";
 import { GlobalFilter } from "./global-filter";
 import { ScanFace, Sparkles, Activity } from "lucide-react";
+import type { Prisma } from "@prisma/client";
 import { SEVERITY_LABELS } from "@/types/analyze";
 
 interface AnalysisData {
   createdAt: Date;
   total: number;
   severity: string;
-  counts: any;
+  counts: Prisma.JsonValue;
 }
 
 interface StatisticsDashboardProps {

@@ -2,15 +2,17 @@
 
 import React, { useMemo, useState, useRef, useCallback } from "react";
 import type { AgGridReact } from "ag-grid-react";
+import type { ColDef, SelectionChangedEvent } from "ag-grid-community";
+import type { CustomCellRendererProps } from "ag-grid-react";
 import dynamic from "next/dynamic";
 import { TableLoading } from "@/components/ui/table-loading";
 import { DataGridToolbar } from "@/components/ui/data-grid-toolbar";
 import { AiModel } from "@prisma/client";
 import { ModelActions } from "@/components/admin/model-actions";
-import { ModelService } from "@/services/model-service";
+import { ModelService } from "@/lib/api-client/model-api";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import { CheckCircle2, Circle, Cpu, Trash2, Loader2 } from "lucide-react";
-import { SelectionChangedEvent } from "ag-grid-community";
+
 import { Button } from "@/components/ui/button";
 import { MODEL_METRICS } from "@/types/analyze";
 
@@ -99,7 +101,7 @@ export function ModelTable({ models }: ModelTableProps) {
     setSelectedRowCount(event.api.getSelectedNodes().length);
   }, []);
 
-  const NameCellRenderer = (props: any) => {
+  const NameCellRenderer = (props: CustomCellRendererProps<ModelWithCount>) => {
     const model = props.data;
     if (!model) return null;
     return (
@@ -133,7 +135,9 @@ export function ModelTable({ models }: ModelTableProps) {
     );
   };
 
-  const StatusCellRenderer = (props: any) => {
+  const StatusCellRenderer = (
+    props: CustomCellRendererProps<ModelWithCount>,
+  ) => {
     const isActive = props.value;
     return isActive ? (
       <div className="flex h-full items-center">
@@ -152,7 +156,7 @@ export function ModelTable({ models }: ModelTableProps) {
     );
   };
 
-  const DateCellRenderer = (props: any) => {
+  const DateCellRenderer = (props: CustomCellRendererProps<ModelWithCount>) => {
     if (!props.value) return null;
     const date = new Date(props.value);
     const dateString = date.toLocaleDateString("th-TH", {
@@ -173,7 +177,9 @@ export function ModelTable({ models }: ModelTableProps) {
     );
   };
 
-  const ActionCellRenderer = (props: any) => {
+  const ActionCellRenderer = (
+    props: CustomCellRendererProps<ModelWithCount>,
+  ) => {
     if (!props.data) return null;
     return (
       <div className="flex h-full items-center justify-end">
@@ -182,7 +188,7 @@ export function ModelTable({ models }: ModelTableProps) {
     );
   };
 
-  const colDefs = useMemo<any[]>(
+  const colDefs = useMemo<ColDef<ModelWithCount>[]>(
     () => [
       {
         field: "name",
@@ -191,11 +197,11 @@ export function ModelTable({ models }: ModelTableProps) {
         minWidth: 300,
         cellRenderer: NameCellRenderer,
         filter: "agTextColumnFilter",
-        filterValueGetter: (params: any) => {
-          if (!params.data) return params.data?.name || "";
+        filterValueGetter: (params) => {
+          if (!params.data) return "";
           return `${params.data.name || ""} ${params.data.version || ""} ${params.data.fileName || ""} ${params.data.description || ""}`;
         },
-        getQuickFilterText: (params: any) => {
+        getQuickFilterText: (params) => {
           if (!params.data) return params.value;
           return `${params.value} ${params.data.version || ""} ${params.data.fileName || ""} ${params.data.description || ""}`;
         },
@@ -207,7 +213,7 @@ export function ModelTable({ models }: ModelTableProps) {
         minWidth: 150,
         cellRenderer: StatusCellRenderer,
         filter: "agTextColumnFilter",
-        filterValueGetter: (params: any) =>
+        filterValueGetter: (params) =>
           params.data?.isActive ? "ใช้งานอยู่" : "ไม่ได้ใช้",
       },
       {
@@ -216,9 +222,9 @@ export function ModelTable({ models }: ModelTableProps) {
         flex: 1.5,
         minWidth: 200,
         sortable: false,
-        valueGetter: (params: any) =>
+        valueGetter: (params) =>
           MODEL_METRICS.filter(({ key }) => params.data?.[key] != null)
-            .map(({ key, label }) => `${label} ${params.data[key]}`)
+            .map(({ key, label }) => `${label} ${params.data?.[key]}`)
             .join(" · ") || "ยังไม่กรอก",
         wrapText: true,
         autoHeight: true,
@@ -229,7 +235,7 @@ export function ModelTable({ models }: ModelTableProps) {
         headerName: "ขนาด",
         flex: 1,
         minWidth: 120,
-        valueFormatter: (params: any) => `${params.value} MB`,
+        valueFormatter: (params) => `${params.value} MB`,
         filter: "agNumberColumnFilter",
       },
       {
@@ -237,7 +243,7 @@ export function ModelTable({ models }: ModelTableProps) {
         headerName: "ใช้งานไปแล้ว",
         flex: 1,
         minWidth: 120,
-        valueFormatter: (params: any) => `${params.value} ครั้ง`,
+        valueFormatter: (params) => `${params.value} ครั้ง`,
         filter: "agNumberColumnFilter",
       },
       {
@@ -249,7 +255,10 @@ export function ModelTable({ models }: ModelTableProps) {
         filter: "agDateColumnFilter",
         filterParams: {
           buttons: ["reset"],
-          comparator: (filterLocalDateAtMidnight: Date, cellValue: any) => {
+          comparator: (
+            filterLocalDateAtMidnight: Date,
+            cellValue: string | Date | null,
+          ) => {
             if (!cellValue) return -1;
             const cellDate = new Date(cellValue);
             cellDate.setHours(0, 0, 0, 0);
@@ -259,7 +268,7 @@ export function ModelTable({ models }: ModelTableProps) {
             return 1;
           },
         },
-        getQuickFilterText: (params: any) => {
+        getQuickFilterText: (params) => {
           if (!params.data?.createdAt) return "";
           const date = new Date(params.data.createdAt);
           const dateString = date.toLocaleDateString("th-TH", {

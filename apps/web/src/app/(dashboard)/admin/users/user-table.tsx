@@ -8,6 +8,8 @@ import React, {
   useEffect,
 } from "react";
 import type { AgGridReact } from "ag-grid-react";
+import type { ColDef } from "ag-grid-community";
+import type { CustomCellRendererProps } from "ag-grid-react";
 import dynamic from "next/dynamic";
 import { TableLoading } from "@/components/ui/table-loading";
 
@@ -20,7 +22,7 @@ const DataGrid = dynamic(
 );
 import { DataGridToolbar } from "@/components/ui/data-grid-toolbar";
 
-import { UserService } from "@/services/user-service";
+import { UserService } from "@/lib/api-client/user-api";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -156,7 +158,7 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
   }, [currentUserId]);
 
   // Custom Cell Renderers
-  const UserCellRenderer = (props: any) => {
+  const UserCellRenderer = (props: CustomCellRendererProps<UserItem>) => {
     const user = props.data;
     if (!user) return null;
     return (
@@ -184,7 +186,7 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
     );
   };
 
-  const RoleCellRenderer = (props: any) => {
+  const RoleCellRenderer = (props: CustomCellRendererProps<UserItem>) => {
     const role = props.value;
     return (
       <div className="flex h-full items-center">
@@ -202,7 +204,7 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
     );
   };
 
-  const DateCellRenderer = (props: any) => {
+  const DateCellRenderer = (props: CustomCellRendererProps<UserItem>) => {
     if (!props.value) return null;
     const date = new Date(props.value);
     const dateString = date.toLocaleDateString("th-TH", {
@@ -223,7 +225,7 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
     );
   };
 
-  const ScansCellRenderer = (props: any) => {
+  const ScansCellRenderer = (props: CustomCellRendererProps<UserItem>) => {
     const count = props.value;
     return (
       <div className="flex h-full items-center justify-center">
@@ -238,7 +240,7 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
     );
   };
 
-  const ActionCellRenderer = (props: any) => {
+  const ActionCellRenderer = (props: CustomCellRendererProps<UserItem>) => {
     const user = props.data;
     if (!user) return null;
     if (user.id === currentUserId) return null;
@@ -279,7 +281,7 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
   };
 
   // Column Definitions
-  const colDefs = useMemo<any[]>(
+  const colDefs = useMemo<ColDef<UserItem>[]>(
     () => [
       {
         headerName: "ผู้ใช้งาน",
@@ -288,11 +290,11 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
         minWidth: 350,
         cellRenderer: UserCellRenderer,
         filter: "agTextColumnFilter",
-        filterValueGetter: (params: any) => {
-          if (!params.data) return params.data?.name || "";
+        filterValueGetter: (params) => {
+          if (!params.data) return "";
           return `${params.data.name || ""} ${params.data.email || ""}`;
         },
-        getQuickFilterText: (params: any) => {
+        getQuickFilterText: (params) => {
           if (!params.data) return params.value;
           return `${params.data.name || ""} ${params.data.email || ""}`;
         },
@@ -320,7 +322,10 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
         filter: "agDateColumnFilter",
         filterParams: {
           buttons: ["reset"],
-          comparator: (filterLocalDateAtMidnight: Date, cellValue: any) => {
+          comparator: (
+            filterLocalDateAtMidnight: Date,
+            cellValue: string | Date | null,
+          ) => {
             if (!cellValue) return -1;
             const cellDate = new Date(cellValue);
             cellDate.setHours(0, 0, 0, 0);
@@ -330,7 +335,7 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
             return 1;
           },
         },
-        getQuickFilterText: (params: any) => {
+        getQuickFilterText: (params) => {
           if (!params.data?.createdAt) return "";
           const date = new Date(params.data.createdAt);
           const dateString = date.toLocaleDateString("th-TH", {

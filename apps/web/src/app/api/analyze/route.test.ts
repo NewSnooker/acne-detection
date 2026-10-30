@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // POST /api/analyze — ขั้นตอนหลักของระบบ: รับรูป → ส่ง AI → ประเมินระดับความรุนแรง → บันทึกผล
@@ -43,7 +44,7 @@ function request(file?: File) {
   return new Request("http://localhost/api/analyze", {
     method: "POST",
     body,
-  }) as any;
+  }) as NextRequest;
 }
 const jpeg = () => new File([JPEG_BYTES], "face.jpg", { type: "image/jpeg" });
 

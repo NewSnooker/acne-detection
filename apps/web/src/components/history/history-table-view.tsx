@@ -9,6 +9,12 @@ import React, {
 } from "react";
 import Image from "next/image";
 import type { AgGridReact } from "ag-grid-react";
+import type {
+  ColDef,
+  RowClickedEvent,
+  SelectionChangedEvent,
+} from "ag-grid-community";
+import type { CustomCellRendererProps } from "ag-grid-react";
 import dynamic from "next/dynamic";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 import { SEVERITY_LABELS, ACNE_COLORS, ACNE_LABELS } from "@/types/analyze";
 import { HistoryItem } from "./history-gallery";
-import { AnalyzeService } from "@/services/analyze-service";
+import { AnalyzeService } from "@/lib/api-client/analyze-api";
 
 const DataGrid = dynamic(
   () => import("@/components/ui/data-grid").then((mod) => mod.DataGrid),
@@ -129,11 +135,16 @@ export function HistoryTableView({
     }
   };
 
-  const onSelectionChanged = useCallback((event: any) => {
-    setSelectedRowCount(event.api.getSelectedNodes().length);
-  }, []);
+  const onSelectionChanged = useCallback(
+    (event: SelectionChangedEvent<HistoryItemWithOriginalIndex>) => {
+      setSelectedRowCount(event.api.getSelectedNodes().length);
+    },
+    [],
+  );
 
-  const ImageCellRenderer = (props: any) => {
+  const ImageCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
     if (!props.data) return null;
     const imageUrl = props.data.imageUrl
       ? props.data.imageUrl
@@ -143,7 +154,7 @@ export function HistoryTableView({
         className="flex h-full items-center py-1"
         onClick={(e) => {
           e.stopPropagation();
-          onSelect(props.data.originalIndex);
+          if (props.data) onSelect(props.data.originalIndex);
         }}
       >
         <div className="bg-muted ring-primary/20 relative h-10 w-10 cursor-pointer overflow-hidden rounded-md shadow-sm transition-all group-hover:ring-2">
@@ -160,7 +171,9 @@ export function HistoryTableView({
     );
   };
 
-  const UserCellRenderer = (props: any) => {
+  const UserCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
     const user = props.data?.user;
     if (!user) {
       return (
@@ -200,7 +213,9 @@ export function HistoryTableView({
     );
   };
 
-  const ModelCellRenderer = (props: any) => {
+  const ModelCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
     const model = props.data?.model;
     if (!model) {
       return (
@@ -221,7 +236,9 @@ export function HistoryTableView({
     );
   };
 
-  const DateCellRenderer = (props: any) => {
+  const DateCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
     if (!props.value) return null;
     const date = new Date(props.value);
     const dateString = date.toLocaleDateString("th-TH", {
@@ -242,7 +259,9 @@ export function HistoryTableView({
     );
   };
 
-  const SeverityCellRenderer = (props: any) => {
+  const SeverityCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
     if (!props.value) return null;
     const severityInfo =
       SEVERITY_LABELS[props.value as keyof typeof SEVERITY_LABELS] ||
@@ -264,7 +283,9 @@ export function HistoryTableView({
     );
   };
 
-  const AcneCellRenderer = (props: any) => {
+  const AcneCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
     const item = props.data;
     if (!item) return null;
     return (
@@ -296,7 +317,9 @@ export function HistoryTableView({
     );
   };
 
-  const ActionCellRenderer = (props: any) => {
+  const ActionCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
     if (!props.data) return null;
     const item = props.data;
 
@@ -333,8 +356,8 @@ export function HistoryTableView({
     );
   };
 
-  const colDefs = useMemo<any[]>(() => {
-    const cols: any[] = [
+  const colDefs = useMemo<ColDef<HistoryItemWithOriginalIndex>[]>(() => {
+    const cols: ColDef<HistoryItemWithOriginalIndex>[] = [
       {
         field: "imageName",
         headerName: "รูปภาพ",
@@ -354,7 +377,7 @@ export function HistoryTableView({
           minWidth: 200,
           cellRenderer: UserCellRenderer,
           filter: "agTextColumnFilter",
-          getQuickFilterText: (params: any) => {
+          getQuickFilterText: (params) => {
             const user = params.data?.user;
             return user ? `${user.name || ""} ${user.email || ""}` : "";
           },
@@ -439,7 +462,9 @@ export function HistoryTableView({
           onSelectionChanged={onSelectionChanged}
           rowHeight={80}
           pagination={true}
-          onRowClicked={(event: any) => {
+          onRowClicked={(
+            event: RowClickedEvent<HistoryItemWithOriginalIndex>,
+          ) => {
             // Ignore clicks on checkboxes or buttons
             const target = event.event?.target as HTMLElement;
             if (

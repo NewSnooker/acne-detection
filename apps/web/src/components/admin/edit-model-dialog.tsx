@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ModelService } from "@/services/model-service";
+import { ModelService } from "@/lib/api-client/model-api";
 import { Button } from "@/components/ui/button";
 import { Edit, Loader2 } from "lucide-react";
 import {

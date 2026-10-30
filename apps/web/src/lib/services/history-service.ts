@@ -1,4 +1,5 @@
 import type { Prisma, Severity } from "@prisma/client";
+import { readCounts } from "@/lib/acne-counts";
 import { prisma } from "@/lib/prisma";
 import { deleteImage } from "@/lib/storage/image-provider";
 import type { Detection } from "@/types/analyze";
@@ -43,15 +44,6 @@ const ORDER_BY: Record<HistorySort, Prisma.AnalysisOrderByWithRelationInput> = {
 
 export function toOrderBy(sort?: string) {
   return ORDER_BY[sort as HistorySort] ?? ORDER_BY.desc;
-}
-
-export function readCounts(counts: Prisma.JsonValue): Record<string, number> {
-  if (!counts || typeof counts !== "object" || Array.isArray(counts)) return {};
-  const result: Record<string, number> = {};
-  for (const [type, value] of Object.entries(counts)) {
-    if (typeof value === "number") result[type] = value;
-  }
-  return result;
 }
 
 /** จำนวน "รูป" ที่พบสิวแต่ละชนิด (รูปเดียวนับ 1 ต่อชนิด) และรูปที่ไม่พบสิว */

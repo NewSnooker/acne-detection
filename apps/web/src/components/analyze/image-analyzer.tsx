@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
-import { AnalyzeService } from "@/services/analyze-service";
+import { AnalyzeService } from "@/lib/api-client/analyze-api";
 import { ImageUploader } from "./image-uploader";
 import { ImagePreview } from "./image-preview";
 import { AnalysisResultPanel } from "./analysis-result";
@@ -111,10 +111,10 @@ export function ImageAnalyzer({
           setLoading(false);
         }, 300);
       }
-    } catch (err: any) {
+    } catch (err) {
       clearInterval(progressInterval);
       setLoading(false);
-      setError(err.message || "เกิดข้อผิดพลาด");
+      setError((err instanceof Error && err.message) || "เกิดข้อผิดพลาด");
     }
   };
 

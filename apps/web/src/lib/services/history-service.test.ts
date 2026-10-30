@@ -19,10 +19,10 @@ import {
   deleteHistories,
   filterHistory,
   getHistory,
-  readCounts,
   toOrderBy,
   type FilterableAnalysis,
 } from "./history-service";
+import { readCounts } from "@/lib/acne-counts";
 
 const row = (over: Partial<FilterableAnalysis> = {}): FilterableAnalysis => ({
   counts: { papule: 2, blackhead: 0 },

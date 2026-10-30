@@ -20,10 +20,12 @@ beforeEach(() => {
   Object.values(db.user).forEach((fn) => fn.mockReset());
   db.user.findUnique.mockResolvedValue(null);
   db.user.count.mockResolvedValue(5);
-  db.user.create.mockImplementation(async ({ data }: any) => ({
-    id: "new",
-    ...data,
-  }));
+  db.user.create.mockImplementation(
+    async ({ data }: { data: Record<string, unknown> }) => ({
+      id: "new",
+      ...data,
+    }),
+  );
 });
 
 describe("registerUserLogic", () => {

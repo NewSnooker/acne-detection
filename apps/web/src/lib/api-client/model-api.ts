@@ -1,0 +1,44 @@
+import { apiRequest } from "./request";
+
+export const ModelService = {
+  /** อัปโหลดไฟล์โมเดล (.pt) — POST /api/models */
+  uploadModel: (formData: FormData) =>
+    apiRequest("/api/models", {
+      method: "POST",
+      body: formData,
+      fallbackError: "เกิดข้อผิดพลาดในการอัปโหลดโมเดล",
+      // ดู dev-docs/limitations.md
+      tooLargeError:
+        "ไฟล์ใหญ่เกินกว่าที่เซิร์ฟเวอร์นี้รับได้ (บน Vercel รับได้ไม่เกินประมาณ 4.5 MB)",
+    }),
+
+  /** ตั้งเป็นโมเดลหลัก — POST /api/models/[id]/activate */
+  toggleModelActive: (id: string) =>
+    apiRequest(`/api/models/${id}/activate`, {
+      method: "POST",
+      fallbackError: "เกิดข้อผิดพลาดในการเปลี่ยนสถานะ",
+    }),
+
+  /** ลบโมเดล 1 ตัว (ลบโมเดลหลักไม่ได้) — DELETE /api/models/[id] */
+  deleteModel: (id: string) =>
+    apiRequest(`/api/models/${id}`, {
+      method: "DELETE",
+      fallbackError: "เกิดข้อผิดพลาดในการลบโมเดล",
+    }),
+
+  /** ลบหลายตัว (ข้ามโมเดลหลัก) — DELETE /api/models */
+  deleteModels: (ids: string[]) =>
+    apiRequest<{ count: number }>("/api/models", {
+      method: "DELETE",
+      body: { ids },
+      fallbackError: "เกิดข้อผิดพลาดในการลบโมเดล",
+    }),
+
+  /** แก้ชื่อ เวอร์ชัน รายละเอียด และค่าประเมิน — PATCH /api/models/[id] */
+  editModel: (id: string, data: Record<string, string>) =>
+    apiRequest(`/api/models/${id}`, {
+      method: "PATCH",
+      body: data,
+      fallbackError: "เกิดข้อผิดพลาดในการแก้ไขโมเดล",
+    }),
+};

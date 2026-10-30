@@ -111,10 +111,11 @@ export async function POST(req: NextRequest) {
         imageProvider: imageResult.imageProvider,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("API /api/analyze Error:", error);
+    const message = error instanceof Error ? error.message : "";
     return NextResponse.json(
-      { error: error.message || "เกิดข้อผิดพลาดในการวิเคราะห์รูปภาพ" },
+      { error: message || "เกิดข้อผิดพลาดในการวิเคราะห์รูปภาพ" },
       { status: 500 },
     );
   }

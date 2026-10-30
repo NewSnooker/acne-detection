@@ -94,7 +94,10 @@ export async function getAdminStatistics(
     }
   }
 
-  const userScanCounts = new Map<string, { user: any; count: number }>();
+  const userScanCounts = new Map<
+    string,
+    { user: (typeof filteredAnalyses)[number]["user"]; count: number }
+  >();
 
   filteredAnalyses.forEach((analysis) => {
     // Trend

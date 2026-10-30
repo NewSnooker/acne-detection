@@ -3,19 +3,24 @@ import { authConfig } from "./auth.config";
 
 // สิทธิ์ (role) ต้องติดไปกับ session หลังเข้าสู่ระบบ เพราะทุกจุดตรวจสิทธิ์อ่านจาก session
 const { jwt, session } = authConfig.callbacks;
+// เทสต์ส่งเฉพาะฟิลด์ที่ callback ใช้จริง
+type JwtArgs = Parameters<typeof jwt>[0];
+type SessionArgs = Parameters<typeof session>[0];
 
 describe("authConfig.callbacks", () => {
   it("ตอนเข้าสู่ระบบ เก็บ id และ role ของผู้ใช้ลง token", async () => {
     const token = await jwt({
       token: {},
       user: { id: "u1", role: "ADMIN" },
-    } as any);
+    } as unknown as JwtArgs);
 
     expect(token).toMatchObject({ id: "u1", role: "ADMIN" });
   });
 
   it("คำขอครั้งถัดไป (ไม่มี user) token เดิมไม่ถูกแก้", async () => {
-    const token = await jwt({ token: { id: "u1", role: "USER" } } as any);
+    const token = await jwt({
+      token: { id: "u1", role: "USER" },
+    } as unknown as JwtArgs);
 
     expect(token).toEqual({ id: "u1", role: "USER" });
   });
@@ -24,7 +29,7 @@ describe("authConfig.callbacks", () => {
     const result = await session({
       session: { user: { email: "a@b.c" }, expires: "" },
       token: { id: "u1", role: "ADMIN" },
-    } as any);
+    } as unknown as SessionArgs);
 
     expect(result.user).toMatchObject({
       id: "u1",

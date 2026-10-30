@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Power, Trash2, Loader2 } from "lucide-react";
-import { ModelService } from "@/services/model-service";
+import { ModelService } from "@/lib/api-client/model-api";
 import { EditModelDialog } from "./edit-model-dialog";
 import {
   AlertDialog,

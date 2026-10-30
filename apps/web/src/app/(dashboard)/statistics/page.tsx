@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { requireUserPage } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 import { StatisticsDashboard } from "@/components/statistics/statistics-dashboard";
@@ -20,7 +21,7 @@ export default async function StatisticsPage({
   const endParam = params.end as string | undefined;
   const isAll = params.all === "true";
 
-  let dateFilter: any = undefined;
+  let dateFilter: Prisma.DateTimeFilter | undefined = undefined;
   if (!isAll && startParam && endParam) {
     let startDate = startOfDay(new Date(startParam));
     const endDate = endOfDay(new Date(endParam));
@@ -56,7 +57,7 @@ export default async function StatisticsPage({
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <div className="pb-8">
-        <StatisticsDashboard data={analyses as any} />
+        <StatisticsDashboard data={analyses} />
       </div>
     </div>
   );

@@ -33,10 +33,12 @@ beforeEach(() => {
     fn.mockReset(),
   );
   db.aiModel.count.mockResolvedValue(1);
-  db.aiModel.create.mockImplementation(async ({ data }: any) => ({
-    id: "new",
-    ...data,
-  }));
+  db.aiModel.create.mockImplementation(
+    async ({ data }: { data: Record<string, unknown> }) => ({
+      id: "new",
+      ...data,
+    }),
+  );
 });
 
 describe("uploadModelLogic", () => {
@@ -49,7 +51,7 @@ describe("uploadModelLogic", () => {
 
   it("ไม่ส่งไฟล์มา ตอบ error เดียวกัน", async () => {
     await expect(
-      uploadModelLogic(undefined as any, "n", "v1", "", "a1"),
+      uploadModelLogic(undefined as unknown as File, "n", "v1", "", "a1"),
     ).rejects.toThrow(".pt");
   });
 
@@ -103,7 +105,7 @@ describe("uploadModelLogic", () => {
     await uploadModelLogic(ptFile("../โมเดล ใหม่.pt"), "n", "v", "", "a1");
 
     const [first, second] = db.aiModel.create.mock.calls.map(
-      (c: any) => c[0].data.fileName as string,
+      (c) => c[0].data.fileName as string,
     );
     expect(first).toMatch(/^[0-9a-f]{16}_[a-zA-Z0-9._-]+\.pt$/);
     expect(first).not.toContain("/");

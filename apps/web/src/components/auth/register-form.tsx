@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, type RegisterInput } from "@/schemas/auth";
-import { AuthService } from "@/services/auth-service";
+import { AuthService } from "@/lib/api-client/auth-api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
