@@ -6,11 +6,14 @@ const db = vi.hoisted(() => ({
     count: vi.fn(),
     create: vi.fn(),
     findUnique: vi.fn(),
+    findMany: vi.fn(),
     delete: vi.fn(),
     update: vi.fn(),
     updateMany: vi.fn(),
   },
   analysis: { updateMany: vi.fn() },
+  // จำลอง transaction แบบ array: คำสั่งข้างในถูกเรียกไปแล้ว แค่รอผล
+  $transaction: vi.fn((ops: unknown[]) => Promise.all(ops)),
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: db }));
 
@@ -29,6 +32,7 @@ beforeEach(() => {
   [...Object.values(db.aiModel), ...Object.values(db.analysis)].forEach((fn) =>
     fn.mockReset(),
   );
+  db.aiModel.count.mockResolvedValue(1);
   db.aiModel.create.mockImplementation(async ({ data }: any) => ({
     id: "new",
     ...data,
@@ -122,6 +126,16 @@ describe("setActiveModelLogic", () => {
     expect(db.aiModel.updateMany.mock.invocationCallOrder[0]).toBeLessThan(
       db.aiModel.update.mock.invocationCallOrder[0],
     );
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
+  });
+
+  it("ไม่พบโมเดล ตอบ 404 และไม่ปิดโมเดลหลักตัวเดิม", async () => {
+    db.aiModel.count.mockResolvedValue(0);
+
+    await expect(setActiveModelLogic("none")).rejects.toMatchObject({
+      status: 404,
+    });
+    expect(db.aiModel.updateMany).not.toHaveBeenCalled();
   });
 });
 
@@ -150,29 +164,42 @@ describe("deleteModelLogic (ลบ 1 ตัว)", () => {
     expect(db.aiModel.delete).toHaveBeenCalledWith({ where: { id: "m1" } });
   });
 
-  // โค้ดปัจจุบันยังลบโมเดลหลักแบบทีละตัวได้ (แบบกลุ่มกันไว้แล้ว) — refactor-plan ข้อ 20
-  it.todo("ลบโมเดลหลักที่ใช้งานอยู่ไม่ได้");
+  it("ลบโมเดลหลักที่ใช้งานอยู่ไม่ได้ (409)", async () => {
+    db.aiModel.findUnique.mockResolvedValue({
+      id: "m1",
+      isActive: true,
+      provider: "mongodb",
+      filePath: "",
+    });
+
+    await expect(deleteModelLogic("m1")).rejects.toMatchObject({ status: 409 });
+    expect(db.aiModel.delete).not.toHaveBeenCalled();
+  });
 });
 
 describe("deleteModelsLogic (ลบหลายตัว)", () => {
-  it("ข้ามโมเดลหลักที่ใช้งานอยู่ ลบเฉพาะตัวที่ไม่ได้ใช้", async () => {
-    db.aiModel.findUnique.mockImplementation(async ({ where }: any) => ({
-      id: where.id,
-      isActive: where.id === "active",
-      provider: "mongodb",
-      filePath: "",
-    }));
+  it("ค้นเฉพาะตัวที่ไม่ใช่โมเดลหลัก แล้วลบทีละตัว คืนจำนวนที่ลบ", async () => {
+    db.aiModel.findMany.mockResolvedValue([
+      { id: "old1", provider: "mongodb", filePath: "" },
+      { id: "old2", provider: "mongodb", filePath: "" },
+    ]);
 
-    await deleteModelsLogic(["active", "old1", "old2"]);
+    await expect(deleteModelsLogic(["active", "old1", "old2"])).resolves.toBe(
+      2,
+    );
 
-    const deleted = db.aiModel.delete.mock.calls.map((c: any) => c[0].where.id);
+    expect(db.aiModel.findMany.mock.calls[0][0].where).toEqual({
+      id: { in: ["active", "old1", "old2"] },
+      isActive: false,
+    });
+    const deleted = db.aiModel.delete.mock.calls.map((c) => c[0].where.id);
     expect(deleted).toEqual(["old1", "old2"]);
   });
 
-  it("ข้ามรหัสโมเดลที่ไม่มีอยู่จริง โดยไม่ error", async () => {
-    db.aiModel.findUnique.mockResolvedValue(null);
+  it("ไม่มีตัวที่ลบได้ คืน 0 โดยไม่ error", async () => {
+    db.aiModel.findMany.mockResolvedValue([]);
 
-    await expect(deleteModelsLogic(["x", "y"])).resolves.toBeUndefined();
+    await expect(deleteModelsLogic(["x", "y"])).resolves.toBe(0);
     expect(db.aiModel.delete).not.toHaveBeenCalled();
   });
 });
@@ -211,6 +238,15 @@ describe("editModelLogic", () => {
         f1Score: null,
       },
     });
+  });
+
+  it("ไม่พบโมเดล ตอบ 404", async () => {
+    db.aiModel.count.mockResolvedValue(0);
+
+    await expect(
+      editModelLogic("none", { name: "n", version: "v" }),
+    ).rejects.toMatchObject({ status: 404 });
+    expect(db.aiModel.update).not.toHaveBeenCalled();
   });
 
   it.each([-1, 100.1, "abc"])("ไม่รับค่าประเมิน %s", async (value) => {

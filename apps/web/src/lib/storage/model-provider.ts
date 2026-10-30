@@ -1,6 +1,6 @@
 export type ModelUploadResult = {
   filePath: string;
-  modelData: Buffer | null;
+  modelData: Buffer<ArrayBuffer> | null; // Prisma Bytes ต้องเป็น Buffer (ห้าม Uint8Array)
   provider: "local" | "mongodb";
 };
 

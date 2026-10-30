@@ -1,13 +1,13 @@
 export const ModelService = {
   /**
    * อัปโหลดไฟล์โมเดล (.pt) ใหม่เข้าระบบ
-   * ยิงไปที่: POST /api/models/create
+   * ยิงไปที่: POST /api/models
    */
   uploadModel: async (
     formData: FormData,
   ): Promise<{ success?: boolean; error?: string }> => {
     try {
-      const response = await fetch("/api/models/create", {
+      const response = await fetch("/api/models", {
         method: "POST",
         body: formData,
       });
@@ -29,14 +29,14 @@ export const ModelService = {
 
   /**
    * เปิด/ปิด การใช้งานโมเดล (Set Active/Inactive)
-   * ยิงไปที่: PUT /api/models/[id]
+   * ยิงไปที่: POST /api/models/[id]/activate
    */
   toggleModelActive: async (
     id: string,
   ): Promise<{ success?: boolean; error?: string }> => {
     try {
-      const response = await fetch(`/api/models/${id}`, {
-        method: "PUT",
+      const response = await fetch(`/api/models/${id}/activate`, {
+        method: "POST",
       });
       const result = await response.json();
       if (!response.ok)
@@ -94,15 +94,15 @@ export const ModelService = {
 
   /**
    * แก้ไขข้อมูลโมเดล (ชื่อ, เวอร์ชั่น, คำอธิบาย)
-   * ยิงไปที่: PUT /api/models/[id]/edit
+   * ยิงไปที่: PATCH /api/models/[id]
    */
   editModel: async (
     id: string,
     data: Record<string, string>,
   ): Promise<{ success?: boolean; error?: string }> => {
     try {
-      const response = await fetch(`/api/models/${id}/edit`, {
-        method: "PUT",
+      const response = await fetch(`/api/models/${id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });

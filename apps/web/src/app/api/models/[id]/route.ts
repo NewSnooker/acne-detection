@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminApi } from "@/lib/auth/guards";
-import {
-  deleteModelLogic,
-  setActiveModelLogic,
-} from "@/lib/services/model-logic";
+import { errorResponse, parseBody, readJson } from "@/lib/http-error";
+import { deleteModelLogic, editModelLogic } from "@/lib/services/model-logic";
+import { editModelSchema } from "@/lib/validation/api-input";
 
 export async function GET(
   request: Request,
@@ -53,37 +52,42 @@ export async function GET(
 }
 
 export async function DELETE(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const guard = await requireAdminApi();
     if (!guard.ok) return guard.response;
-    const resolvedParams = await params;
-    await deleteModelLogic(resolvedParams.id);
+
+    const { id } = await params;
+    await deleteModelLogic(id);
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || "เกิดข้อผิดพลาดในการลบโมเดล" },
-      { status: 500 },
-    );
+  } catch (error) {
+    return errorResponse(error, "ลบโมเดลไม่สำเร็จ", "DELETE /api/models/[id]");
   }
 }
 
-export async function PUT(
+// แก้ชื่อ เวอร์ชัน รายละเอียด และค่าประเมินโมเดล
+export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const guard = await requireAdminApi();
     if (!guard.ok) return guard.response;
-    const resolvedParams = await params;
-    await setActiveModelLogic(resolvedParams.id);
+
+    const { id } = await params;
+    const data = parseBody(editModelSchema, await readJson(req));
+    await editModelLogic(id, {
+      ...data,
+      description: data.description ?? undefined,
+    });
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || "เกิดข้อผิดพลาดในการเปิดใช้งานโมเดล" },
-      { status: 500 },
+  } catch (error) {
+    return errorResponse(
+      error,
+      "แก้ไขโมเดลไม่สำเร็จ",
+      "PATCH /api/models/[id]",
     );
   }
 }

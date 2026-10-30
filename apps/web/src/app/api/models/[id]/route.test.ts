@@ -7,6 +7,7 @@ const m = vi.hoisted(() => ({
   modelFindUnique: vi.fn(),
   deleteModelLogic: vi.fn(),
   setActiveModelLogic: vi.fn(),
+  editModelLogic: vi.fn(),
 }));
 vi.mock("@/lib/auth", () => ({ auth: m.auth }));
 vi.mock("@/lib/prisma", () => ({
@@ -15,14 +16,25 @@ vi.mock("@/lib/prisma", () => ({
 vi.mock("@/lib/services/model-logic", () => ({
   deleteModelLogic: m.deleteModelLogic,
   setActiveModelLogic: m.setActiveModelLogic,
+  editModelLogic: m.editModelLogic,
 }));
 
-import { DELETE, GET, PUT } from "./route";
+import { HttpError } from "@/lib/http-error";
+import { POST as ACTIVATE } from "./activate/route";
+import { DELETE, GET, PATCH } from "./route";
 
 const KEY = "test-ai-key";
 const ctx = { params: Promise.resolve({ id: "model1" }) };
-const req = (headers: Record<string, string> = {}, method = "GET") =>
-  new Request("http://localhost/api/models/model1", { method, headers });
+const req = (
+  headers: Record<string, string> = {},
+  method = "GET",
+  body?: unknown,
+) =>
+  new Request("http://localhost/api/models/model1", {
+    method,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
 
 const USER = { user: { id: "u1", role: "USER" } };
 const ADMIN = { user: { id: "a1", role: "ADMIN" } };
@@ -90,11 +102,11 @@ describe("GET (ดาวน์โหลดไฟล์โมเดล)", () => {
   });
 });
 
-describe("PUT (ตั้งเป็นโมเดลหลัก) และ DELETE (ลบโมเดล)", () => {
+describe("POST /activate (ตั้งเป็นโมเดลหลัก) และ DELETE (ลบโมเดล)", () => {
   it("ผู้ใช้ทั่วไปตั้งโมเดลหลักไม่ได้ (403)", async () => {
     m.auth.mockResolvedValue(USER);
 
-    expect((await PUT(req({}, "PUT"), ctx)).status).toBe(403);
+    expect((await ACTIVATE(req({}, "POST"), ctx)).status).toBe(403);
     expect(m.setActiveModelLogic).not.toHaveBeenCalled();
   });
 
@@ -106,7 +118,9 @@ describe("PUT (ตั้งเป็นโมเดลหลัก) และ DE
   });
 
   it("key ของบริการ AI ใช้ตั้งโมเดลหลักหรือลบโมเดลไม่ได้", async () => {
-    expect((await PUT(req({ "x-api-key": KEY }, "PUT"), ctx)).status).toBe(401);
+    expect(
+      (await ACTIVATE(req({ "x-api-key": KEY }, "POST"), ctx)).status,
+    ).toBe(401);
     expect(
       (await DELETE(req({ "x-api-key": KEY }, "DELETE"), ctx)).status,
     ).toBe(401);
@@ -115,7 +129,7 @@ describe("PUT (ตั้งเป็นโมเดลหลัก) และ DE
   it("ผู้ดูแลระบบตั้งโมเดลหลักได้", async () => {
     m.auth.mockResolvedValue(ADMIN);
 
-    const res = await PUT(req({}, "PUT"), ctx);
+    const res = await ACTIVATE(req({}, "POST"), ctx);
 
     expect(res.status).toBe(200);
     expect(m.setActiveModelLogic).toHaveBeenCalledWith("model1");
@@ -128,5 +142,76 @@ describe("PUT (ตั้งเป็นโมเดลหลัก) และ DE
 
     expect(res.status).toBe(200);
     expect(m.deleteModelLogic).toHaveBeenCalledWith("model1");
+  });
+});
+
+describe("DELETE / activate — error ที่ตั้งใจให้ผู้ใช้เห็น", () => {
+  it("ลบโมเดลหลักไม่ได้ ตอบ 409 พร้อมข้อความภาษาไทย", async () => {
+    m.auth.mockResolvedValue(ADMIN);
+    m.deleteModelLogic.mockRejectedValue(
+      new HttpError(409, "ลบโมเดลหลักไม่ได้"),
+    );
+
+    const res = await DELETE(req({}, "DELETE"), ctx);
+
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "ลบโมเดลหลักไม่ได้" });
+  });
+
+  it("error ที่ไม่คาดคิด ตอบ 500 และไม่เปิดเผยข้อความภายใน", async () => {
+    m.auth.mockResolvedValue(ADMIN);
+    m.setActiveModelLogic.mockRejectedValue(new Error("mongo secret detail"));
+
+    const res = await ACTIVATE(req({}, "POST"), ctx);
+
+    expect(res.status).toBe(500);
+    expect(JSON.stringify(await res.json())).not.toContain("secret");
+  });
+});
+
+describe("PATCH (แก้ไขข้อมูลโมเดล)", () => {
+  it("ผู้ใช้ทั่วไปแก้ไม่ได้ (403)", async () => {
+    m.auth.mockResolvedValue(USER);
+
+    const res = await PATCH(req({}, "PATCH", { name: "n", version: "v" }), ctx);
+
+    expect(res.status).toBe(403);
+    expect(m.editModelLogic).not.toHaveBeenCalled();
+  });
+
+  it("ไม่กรอกชื่อ ตอบ 400 และไม่แก้ฐานข้อมูล", async () => {
+    m.auth.mockResolvedValue(ADMIN);
+
+    const res = await PATCH(req({}, "PATCH", { name: " ", version: "v" }), ctx);
+
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toContain("ชื่อโมเดล");
+    expect(m.editModelLogic).not.toHaveBeenCalled();
+  });
+
+  it("body ไม่ใช่ JSON ตอบ 400", async () => {
+    m.auth.mockResolvedValue(ADMIN);
+    const bad = new Request("http://localhost/api/models/model1", {
+      method: "PATCH",
+      body: "{oops",
+    });
+
+    expect((await PATCH(bad, ctx)).status).toBe(400);
+  });
+
+  it("ผู้ดูแลระบบแก้ได้ ชื่อถูกตัดช่องว่าง และส่งค่าประเมินต่อ", async () => {
+    m.auth.mockResolvedValue(ADMIN);
+
+    const res = await PATCH(
+      req({}, "PATCH", { name: " YOLO ", version: "v2", mAP50: "80" }),
+      ctx,
+    );
+
+    expect(res.status).toBe(200);
+    expect(m.editModelLogic).toHaveBeenCalledWith("model1", {
+      name: "YOLO",
+      version: "v2",
+      mAP50: "80",
+    });
   });
 });

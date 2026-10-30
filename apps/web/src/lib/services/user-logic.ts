@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { HttpError } from "@/lib/http-error";
 import { deleteImage } from "@/lib/storage/image-provider";
 
 export async function deleteUserLogic(
@@ -7,7 +8,7 @@ export async function deleteUserLogic(
 ) {
   // Prevent self-deletion
   if (currentAdminId === userIdToDelete) {
-    throw new Error("คุณไม่สามารถลบบัญชีผู้ดูแลระบบของตัวเองได้");
+    throw new HttpError(400, "คุณไม่สามารถลบบัญชีผู้ดูแลระบบของตัวเองได้");
   }
 
   // Find and delete associated image files
@@ -55,7 +56,10 @@ export async function deleteUsersLogic(
   const idsToDelete = userIdsToDelete.filter((id) => id !== currentAdminId);
 
   if (idsToDelete.length === 0) {
-    throw new Error("ไม่มีผู้ใช้ที่สามารถลบได้ (คุณไม่สามารถลบตัวเองได้)");
+    throw new HttpError(
+      400,
+      "ไม่มีผู้ใช้ที่สามารถลบได้ (คุณไม่สามารถลบตัวเองได้)",
+    );
   }
 
   // Find and delete associated image files for all users

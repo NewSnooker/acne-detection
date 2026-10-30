@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { saveModel, deleteModelFile } from "@/lib/storage/model-provider";
+import { HttpError } from "@/lib/http-error";
 import { MODEL_METRICS, type ModelMetricKey } from "@/types/analyze";
 
 export async function uploadModelLogic(
@@ -11,7 +12,7 @@ export async function uploadModelLogic(
   userId: string,
 ) {
   if (!file || !file.name.endsWith(".pt")) {
-    throw new Error("กรุณาอัปโหลดไฟล์นามสกุล .pt เท่านั้น");
+    throw new HttpError(400, "กรุณาอัปโหลดไฟล์นามสกุล .pt เท่านั้น");
   }
 
   // 1. Save model using Provider
@@ -35,7 +36,7 @@ export async function uploadModelLogic(
       version,
       description,
       filePath: saveResult.filePath,
-      modelData: saveResult.modelData as any,
+      modelData: saveResult.modelData,
       provider: saveResult.provider,
       fileName,
       sizeMb,
@@ -47,20 +48,18 @@ export async function uploadModelLogic(
   return newModel;
 }
 
-export async function deleteModelLogic(id: string) {
-  const model = await prisma.aiModel.findUnique({ where: { id } });
-  if (!model) throw new Error("ไม่พบข้อมูลโมเดล");
+type StoredModel = { id: string; provider: string; filePath: string };
 
-  // 1. ลบความเชื่อมโยงในตาราง Analysis ก่อน
-  await prisma.analysis.updateMany({
-    where: { modelId: id },
-    data: { modelId: null },
-  });
+// ประวัติการวิเคราะห์ยังอยู่ แค่ตัดการอ้างถึงโมเดล แล้วจึงลบโมเดลและไฟล์
+async function removeModel(model: StoredModel) {
+  await prisma.$transaction([
+    prisma.analysis.updateMany({
+      where: { modelId: model.id },
+      data: { modelId: null },
+    }),
+    prisma.aiModel.delete({ where: { id: model.id } }),
+  ]);
 
-  // 2. ลบออกจากฐานข้อมูล
-  await prisma.aiModel.delete({ where: { id } });
-
-  // 3. พยายามลบไฟล์จริง
   try {
     await deleteModelFile(model.provider, model.filePath);
   } catch (fsError) {
@@ -68,40 +67,48 @@ export async function deleteModelLogic(id: string) {
   }
 }
 
-export async function deleteModelsLogic(ids: string[]) {
-  for (const id of ids) {
-    const model = await prisma.aiModel.findUnique({ where: { id } });
-    if (!model) continue;
-
-    if (model.isActive) continue; // ห้ามลบโมเดลหลักที่ใช้งานอยู่
-
-    await prisma.analysis.updateMany({
-      where: { modelId: id },
-      data: { modelId: null },
-    });
-
-    await prisma.aiModel.delete({ where: { id } });
-
-    try {
-      await deleteModelFile(model.provider, model.filePath);
-    } catch (fsError) {
-      console.warn("Could not delete file:", fsError);
-    }
+export async function deleteModelLogic(id: string) {
+  const model = await prisma.aiModel.findUnique({
+    where: { id },
+    omit: { modelData: true },
+  });
+  if (!model) throw new HttpError(404, "ไม่พบข้อมูลโมเดล");
+  if (model.isActive) {
+    throw new HttpError(
+      409,
+      "ลบโมเดลหลักที่ใช้งานอยู่ไม่ได้ กรุณาตั้งโมเดลอื่นเป็นโมเดลหลักก่อน",
+    );
   }
+  await removeModel(model);
 }
 
-export async function setActiveModelLogic(id: string) {
-  // 1. ตั้งตัวอื่นๆ ให้ isActive = false
-  await prisma.aiModel.updateMany({
-    where: { isActive: true },
-    data: { isActive: false },
+/** ลบหลายตัว ข้ามโมเดลหลักและรหัสที่ไม่มีอยู่ — คืนจำนวนที่ลบได้จริง */
+export async function deleteModelsLogic(ids: string[]) {
+  const models = await prisma.aiModel.findMany({
+    where: { id: { in: ids }, isActive: false },
+    omit: { modelData: true },
   });
+  for (const model of models) {
+    await removeModel(model);
+  }
+  return models.length;
+}
 
-  // 2. ตั้งตัวที่เลือกให้ isActive = true
-  await prisma.aiModel.update({
-    where: { id },
-    data: { isActive: true },
-  });
+// ปิดตัวเดิมและเปิดตัวใหม่ใน transaction เดียว — มีโมเดลหลักได้ครั้งละ 1 ตัวเสมอ
+export async function setActiveModelLogic(id: string) {
+  const exists = await prisma.aiModel.count({ where: { id } });
+  if (!exists) throw new HttpError(404, "ไม่พบข้อมูลโมเดล");
+
+  await prisma.$transaction([
+    prisma.aiModel.updateMany({
+      where: { isActive: true },
+      data: { isActive: false },
+    }),
+    prisma.aiModel.update({
+      where: { id },
+      data: { isActive: true },
+    }),
+  ]);
 }
 
 type ModelMetricInput = Partial<Record<ModelMetricKey, unknown>>;
@@ -118,7 +125,7 @@ export function parseModelMetrics(input: ModelMetricInput) {
     }
     const value = Number(raw);
     if (!Number.isFinite(value) || value < 0 || value > 100) {
-      throw new Error(`ค่า ${label} ต้องเป็นตัวเลข 0–100`);
+      throw new HttpError(400, `ค่า ${label} ต้องเป็นตัวเลข 0–100`);
     }
     result[key] = value;
   }
@@ -133,13 +140,17 @@ export async function editModelLogic(
     description?: string;
   } & ModelMetricInput,
 ) {
+  const metrics = parseModelMetrics(data);
+  const exists = await prisma.aiModel.count({ where: { id } });
+  if (!exists) throw new HttpError(404, "ไม่พบข้อมูลโมเดล");
+
   await prisma.aiModel.update({
     where: { id },
     data: {
       name: data.name,
       version: data.version,
       description: data.description || null,
-      ...parseModelMetrics(data),
+      ...metrics,
     },
   });
 }
