@@ -14,15 +14,24 @@ describe("validateImageFile", () => {
     expect(validateImageFile({ type, size: 1024 })).toBeNull();
   });
 
-  it.each(["image/webp", "image/gif", "image/bmp", "image/svg+xml", "application/pdf", "text/plain", ""])(
-    "ไม่รับไฟล์ชนิด %s",
-    (type) => {
-      expect(validateImageFile({ type, size: 1024 })).toBe("รองรับเฉพาะไฟล์รูปภาพ JPEG และ PNG เท่านั้น");
-    },
-  );
+  it.each([
+    "image/webp",
+    "image/gif",
+    "image/bmp",
+    "image/svg+xml",
+    "application/pdf",
+    "text/plain",
+    "",
+  ])("ไม่รับไฟล์ชนิด %s", (type) => {
+    expect(validateImageFile({ type, size: 1024 })).toBe(
+      "รองรับเฉพาะไฟล์รูปภาพ JPEG และ PNG เท่านั้น",
+    );
+  });
 
   it("ไม่รับไฟล์ว่าง (0 byte)", () => {
-    expect(validateImageFile({ type: "image/png", size: 0 })).toBe("ไฟล์รูปภาพว่างเปล่า กรุณาเลือกไฟล์ใหม่");
+    expect(validateImageFile({ type: "image/png", size: 0 })).toBe(
+      "ไฟล์รูปภาพว่างเปล่า กรุณาเลือกไฟล์ใหม่",
+    );
   });
 
   it("ขนาดสูงสุดคือ 10 MB", () => {
@@ -31,13 +40,15 @@ describe("validateImageFile", () => {
   });
 
   it("รับไฟล์ขนาด 10 MB พอดี (ค่าขอบบน)", () => {
-    expect(validateImageFile({ type: "image/jpeg", size: MAX_IMAGE_SIZE_BYTES })).toBeNull();
+    expect(
+      validateImageFile({ type: "image/jpeg", size: MAX_IMAGE_SIZE_BYTES }),
+    ).toBeNull();
   });
 
   it("ไม่รับไฟล์ที่เกิน 10 MB แม้ 1 byte", () => {
-    expect(validateImageFile({ type: "image/jpeg", size: MAX_IMAGE_SIZE_BYTES + 1 })).toBe(
-      "ไฟล์รูปภาพใหญ่เกิน 10 MB กรุณาเลือกไฟล์ที่เล็กลง",
-    );
+    expect(
+      validateImageFile({ type: "image/jpeg", size: MAX_IMAGE_SIZE_BYTES + 1 }),
+    ).toBe("ไฟล์รูปภาพใหญ่เกิน 10 MB กรุณาเลือกไฟล์ที่เล็กลง");
   });
 
   it("ช่องเลือกไฟล์ของหน้าเว็บจำกัดชนิดไว้ที่ JPEG และ PNG", () => {

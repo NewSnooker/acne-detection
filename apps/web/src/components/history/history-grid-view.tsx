@@ -17,7 +17,7 @@ export function HistoryGridView({
   onSelect,
 }: HistoryGridViewProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
+    <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {items.map((item, index) => {
         const imageUrl = item.imageUrl
           ? item.imageUrl
@@ -42,14 +42,14 @@ export function HistoryGridView({
         return (
           <div key={item.id} className="group relative">
             {/* Purple/Primary Intense Glow Behind Card */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-purple-500 to-primary rounded-[1.2rem] blur-xl opacity-0 group-hover:opacity-60 transition duration-700 ease-out z-0" />
+            <div className="from-primary to-primary absolute -inset-0.5 z-0 rounded-[1.2rem] bg-gradient-to-r via-purple-500 opacity-0 blur-xl transition duration-700 ease-out group-hover:opacity-60" />
 
             <div
               onClick={() => onSelect(index)}
-              className="relative z-10 h-full bg-card border rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl hover:border-primary/50 transition-all duration-500 ease-out cursor-pointer flex flex-col hover:-translate-y-2"
+              className="bg-card hover:border-primary/50 relative z-10 flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border shadow-sm transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-2xl"
             >
               {/* Image Container with Gradients */}
-              <div className="relative h-56 w-full bg-muted overflow-hidden shrink-0">
+              <div className="bg-muted relative h-56 w-full shrink-0 overflow-hidden">
                 <Image
                   src={imageUrl}
                   alt="History thumbnail"
@@ -59,13 +59,13 @@ export function HistoryGridView({
                   className="object-cover transition-transform duration-1000 ease-out group-hover:scale-110"
                 />
                 {/* Gradient Overlays for Readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/40 opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/40 opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
 
                 {/* Top Bar: Admin User Info & Severity */}
-                <div className="absolute top-3 left-3 right-3 flex justify-between items-start gap-2">
+                <div className="absolute top-3 right-3 left-3 flex items-start justify-between gap-2">
                   {isAdminView && item.user ? (
-                    <div className="flex items-center gap-2 bg-black/50 backdrop-blur-md rounded-full p-1 pr-3 border border-white/20 shadow-lg transform transition-transform duration-500 group-hover:translate-x-1 group-hover:scale-105">
-                      <div className="h-7 w-7 rounded-full bg-muted overflow-hidden relative shrink-0 border border-white/30">
+                    <div className="flex transform items-center gap-2 rounded-full border border-white/20 bg-black/50 p-1 pr-3 shadow-lg backdrop-blur-md transition-transform duration-500 group-hover:translate-x-1 group-hover:scale-105">
+                      <div className="bg-muted relative h-7 w-7 shrink-0 overflow-hidden rounded-full border border-white/30">
                         {item.user.image ? (
                           <Image
                             src={item.user.image}
@@ -75,14 +75,14 @@ export function HistoryGridView({
                             className="object-cover"
                           />
                         ) : (
-                          <div className="h-full w-full bg-primary/40 flex items-center justify-center text-white text-xs font-bold">
+                          <div className="bg-primary/40 flex h-full w-full items-center justify-center text-xs font-bold text-white">
                             {(item.user.name || item.user.email || "U")
                               .charAt(0)
                               .toUpperCase()}
                           </div>
                         )}
                       </div>
-                      <span className="text-[11px] font-medium text-white max-w-[100px] truncate drop-shadow-md">
+                      <span className="max-w-[100px] truncate text-[11px] font-medium text-white drop-shadow-md">
                         {item.user.name || item.user.email?.split("@")[0]}
                       </span>
                     </div>
@@ -93,7 +93,7 @@ export function HistoryGridView({
                   <Badge
                     variant="outline"
                     className={cn(
-                      "text-xs font-bold border px-3 py-1 rounded-full backdrop-blur-md transform transition-all duration-500 group-hover:scale-110",
+                      "transform rounded-full border px-3 py-1 text-xs font-bold backdrop-blur-md transition-all duration-500 group-hover:scale-110",
                       badgeStyle,
                     )}
                   >
@@ -102,10 +102,10 @@ export function HistoryGridView({
                 </div>
 
                 {/* Bottom Image Info */}
-                <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                  <div className="flex flex-col gap-1 transform transition-transform duration-500 group-hover:-translate-y-1">
-                    <div className="flex items-center text-[10px] text-white/90 font-medium">
-                      <Clock className="h-3.5 w-3.5 mr-1 opacity-80" />
+                <div className="absolute right-4 bottom-4 left-4 flex items-end justify-between">
+                  <div className="flex transform flex-col gap-1 transition-transform duration-500 group-hover:-translate-y-1">
+                    <div className="flex items-center text-[10px] font-medium text-white/90">
+                      <Clock className="mr-1 h-3.5 w-3.5 opacity-80" />
                       {new Date(item.createdAt).toLocaleDateString("th-TH", {
                         year: "numeric",
                         month: "numeric",
@@ -115,9 +115,9 @@ export function HistoryGridView({
                       })}{" "}
                       น.
                     </div>
-                    <div className="text-white font-medium text-sm leading-tight drop-shadow-md">
+                    <div className="text-sm leading-tight font-medium text-white drop-shadow-md">
                       ตรวจพบสิว{" "}
-                      <span className="text-primary font-black text-2xl ml-1 drop-shadow-[0_0_8px_rgba(var(--primary),0.8)]">
+                      <span className="text-primary ml-1 text-2xl font-black drop-shadow-[0_0_8px_rgba(var(--primary),0.8)]">
                         {item.total}
                       </span>{" "}
                       จุด
@@ -125,19 +125,19 @@ export function HistoryGridView({
                   </div>
 
                   {/* View Details Icon (fades in on hover) */}
-                  <div className="translate-y-6 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-out bg-secondary text-secondary-foreground h-10 w-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(var(--primary),0.5)] group-hover:animate-pulse">
-                    <ArrowRight className="w-5 h-5" />
+                  <div className="bg-secondary text-secondary-foreground flex h-10 w-10 translate-y-6 items-center justify-center rounded-full opacity-0 shadow-[0_0_15px_rgba(var(--primary),0.5)] transition-all duration-500 ease-out group-hover:translate-y-0 group-hover:animate-pulse group-hover:opacity-100">
+                    <ArrowRight className="h-5 w-5" />
                   </div>
                 </div>
               </div>
 
               {/* Card Body: Acne Breakdown */}
-              <div className="p-5 flex-1 flex flex-col bg-gradient-to-b from-card to-muted/10">
+              <div className="from-card to-muted/10 flex flex-1 flex-col bg-gradient-to-b p-5">
                 {isAdminView && item.model && (
-                  <div className="mb-4 text-[11px] text-muted-foreground/80 font-mono flex items-center gap-2 border-b pb-3">
-                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                  <div className="text-muted-foreground/80 mb-4 flex items-center gap-2 border-b pb-3 font-mono text-[11px]">
+                    <span className="bg-primary h-2 w-2 animate-pulse rounded-full"></span>
                     Model:{" "}
-                    <span className="font-semibold text-foreground">
+                    <span className="text-foreground font-semibold">
                       {item.model.name}
                     </span>{" "}
                     (v{item.model.version})
@@ -147,7 +147,7 @@ export function HistoryGridView({
                 {item.counts && Object.keys(item.counts).length > 0 ? (
                   <div className="flex flex-col gap-3">
                     {!isAdminView && (
-                      <span className="text-xs font-semibold text-muted-foreground">
+                      <span className="text-muted-foreground text-xs font-semibold">
                         รายละเอียดสิวที่พบ:
                       </span>
                     )}
@@ -161,11 +161,11 @@ export function HistoryGridView({
                           return (
                             <div
                               key={type}
-                              className="flex items-center gap-2 bg-background border rounded-lg px-2.5 py-1.5 shadow-sm transform transition-transform duration-300 group-hover:translate-x-1"
+                              className="bg-background flex transform items-center gap-2 rounded-lg border px-2.5 py-1.5 shadow-sm transition-transform duration-300 group-hover:translate-x-1"
                               style={{ transitionDelay: `${i * 50}ms` }}
                             >
                               <span
-                                className="w-2.5 h-2.5 rounded-full"
+                                className="h-2.5 w-2.5 rounded-full"
                                 style={{
                                   backgroundColor: color,
                                   boxShadow: `0 0 6px ${color}`,
@@ -175,7 +175,7 @@ export function HistoryGridView({
                                 {label}
                               </span>
                               <span
-                                className="text-xs font-bold ml-1"
+                                className="ml-1 text-xs font-bold"
                                 style={{ color: color }}
                               >
                                 {count}
@@ -186,8 +186,8 @@ export function HistoryGridView({
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center h-full py-6 text-sm font-bold text-emerald-500 transform transition-transform duration-500 group-hover:scale-110 group-hover:drop-shadow-sm">
-                    <Activity className="w-5 h-5 mr-2" />
+                  <div className="flex h-full transform items-center justify-center py-6 text-sm font-bold text-emerald-500 transition-transform duration-500 group-hover:scale-110 group-hover:drop-shadow-sm">
+                    <Activity className="mr-2 h-5 w-5" />
                     หน้าใสไร้สิว!
                   </div>
                 )}

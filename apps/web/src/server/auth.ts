@@ -1,21 +1,23 @@
+import "server-only";
 import { registerSchema } from "@/schemas/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { HttpError } from "@/lib/http-error";
 
-export async function registerUserLogic(data: any) {
+export async function registerUserLogic(data: unknown) {
   const parsed = registerSchema.safeParse(data);
-  
+
   if (!parsed.success) {
-    throw new Error("ข้อมูลไม่ถูกต้อง");
+    throw new HttpError(400, "ข้อมูลไม่ถูกต้อง");
   }
 
   // 1. เช็คอีเมลซ้ำ
   const existing = await prisma.user.findUnique({
-    where: { email: parsed.data.email }
+    where: { email: parsed.data.email },
   });
 
   if (existing) {
-    throw new Error("อีเมลนี้ถูกใช้งานแล้ว");
+    throw new HttpError(409, "อีเมลนี้ถูกใช้งานแล้ว");
   }
 
   // 2. เข้ารหัสรหัสผ่าน
@@ -28,8 +30,8 @@ export async function registerUserLogic(data: any) {
       email: parsed.data.email,
       password: hashedPassword,
       // คนแรกที่สมัครจะเป็น ADMIN เสมอ นอกนั้นเป็น USER
-      role: await prisma.user.count() === 0 ? "ADMIN" : "USER"
-    }
+      role: (await prisma.user.count()) === 0 ? "ADMIN" : "USER",
+    },
   });
 
   return newUser;

@@ -60,7 +60,7 @@ const FormLabel = React.forwardRef<
     <Label
       ref={ref}
       className={cn(
-        "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+        "text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
         error && "text-destructive",
         className,
       )}
@@ -97,7 +97,7 @@ const FormMessage = React.forwardRef<
   return (
     <p
       ref={ref}
-      className={cn("text-[0.8rem] font-medium text-destructive", className)}
+      className={cn("text-destructive text-[0.8rem] font-medium", className)}
       {...props}
     >
       {body}

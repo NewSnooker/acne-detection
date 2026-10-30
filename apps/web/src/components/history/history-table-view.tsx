@@ -9,6 +9,12 @@ import React, {
 } from "react";
 import Image from "next/image";
 import type { AgGridReact } from "ag-grid-react";
+import type {
+  ColDef,
+  RowClickedEvent,
+  SelectionChangedEvent,
+} from "ag-grid-community";
+import type { CustomCellRendererProps } from "ag-grid-react";
 import dynamic from "next/dynamic";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 import { SEVERITY_LABELS, ACNE_COLORS, ACNE_LABELS } from "@/types/analyze";
 import { HistoryItem } from "./history-gallery";
-import { AnalyzeService } from "@/services/analyze-service";
+import { AnalyzeService } from "@/lib/api-client/analyze-api";
 
 const DataGrid = dynamic(
   () => import("@/components/ui/data-grid").then((mod) => mod.DataGrid),
@@ -129,24 +135,29 @@ export function HistoryTableView({
     }
   };
 
-  const onSelectionChanged = useCallback((event: any) => {
-    setSelectedRowCount(event.api.getSelectedNodes().length);
-  }, []);
+  const onSelectionChanged = useCallback(
+    (event: SelectionChangedEvent<HistoryItemWithOriginalIndex>) => {
+      setSelectedRowCount(event.api.getSelectedNodes().length);
+    },
+    [],
+  );
 
-  const ImageCellRenderer = (props: any) => {
+  const ImageCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
     if (!props.data) return null;
     const imageUrl = props.data.imageUrl
       ? props.data.imageUrl
       : `/api/images/${props.data.imageName}`;
     return (
       <div
-        className="flex items-center h-full py-1"
+        className="flex h-full items-center py-1"
         onClick={(e) => {
           e.stopPropagation();
-          onSelect(props.data.originalIndex);
+          if (props.data) onSelect(props.data.originalIndex);
         }}
       >
-        <div className="relative h-10 w-10 rounded-md overflow-hidden bg-muted group-hover:ring-2 ring-primary/20 transition-all cursor-pointer shadow-sm">
+        <div className="bg-muted ring-primary/20 relative h-10 w-10 cursor-pointer overflow-hidden rounded-md shadow-sm transition-all group-hover:ring-2">
           <Image
             src={imageUrl}
             alt="thumbnail"
@@ -160,20 +171,22 @@ export function HistoryTableView({
     );
   };
 
-  const UserCellRenderer = (props: any) => {
+  const UserCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
     const user = props.data?.user;
     if (!user) {
       return (
-        <div className="flex items-center h-full">
-          <span className="text-sm text-muted-foreground">
+        <div className="flex h-full items-center">
+          <span className="text-muted-foreground text-sm">
             ไม่มีข้อมูลผู้ใช้
           </span>
         </div>
       );
     }
     return (
-      <div className="flex items-center gap-3 h-full">
-        <div className="h-8 w-8 rounded-full bg-muted overflow-hidden relative shrink-0">
+      <div className="flex h-full items-center gap-3">
+        <div className="bg-muted relative h-8 w-8 shrink-0 overflow-hidden rounded-full">
           {user.image ? (
             <Image
               src={user.image}
@@ -183,16 +196,16 @@ export function HistoryTableView({
               className="object-cover"
             />
           ) : (
-            <div className="h-full w-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">
+            <div className="bg-primary/20 text-primary flex h-full w-full items-center justify-center text-xs font-bold">
               {(user.name || user.email || "U").charAt(0).toUpperCase()}
             </div>
           )}
         </div>
         <div className="flex flex-col justify-center leading-tight">
-          <span className="text-sm font-medium text-foreground truncate max-w-[150px]">
+          <span className="text-foreground max-w-[150px] truncate text-sm font-medium">
             {user.name || "ผู้ใช้ไม่ระบุชื่อ"}
           </span>
-          <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+          <span className="text-muted-foreground max-w-[150px] truncate text-xs">
             {user.email}
           </span>
         </div>
@@ -200,20 +213,22 @@ export function HistoryTableView({
     );
   };
 
-  const ModelCellRenderer = (props: any) => {
+  const ModelCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
     const model = props.data?.model;
     if (!model) {
       return (
-        <div className="flex items-center h-full">
-          <span className="text-sm text-muted-foreground ">-</span>
+        <div className="flex h-full items-center">
+          <span className="text-muted-foreground text-sm">-</span>
         </div>
       );
     }
     return (
-      <div className="flex items-center h-full">
+      <div className="flex h-full items-center">
         <Badge
           variant="outline"
-          className="font-mono text-xs text-primary/70 border-primary/20 bg-primary/5 px-2 py-0.5 rounded-full flex items-center gap-1.5 w-fit whitespace-nowrap"
+          className="text-primary/70 border-primary/20 bg-primary/5 flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-xs whitespace-nowrap"
         >
           {model.name} {model.version}
         </Badge>
@@ -221,7 +236,9 @@ export function HistoryTableView({
     );
   };
 
-  const DateCellRenderer = (props: any) => {
+  const DateCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
     if (!props.value) return null;
     const date = new Date(props.value);
     const dateString = date.toLocaleDateString("th-TH", {
@@ -235,24 +252,26 @@ export function HistoryTableView({
     });
 
     return (
-      <div className="flex flex-col justify-center h-full leading-tight">
-        <span className="text-sm font-bold text-foreground">{dateString}</span>
-        <span className="text-xs text-muted-foreground">{timeString} น.</span>
+      <div className="flex h-full flex-col justify-center leading-tight">
+        <span className="text-foreground text-sm font-bold">{dateString}</span>
+        <span className="text-muted-foreground text-xs">{timeString} น.</span>
       </div>
     );
   };
 
-  const SeverityCellRenderer = (props: any) => {
+  const SeverityCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
     if (!props.value) return null;
     const severityInfo =
       SEVERITY_LABELS[props.value as keyof typeof SEVERITY_LABELS] ||
       SEVERITY_LABELS.MILD;
     return (
-      <div className="flex items-center h-full">
+      <div className="flex h-full items-center">
         <Badge
           variant="outline"
           className={cn(
-            "text-xs font-bold border border-current px-2 py-0.5 rounded-full flex items-center gap-1.5 w-fit",
+            "flex w-fit items-center gap-1.5 rounded-full border border-current px-2 py-0.5 text-xs font-bold",
             severityInfo.bg,
             severityInfo.color,
           )}
@@ -264,16 +283,18 @@ export function HistoryTableView({
     );
   };
 
-  const AcneCellRenderer = (props: any) => {
+  const AcneCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
     const item = props.data;
     if (!item) return null;
     return (
-      <div className="flex flex-col justify-center py-1 h-fit">
-        <div className="font-bold text-primary text-sm mb-1">
+      <div className="flex h-fit flex-col justify-center py-1">
+        <div className="text-primary mb-1 text-sm font-bold">
           {item.total} จุด
         </div>
         {item.counts && Object.keys(item.counts).length > 0 && (
-          <div className="flex flex-wrap h-fit gap-1">
+          <div className="flex h-fit flex-wrap gap-1">
             {Object.entries(item.counts)
               .filter(([_, count]) => (count as number) > 0)
               .map(([type, count]) => {
@@ -283,7 +304,7 @@ export function HistoryTableView({
                   <Badge
                     variant="outline"
                     key={type}
-                    className="text-xs font-bold border border-current px-2 py-0.5 rounded-full flex items-center gap-1.5 w-fit whitespace-nowrap"
+                    className="flex w-fit items-center gap-1.5 rounded-full border border-current px-2 py-0.5 text-xs font-bold whitespace-nowrap"
                     style={{ borderColor: color, color: color }}
                   >
                     {label} ({count as number})
@@ -296,21 +317,23 @@ export function HistoryTableView({
     );
   };
 
-  const ActionCellRenderer = (props: any) => {
+  const ActionCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
     if (!props.data) return null;
     const item = props.data;
 
     if (!isAdminView) return null;
 
     return (
-      <div className="flex items-center justify-end h-full gap-2 pr-2">
+      <div className="flex h-full items-center justify-end gap-2 pr-2">
         <TooltipProvider delayDuration={150}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="outline"
                 size="icon"
-                className={`rounded-md hover:text-destructive h-8 w-8`}
+                className={`hover:text-destructive h-8 w-8 rounded-md`}
                 onClick={(e) => {
                   e.stopPropagation();
                   setHistoryToDelete(item.id);
@@ -333,8 +356,8 @@ export function HistoryTableView({
     );
   };
 
-  const colDefs = useMemo<any[]>(() => {
-    const cols: any[] = [
+  const colDefs = useMemo<ColDef<HistoryItemWithOriginalIndex>[]>(() => {
+    const cols: ColDef<HistoryItemWithOriginalIndex>[] = [
       {
         field: "imageName",
         headerName: "รูปภาพ",
@@ -354,7 +377,7 @@ export function HistoryTableView({
           minWidth: 200,
           cellRenderer: UserCellRenderer,
           filter: "agTextColumnFilter",
-          getQuickFilterText: (params: any) => {
+          getQuickFilterText: (params) => {
             const user = params.data?.user;
             return user ? `${user.name || ""} ${user.email || ""}` : "";
           },
@@ -411,14 +434,14 @@ export function HistoryTableView({
   }, [isAdminView, isDeleting, isBatchDeleting]);
 
   return (
-    <div className="space-y-4 h-full flex flex-col">
+    <div className="flex h-full flex-col space-y-4">
       {isAdminView && selectedRowCount > 0 && (
         <div className="flex justify-end">
           <Button
             variant="destructive"
             onClick={handleBatchDeleteClick}
             disabled={isBatchDeleting}
-            className="w-full sm:w-auto flex gap-1 cursor-pointer"
+            className="flex w-full cursor-pointer gap-1 sm:w-auto"
           >
             {isBatchDeleting ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -439,7 +462,9 @@ export function HistoryTableView({
           onSelectionChanged={onSelectionChanged}
           rowHeight={80}
           pagination={true}
-          onRowClicked={(event: any) => {
+          onRowClicked={(
+            event: RowClickedEvent<HistoryItemWithOriginalIndex>,
+          ) => {
             // Ignore clicks on checkboxes or buttons
             const target = event.event?.target as HTMLElement;
             if (
@@ -471,7 +496,7 @@ export function HistoryTableView({
                   คุณแน่ใจหรือไม่ว่าต้องการลบประวัติที่เลือกทั้งหมดนี้?
                   การกระทำนี้จะไม่สามารถกู้คืนข้อมูลและรูปภาพได้
                 </p>
-                <ul className="list-disc pl-5 text-sm max-h-32 overflow-y-auto text-muted-foreground">
+                <ul className="text-muted-foreground max-h-32 list-disc overflow-y-auto pl-5 text-sm">
                   {selectedHistories.map((h, i) => (
                     <li key={h.id}>
                       {h.user?.name || h.user?.email || "ผู้ใช้ไม่ระบุชื่อ"} -{" "}

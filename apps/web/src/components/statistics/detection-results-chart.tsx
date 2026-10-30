@@ -1,8 +1,8 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { useMounted } from "@/hooks/use-mounted";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
 import { ApexOptions } from "apexcharts";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
@@ -16,18 +16,16 @@ interface DetectionResultsChartProps {
 
 export function DetectionResultsChart({ data }: DetectionResultsChartProps) {
   const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   if (!mounted) {
     return (
-      <div className="w-full relative z-0 flex items-center justify-center min-h-[300px]">
+      <div className="relative z-0 flex min-h-[300px] w-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-          <p className="text-muted-foreground animate-pulse text-sm">กำลังโหลดข้อมูล...</p>
+          <div className="border-primary/20 border-t-primary h-10 w-10 animate-spin rounded-full border-4" />
+          <p className="text-muted-foreground animate-pulse text-sm">
+            กำลังโหลดข้อมูล...
+          </p>
         </div>
       </div>
     );
@@ -57,7 +55,7 @@ export function DetectionResultsChart({ data }: DetectionResultsChartProps) {
       dropShadow: {
         enabled: true,
         opacity: 0.3,
-      }
+      },
     },
     plotOptions: {
       pie: {
@@ -87,7 +85,12 @@ export function DetectionResultsChart({ data }: DetectionResultsChartProps) {
               fontFamily: "inherit",
               color: isDark ? "#9ca3af" : "#6b7280",
               formatter: function (w) {
-                return w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0) + " ครั้ง";
+                return (
+                  w.globals.seriesTotals.reduce(
+                    (a: number, b: number) => a + b,
+                    0,
+                  ) + " ครั้ง"
+                );
               },
             },
           },
@@ -125,18 +128,24 @@ export function DetectionResultsChart({ data }: DetectionResultsChartProps) {
   };
 
   const total = data.ACNE + data.CLEAR;
-  
+
   if (total === 0) {
     return (
-      <div className="h-[300px] w-full flex items-center justify-center border rounded-2xl bg-card text-muted-foreground">
+      <div className="bg-card text-muted-foreground flex h-[300px] w-full items-center justify-center rounded-2xl border">
         ไม่มีข้อมูล
       </div>
     );
   }
 
   return (
-    <div className="w-full relative z-0 flex items-center justify-center">
-      <Chart options={options} series={series} type="donut" height={320} width="100%" />
+    <div className="relative z-0 flex w-full items-center justify-center">
+      <Chart
+        options={options}
+        series={series}
+        type="donut"
+        height={320}
+        width="100%"
+      />
     </div>
   );
 }

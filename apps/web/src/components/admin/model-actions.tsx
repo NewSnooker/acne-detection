@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Power, Trash2, Loader2 } from "lucide-react";
-import { ModelService } from "@/services/model-service";
+import { ModelService } from "@/lib/api-client/model-api";
 import { EditModelDialog } from "./edit-model-dialog";
 import {
   AlertDialog,
@@ -59,7 +59,7 @@ export function ModelActions({ model }: { model: AiModel }) {
   };
 
   return (
-    <div className="flex justify-end items-center gap-1">
+    <div className="flex items-center justify-end gap-1">
       {!isActive && (
         <AlertDialog open={activeOpen} onOpenChange={setActiveOpen}>
           <TooltipProvider delayDuration={0}>
@@ -90,7 +90,7 @@ export function ModelActions({ model }: { model: AiModel }) {
               <AlertDialogTitle>ยืนยันการตั้งเป็นโมเดลหลัก</AlertDialogTitle>
               <AlertDialogDescription>
                 คุณต้องการตั้งโมเดล{" "}
-                <span className="font-semibold text-foreground">
+                <span className="text-foreground font-semibold">
                   {model.name}
                 </span>{" "}
                 ให้เป็นโมเดลหลักที่ใช้ในการวิเคราะห์ภาพใช่หรือไม่?
@@ -126,7 +126,7 @@ export function ModelActions({ model }: { model: AiModel }) {
                       disabled={loading}
                       variant="outline"
                       size="icon"
-                      className={`rounded-md hover:text-destructive`}
+                      className={`hover:text-destructive rounded-md`}
                     >
                       {loading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -148,7 +148,7 @@ export function ModelActions({ model }: { model: AiModel }) {
             <AlertDialogTitle>ยืนยันการลบโมเดล</AlertDialogTitle>
             <AlertDialogDescription>
               คุณแน่ใจหรือไม่ว่าต้องการลบโมเดล{" "}
-              <span className="font-semibold text-foreground">
+              <span className="text-foreground font-semibold">
                 {model.name}
               </span>{" "}
               ถาวร? ไฟล์ `.pt` ของโมเดลนี้จะถูกลบออกจากเครื่องเซิร์ฟเวอร์

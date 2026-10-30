@@ -125,7 +125,7 @@ export const DataGrid = forwardRef<AgGridReact, DataGridProps>(
 
     return (
       <div
-        className="w-full shadow-sm rounded-xl overflow-hidden border flex-1"
+        className="w-full flex-1 overflow-hidden rounded-xl border shadow-sm"
         style={{ height: "100%", minHeight: "500px" }}
       >
         <AgGridReact

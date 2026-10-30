@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // POST /api/analyze — ขั้นตอนหลักของระบบ: รับรูป → ส่ง AI → ประเมินระดับความรุนแรง → บันทึกผล
@@ -8,6 +9,7 @@ const m = vi.hoisted(() => ({
   modelFindFirst: vi.fn(),
   analysisCreate: vi.fn(),
   uploadImage: vi.fn(),
+  deleteImage: vi.fn(),
   callFastApiForPrediction: vi.fn(),
 }));
 vi.mock("@/lib/auth", () => ({ auth: m.auth }));
@@ -18,23 +20,35 @@ vi.mock("@/lib/prisma", () => ({
     analysis: { create: m.analysisCreate },
   },
 }));
-vi.mock("@/lib/storage/image-provider", () => ({ uploadImage: m.uploadImage }));
+vi.mock("@/lib/storage/image-provider", () => ({
+  uploadImage: m.uploadImage,
+  deleteImage: m.deleteImage,
+}));
 // ใช้ calculateSeverity ตัวจริง จำลองเฉพาะการเรียกบริการ AI
-vi.mock("@/lib/services/analyze-logic", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/services/analyze-logic")>()),
+vi.mock("@/server/analyze", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/server/analyze")>()),
   callFastApiForPrediction: m.callFastApiForPrediction,
 }));
 
 import { POST } from "./route";
 
-const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46]);
-const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00]);
-const GIF_BYTES = new Uint8Array([0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x00, 0x00]);
+const JPEG_BYTES = new Uint8Array([
+  0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46,
+]);
+const PNG_BYTES = new Uint8Array([
+  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00,
+]);
+const GIF_BYTES = new Uint8Array([
+  0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x00, 0x00,
+]);
 
 function request(file?: File) {
   const body = new FormData();
   if (file) body.append("image", file);
-  return new Request("http://localhost/api/analyze", { method: "POST", body }) as any;
+  return new Request("http://localhost/api/analyze", {
+    method: "POST",
+    body,
+  }) as NextRequest;
 }
 const jpeg = () => new File([JPEG_BYTES], "face.jpg", { type: "image/jpeg" });
 
@@ -51,9 +65,14 @@ beforeEach(() => {
   m.auth.mockResolvedValue({ user: { id: "u1", role: "USER" } });
   m.userFindUnique.mockResolvedValue({ id: "u1" });
   m.modelFindFirst.mockResolvedValue({ id: "model1" });
-  m.uploadImage.mockResolvedValue({ originalImage: "abc.jpg", imageUrl: null, imageProvider: "local" });
+  m.uploadImage.mockResolvedValue({
+    originalImage: "abc.jpg",
+    imageUrl: null,
+    imageProvider: "local",
+  });
   m.callFastApiForPrediction.mockResolvedValue(aiResult({ papule: 2 }));
   m.analysisCreate.mockResolvedValue({ id: "analysis1" });
+  m.deleteImage.mockResolvedValue(undefined);
 });
 
 describe("POST /api/analyze", () => {
@@ -83,18 +102,26 @@ describe("POST /api/analyze", () => {
   });
 
   it("ไฟล์ชนิดที่ไม่รองรับ (WebP) ตอบ 400 และไม่บันทึกรูป", async () => {
-    const res = await POST(request(new File([JPEG_BYTES], "face.webp", { type: "image/webp" })));
+    const res = await POST(
+      request(new File([JPEG_BYTES], "face.webp", { type: "image/webp" })),
+    );
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "รองรับเฉพาะไฟล์รูปภาพ JPEG และ PNG เท่านั้น" });
+    expect(await res.json()).toEqual({
+      error: "รองรับเฉพาะไฟล์รูปภาพ JPEG และ PNG เท่านั้น",
+    });
     expect(m.uploadImage).not.toHaveBeenCalled();
   });
 
   it("ไฟล์ GIF ที่ปลอมชนิดเป็น JPEG ตอบ 400 เพราะเนื้อไฟล์ไม่ตรง", async () => {
-    const res = await POST(request(new File([GIF_BYTES], "fake.jpg", { type: "image/jpeg" })));
+    const res = await POST(
+      request(new File([GIF_BYTES], "fake.jpg", { type: "image/jpeg" })),
+    );
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "ไฟล์นี้ไม่ใช่รูปภาพ JPEG หรือ PNG ที่ถูกต้อง" });
+    expect(await res.json()).toEqual({
+      error: "ไฟล์นี้ไม่ใช่รูปภาพ JPEG หรือ PNG ที่ถูกต้อง",
+    });
     expect(m.uploadImage).not.toHaveBeenCalled();
   });
 
@@ -109,7 +136,9 @@ describe("POST /api/analyze", () => {
   });
 
   it("สำเร็จ: ส่งรูปให้โมเดลหลัก บันทึกผล และตอบระดับความรุนแรง", async () => {
-    m.callFastApiForPrediction.mockResolvedValue(aiResult({ papule: 4, pustule: 3 })); // อักเสบตื้น 7 จุด
+    m.callFastApiForPrediction.mockResolvedValue(
+      aiResult({ papule: 4, pustule: 3 }),
+    ); // อักเสบตื้น 7 จุด
 
     const res = await POST(request(jpeg()));
     const body = await res.json();
@@ -124,14 +153,22 @@ describe("POST /api/analyze", () => {
       imageProvider: "local",
     });
     // ใช้โมเดลหลักตัวที่เปิดใช้งานอยู่
-    expect(m.modelFindFirst).toHaveBeenCalledWith({ where: { isActive: true } });
-    expect(m.callFastApiForPrediction).toHaveBeenCalledWith(expect.objectContaining({ originalImage: "abc.jpg" }), "model1");
+    expect(m.modelFindFirst).toHaveBeenCalledWith({
+      where: { isActive: true },
+      select: { id: true },
+    });
+    expect(m.callFastApiForPrediction).toHaveBeenCalledWith(
+      expect.objectContaining({ originalImage: "abc.jpg" }),
+      "model1",
+    );
     // บันทึกผลผูกกับผู้ใช้ โมเดล และรูป
     expect(m.analysisCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({
         user: { connect: { id: "u1" } },
         model: { connect: { id: "model1" } },
-        image: { create: { fileName: "abc.jpg", url: null, provider: "local" } },
+        image: {
+          create: { fileName: "abc.jpg", url: null, provider: "local" },
+        },
         total: 7,
         severity: "MODERATE",
       }),
@@ -150,22 +187,55 @@ describe("POST /api/analyze", () => {
     const res = await POST(request(jpeg()));
 
     expect((await res.json()).data.severity).toBe(severity);
-    expect(m.analysisCreate).toHaveBeenCalledWith({ data: expect.objectContaining({ severity }) });
+    expect(m.analysisCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({ severity }),
+    });
   });
 
   it("ไฟล์ PNG ถูกบันทึกเป็นชนิด png ตามเนื้อไฟล์จริง", async () => {
-    await POST(request(new File([PNG_BYTES], "face.png", { type: "image/png" })));
+    await POST(
+      request(new File([PNG_BYTES], "face.png", { type: "image/png" })),
+    );
 
     expect(m.uploadImage).toHaveBeenCalledWith(expect.any(File), "png");
   });
 
   it("บริการ AI ขัดข้อง ตอบ 500 พร้อมข้อความ และไม่บันทึกผลวิเคราะห์", async () => {
-    m.callFastApiForPrediction.mockRejectedValue(new Error("การประมวลผลรูปภาพขัดข้องที่ระบบ AI"));
+    m.callFastApiForPrediction.mockRejectedValue(
+      new Error("การประมวลผลรูปภาพขัดข้องที่ระบบ AI"),
+    );
 
     const res = await POST(request(jpeg()));
 
     expect(res.status).toBe(500);
-    expect(await res.json()).toEqual({ error: "การประมวลผลรูปภาพขัดข้องที่ระบบ AI" });
+    expect(await res.json()).toEqual({
+      error: "การประมวลผลรูปภาพขัดข้องที่ระบบ AI",
+    });
     expect(m.analysisCreate).not.toHaveBeenCalled();
+    // รูปที่อัปโหลดไปแล้วต้องถูกลบ ไม่ค้างอยู่โดยไม่มีผลวิเคราะห์
+    expect(m.deleteImage).toHaveBeenCalledWith("abc.jpg", "local", null);
+  });
+
+  it("บันทึกผลไม่สำเร็จ ลบรูปทิ้ง และถ้าลบรูปพลาดก็ยังตอบ error เดิม", async () => {
+    m.analysisCreate.mockRejectedValue(new Error("db down"));
+    m.deleteImage.mockRejectedValue(new Error("disk"));
+
+    const res = await POST(request(jpeg()));
+
+    expect(res.status).toBe(500);
+    expect(m.deleteImage).toHaveBeenCalledTimes(1);
+    expect((await res.json()).error).toBe("db down");
+  });
+
+  it("ดึงโมเดลหลักเฉพาะ id ไม่ดึงไฟล์โมเดล", async () => {
+    await POST(request(jpeg()));
+
+    expect(m.modelFindFirst.mock.calls[0][0].select).toEqual({ id: true });
+  });
+
+  it("วิเคราะห์สำเร็จ ไม่ลบรูป", async () => {
+    await POST(request(jpeg()));
+
+    expect(m.deleteImage).not.toHaveBeenCalled();
   });
 });

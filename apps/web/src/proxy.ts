@@ -11,7 +11,7 @@ export default auth((req) => {
 
   const target = resolveRedirect(
     nextUrl.pathname,
-    session ? { role: (session.user as any)?.role } : null,
+    session ? { role: session.user?.role } : null,
   );
   if (target) {
     return NextResponse.redirect(new URL(target, nextUrl));

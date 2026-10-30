@@ -2,10 +2,12 @@ import bcrypt from "bcryptjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // สมัครสมาชิก — จำลองฐานข้อมูล
-const db = vi.hoisted(() => ({ user: { findUnique: vi.fn(), create: vi.fn(), count: vi.fn() } }));
+const db = vi.hoisted(() => ({
+  user: { findUnique: vi.fn(), create: vi.fn(), count: vi.fn() },
+}));
 vi.mock("@/lib/prisma", () => ({ prisma: db }));
 
-import { registerUserLogic } from "./auth-logic";
+import { registerUserLogic } from "./auth";
 
 const valid = {
   name: "ผู้ใช้ทดสอบ",
@@ -18,14 +20,22 @@ beforeEach(() => {
   Object.values(db.user).forEach((fn) => fn.mockReset());
   db.user.findUnique.mockResolvedValue(null);
   db.user.count.mockResolvedValue(5);
-  db.user.create.mockImplementation(async ({ data }: any) => ({ id: "new", ...data }));
+  db.user.create.mockImplementation(
+    async ({ data }: { data: Record<string, unknown> }) => ({
+      id: "new",
+      ...data,
+    }),
+  );
 });
 
 describe("registerUserLogic", () => {
   it("ข้อมูลถูกต้อง สร้างบัญชีใหม่", async () => {
     const user = await registerUserLogic(valid);
 
-    expect(user).toMatchObject({ name: "ผู้ใช้ทดสอบ", email: "new@example.com" });
+    expect(user).toMatchObject({
+      name: "ผู้ใช้ทดสอบ",
+      email: "new@example.com",
+    });
     expect(db.user.create).toHaveBeenCalledTimes(1);
   });
 
@@ -40,7 +50,9 @@ describe("registerUserLogic", () => {
   it("อีเมลซ้ำ สมัครไม่ได้", async () => {
     db.user.findUnique.mockResolvedValue({ id: "old", email: valid.email });
 
-    await expect(registerUserLogic(valid)).rejects.toThrow("อีเมลนี้ถูกใช้งานแล้ว");
+    await expect(registerUserLogic(valid)).rejects.toThrow(
+      "อีเมลนี้ถูกใช้งานแล้ว",
+    );
     expect(db.user.create).not.toHaveBeenCalled();
   });
 
@@ -58,12 +70,17 @@ describe("registerUserLogic", () => {
 
   it.each([
     ["รหัสผ่านสั้นกว่า 8 ตัว", { password: "Pass1", confirmPassword: "Pass1" }],
-    ["รหัสผ่านไม่มีตัวเลข", { password: "Password", confirmPassword: "Password" }],
+    [
+      "รหัสผ่านไม่มีตัวเลข",
+      { password: "Password", confirmPassword: "Password" },
+    ],
     ["รหัสผ่านยืนยันไม่ตรงกัน", { confirmPassword: "Passw0rd2" }],
     ["อีเมลผิดรูปแบบ", { email: "not-an-email" }],
     ["ชื่อสั้นกว่า 5 ตัว", { name: "abc" }],
   ])("%s สมัครไม่ได้ และไม่แตะฐานข้อมูล", async (_name, override) => {
-    await expect(registerUserLogic({ ...valid, ...override })).rejects.toThrow("ข้อมูลไม่ถูกต้อง");
+    await expect(registerUserLogic({ ...valid, ...override })).rejects.toThrow(
+      "ข้อมูลไม่ถูกต้อง",
+    );
     expect(db.user.findUnique).not.toHaveBeenCalled();
     expect(db.user.create).not.toHaveBeenCalled();
   });

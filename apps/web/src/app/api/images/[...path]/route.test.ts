@@ -1,13 +1,27 @@
+import type { NextRequest } from "next/server";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 // GET /api/images/<ชื่อไฟล์> — รูปใบหน้าเป็นข้อมูลส่วนตัว ดูได้เฉพาะเจ้าของรูปและผู้ดูแลระบบ
 // ใช้โฟลเดอร์ชั่วคราวจริงแทนโฟลเดอร์เก็บรูป จำลองเฉพาะการเข้าสู่ระบบและฐานข้อมูล
-const { auth, analysisFindFirst } = vi.hoisted(() => ({ auth: vi.fn(), analysisFindFirst: vi.fn() }));
+const { auth, analysisFindFirst } = vi.hoisted(() => ({
+  auth: vi.fn(),
+  analysisFindFirst: vi.fn(),
+}));
 vi.mock("@/lib/auth", () => ({ auth }));
-vi.mock("@/lib/prisma", () => ({ prisma: { analysis: { findFirst: analysisFindFirst } } }));
+vi.mock("@/lib/prisma", () => ({
+  prisma: { analysis: { findFirst: analysisFindFirst } },
+}));
 
 import { GET } from "./route";
 
@@ -34,10 +48,14 @@ beforeEach(() => {
 });
 
 const get = (...segments: string[]) =>
-  GET(new Request("http://localhost/api/images/x") as any, { params: Promise.resolve({ path: segments }) });
+  GET(new Request("http://localhost/api/images/x") as NextRequest, {
+    params: Promise.resolve({ path: segments }),
+  });
 
-const asUser = (id = "u1") => auth.mockResolvedValue({ user: { id, role: "USER" } });
-const asAdmin = () => auth.mockResolvedValue({ user: { id: "a1", role: "ADMIN" } });
+const asUser = (id = "u1") =>
+  auth.mockResolvedValue({ user: { id, role: "USER" } });
+const asAdmin = () =>
+  auth.mockResolvedValue({ user: { id: "a1", role: "ADMIN" } });
 
 describe("GET /api/images/[...path]", () => {
   it("ยังไม่เข้าสู่ระบบ ตอบ 401", async () => {

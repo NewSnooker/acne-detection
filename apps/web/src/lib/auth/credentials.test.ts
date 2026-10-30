@@ -26,7 +26,10 @@ describe("authorizeCredentials", () => {
   it("อีเมลและรหัสผ่านถูกต้อง คืนข้อมูลผู้ใช้พร้อมสิทธิ์", async () => {
     findUnique.mockResolvedValue(dbUser);
 
-    const result = await authorizeCredentials({ email: dbUser.email, password: PASSWORD });
+    const result = await authorizeCredentials({
+      email: dbUser.email,
+      password: PASSWORD,
+    });
 
     expect(result).toEqual({
       id: "u1",
@@ -41,7 +44,10 @@ describe("authorizeCredentials", () => {
   it("ไม่ส่งรหัสผ่าน (ที่เข้ารหัสแล้ว) ออกไปกับข้อมูลผู้ใช้", async () => {
     findUnique.mockResolvedValue(dbUser);
 
-    const result = await authorizeCredentials({ email: dbUser.email, password: PASSWORD });
+    const result = await authorizeCredentials({
+      email: dbUser.email,
+      password: PASSWORD,
+    });
 
     expect(result).not.toHaveProperty("password");
   });
@@ -49,7 +55,10 @@ describe("authorizeCredentials", () => {
   it("ผู้ดูแลระบบเข้าได้และได้สิทธิ์ ADMIN", async () => {
     findUnique.mockResolvedValue({ ...dbUser, role: "ADMIN" });
 
-    const result = await authorizeCredentials({ email: dbUser.email, password: PASSWORD });
+    const result = await authorizeCredentials({
+      email: dbUser.email,
+      password: PASSWORD,
+    });
 
     expect(result?.role).toBe("ADMIN");
   });
@@ -57,19 +66,31 @@ describe("authorizeCredentials", () => {
   it("รหัสผ่านผิด เข้าไม่ได้", async () => {
     findUnique.mockResolvedValue(dbUser);
 
-    expect(await authorizeCredentials({ email: dbUser.email, password: "Wrong1234" })).toBeNull();
+    expect(
+      await authorizeCredentials({
+        email: dbUser.email,
+        password: "Wrong1234",
+      }),
+    ).toBeNull();
   });
 
   it("ไม่มีอีเมลนี้ในระบบ เข้าไม่ได้", async () => {
     findUnique.mockResolvedValue(null);
 
-    expect(await authorizeCredentials({ email: "nobody@example.com", password: PASSWORD })).toBeNull();
+    expect(
+      await authorizeCredentials({
+        email: "nobody@example.com",
+        password: PASSWORD,
+      }),
+    ).toBeNull();
   });
 
   it("บัญชีที่สมัครด้วย Google (ไม่มีรหัสผ่าน) เข้าด้วยรหัสผ่านไม่ได้", async () => {
     findUnique.mockResolvedValue({ ...dbUser, password: null });
 
-    expect(await authorizeCredentials({ email: dbUser.email, password: PASSWORD })).toBeNull();
+    expect(
+      await authorizeCredentials({ email: dbUser.email, password: PASSWORD }),
+    ).toBeNull();
   });
 
   it.each([

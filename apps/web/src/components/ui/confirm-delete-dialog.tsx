@@ -40,11 +40,11 @@ export function ConfirmDeleteDialog({
             {title} {itemName ? `"${itemName}"` : ""}
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
-            <div className="text-sm text-muted-foreground mt-2">
+            <div className="text-muted-foreground mt-2 text-sm">
               {description || (
                 <>
                   คุณแน่ใจหรือไม่ว่าต้องการลบ{" "}
-                  <span className="font-semibold text-foreground">
+                  <span className="text-foreground font-semibold">
                     {itemName}
                   </span>{" "}
                   ถาวร? ข้อมูลที่เกี่ยวข้องทั้งหมดจะถูกลบและไม่สามารถกู้คืนได้

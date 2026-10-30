@@ -9,12 +9,18 @@ const ICONS = { sleep: Moon, stress: Brain, food: Apple };
 export function HolisticCare({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (
-      <section aria-labelledby="holistic-title" className="rounded-xl border border-primary/25 bg-primary/5 p-4">
+      <section
+        aria-labelledby="holistic-title"
+        className="border-primary/25 bg-primary/5 rounded-xl border p-4"
+      >
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 id="holistic-title" className="text-base">
             ก่อนเริ่มวิเคราะห์: ดูแลผิวแบบองค์รวม
           </h2>
-          <Link href="/knowledge#holistic" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+          <Link
+            href="/knowledge#holistic"
+            className="text-primary inline-flex items-center gap-1 text-sm font-medium hover:underline"
+          >
             อ่านเพิ่มเติม <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -22,8 +28,14 @@ export function HolisticCare({ compact = false }: { compact?: boolean }) {
           {HOLISTIC_TIPS.map((tip) => {
             const Icon = ICONS[tip.key];
             return (
-              <li key={tip.key} className="flex items-start gap-3 rounded-lg border bg-card p-3">
-                <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+              <li
+                key={tip.key}
+                className="bg-card flex items-start gap-3 rounded-lg border p-3"
+              >
+                <Icon
+                  className="text-primary mt-0.5 h-5 w-5 shrink-0"
+                  aria-hidden="true"
+                />
                 <div className="text-sm">
                   <p className="font-semibold">{tip.title}</p>
                   <p className="text-foreground/75">{tip.short}</p>
@@ -41,12 +53,15 @@ export function HolisticCare({ compact = false }: { compact?: boolean }) {
       {HOLISTIC_TIPS.map((tip) => {
         const Icon = ICONS[tip.key];
         return (
-          <article key={tip.key} className="flex flex-col gap-4 rounded-2xl border bg-card p-6 shadow-sm">
-            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <article
+            key={tip.key}
+            className="bg-card flex flex-col gap-4 rounded-2xl border p-6 shadow-sm"
+          >
+            <span className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-xl">
               <Icon className="h-6 w-6" aria-hidden="true" />
             </span>
             <h3 className="text-xl">{tip.title}</h3>
-            <ul className="flex list-disc flex-col gap-2 pl-5 text-sm leading-relaxed text-muted-foreground">
+            <ul className="text-muted-foreground flex list-disc flex-col gap-2 pl-5 text-sm leading-relaxed">
               {tip.points.map((p) => (
                 <li key={p}>{p}</li>
               ))}

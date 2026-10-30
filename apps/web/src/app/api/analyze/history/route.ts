@@ -1,30 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminApi } from "@/lib/auth/guards";
-import { deleteHistoryLogic, deleteHistoriesLogic } from "@/lib/services/history-service";
+import {
+  errorResponse,
+  HttpError,
+  parseBody,
+  readJson,
+} from "@/lib/http-error";
+import { idListSchema } from "@/lib/validation/api-input";
+import { deleteHistories } from "@/server/history";
+
+// รับได้ทั้ง { id } (ลบเดี่ยว) และ { ids } (ลบกลุ่ม)
+const deleteSchema = z.union([
+  z.object({ id: z.string().min(1) }),
+  idListSchema,
+]);
 
 export async function DELETE(req: NextRequest) {
   try {
     const guard = await requireAdminApi();
     if (!guard.ok) return guard.response;
 
-    const body = await req.json();
-
-    if (body.id) {
-      // ลบเดี่ยว
-      await deleteHistoryLogic(body.id);
-      return NextResponse.json({ success: true });
-    } else if (body.ids && Array.isArray(body.ids)) {
-      // ลบกลุ่ม
-      await deleteHistoriesLogic(body.ids);
-      return NextResponse.json({ success: true });
-    }
-
-    return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
-  } catch (error: any) {
-    console.error("API /api/analyze/history Error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to delete history" },
-      { status: 500 }
+    const body = parseBody(deleteSchema, await readJson(req));
+    const ids = "id" in body ? [body.id] : body.ids;
+    const deleted = await deleteHistories(ids);
+    if (deleted === 0) throw new HttpError(404, "ไม่พบประวัติที่ต้องการลบ");
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return errorResponse(
+      error,
+      "ลบประวัติไม่สำเร็จ",
+      "DELETE /api/analyze/history",
     );
   }
 }

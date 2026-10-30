@@ -42,18 +42,18 @@ export function SidebarContent({
   return (
     <div className="flex h-full flex-col">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+      <div className="flex items-center gap-3 border-b px-6 py-5">
+        <div className="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-xl">
           <span className="text-xl">🔬</span>
         </div>
         <div>
-          <p className="font-bold text-sm">AcneAI</p>
-          <p className="text-xs text-muted-foreground">วิเคราะห์สิวด้วย AI</p>
+          <p className="text-sm font-bold">AcneAI</p>
+          <p className="text-muted-foreground text-xs">วิเคราะห์สิวด้วย AI</p>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
+      <nav className="flex-1 space-y-1 overflow-y-auto p-4">
         {userNav.map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href;
@@ -78,7 +78,7 @@ export function SidebarContent({
 
         {isAdmin && (
           <>
-            <div className="mt-6 mb-2 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <div className="text-muted-foreground mt-6 mb-2 px-3 text-xs font-semibold tracking-wider uppercase">
               Admin
             </div>
             {adminNav.map((item) => {
@@ -110,7 +110,7 @@ export function SidebarContent({
 
 export function Sidebar({ role }: { role: string }) {
   return (
-    <aside className="hidden md:flex w-64 flex-col border-r bg-card shrink-0">
+    <aside className="bg-card hidden w-64 shrink-0 flex-col border-r md:flex">
       <SidebarContent role={role} />
     </aside>
   );

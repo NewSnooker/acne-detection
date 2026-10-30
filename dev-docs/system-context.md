@@ -102,7 +102,7 @@ npm run dev
 ## Flow: อัปโหลดและจัดการโมเดล (Admin)
 
 ```
-1. Admin เลือกไฟล์ .pt → POST /api/models/create
+1. Admin เลือกไฟล์ .pt → POST /api/models
        ↓
 2. Next.js รับไฟล์ → แปลงเป็น Buffer → บันทึกลง MongoDB:
    AiModel { modelData: <Binary Bytes>, provider: "mongodb", fileName, sizeMb, isActive }
@@ -138,10 +138,10 @@ FastAPI รับ model_url_or_path = "https://<app>/api/models/[id]"
 | | `DELETE /api/analyze/history` | Admin Only | ลบประวัติการวิเคราะห์ (เดี่ยว `{ id }` หรือกลุ่ม `{ ids: [] }`) พร้อมลบรูป |
 | **Images** | `GET /api/images/[...path]` | Browser | ดึงไฟล์รูปจาก Local Disk (โหมด Dev/Docker) |
 | **Models** | `GET /api/models/[id]` | FastAPI (ส่ง `X-API-Key`) / Admin | ส่ง Binary (.pt) ของโมเดลจาก MongoDB ให้ดาวน์โหลด |
-| | `POST /api/models/create` | Admin Only | อัปโหลดโมเดล .pt แปลงเป็น Binary บันทึกลง MongoDB |
-| | `PUT /api/models/[id]` | Admin Only | สลับตั้งค่าให้โมเดลนี้เป็นโมเดลหลัก (`isActive: true`) |
-| | `PUT /api/models/[id]/edit` | Admin Only | แก้ไขชื่อ, เวอร์ชั่น, หรือคำอธิบายโมเดล |
-| | `DELETE /api/models/[id]` | Admin Only | ลบโมเดลเดี่ยวออกจาก MongoDB |
+| | `POST /api/models` | Admin Only | อัปโหลดโมเดล .pt แปลงเป็น Binary บันทึกลง MongoDB |
+| | `POST /api/models/[id]/activate` | Admin Only | ตั้งให้โมเดลนี้เป็นโมเดลหลัก (`isActive: true`) |
+| | `PATCH /api/models/[id]` | Admin Only | แก้ไขชื่อ, เวอร์ชั่น, คำอธิบาย และค่าประเมินโมเดล |
+| | `DELETE /api/models/[id]` | Admin Only | ลบโมเดลเดี่ยวออกจาก MongoDB (ลบโมเดลหลักไม่ได้) |
 | | `DELETE /api/models` | Admin Only | ลบโมเดลแบบกลุ่ม (ป้องกันการลบโมเดลที่กำลัง Active) |
 | **Users** | `DELETE /api/users/[id]` | Admin Only | ลบผู้ใช้เดี่ยว พร้อมกวาดลบรูปและประวัติทั้งหมด (กันลบตัวเอง) |
 | | `DELETE /api/users` | Admin Only | ลบผู้ใช้แบบกลุ่มพร้อมเคลียร์รูปและประวัติทั้งหมด |
@@ -159,20 +159,21 @@ apps/
 │   ├── src/lib/storage/
 │   │   ├── image-provider.ts   ← switch Local (disk) / Hosted (Vercel Blob)
 │   │   └── model-provider.ts   ← MongoDB Binary เสมอ
-│   ├── src/lib/services/       ← Business logic ชั้นใน (Prisma queries)
-│   │   ├── analyze-logic.ts    ← คำนวณ severity, ยิงหา FastAPI
-│   │   ├── auth-logic.ts       ← registerUserLogic
-│   │   ├── history-service.ts  ← get / delete history logic
-│   │   ├── model-logic.ts      ← CRUD model logic
-│   │   └── user-logic.ts       ← delete user & cascade logic
-│   ├── src/services/           ← Client-side API fetchers
-│   │   ├── analyze-service.ts  ← fetch /api/analyze
-│   │   ├── auth-service.ts     ← fetch /api/account/register
-│   │   ├── model-service.ts    ← fetch /api/models
-│   │   └── user-service.ts     ← fetch /api/users
+│   ├── src/server/             ← Business logic ฝั่ง server (Prisma, import "server-only")
+│   │   ├── analyze.ts          ← คำนวณ severity, ยิงหา FastAPI
+│   │   ├── auth.ts             ← registerUserLogic
+│   │   ├── history.ts          ← getHistory / deleteHistories
+│   │   ├── models.ts           ← CRUD โมเดล
+│   │   ├── statistics.ts       ← สถิติหน้าแอดมิน
+│   │   └── users.ts            ← รายชื่อ / ลบผู้ใช้
+│   ├── src/lib/api-client/     ← Client-side API fetchers (apiRequest)
+│   │   ├── analyze-api.ts      ← fetch /api/analyze
+│   │   ├── auth-api.ts         ← fetch /api/account/register
+│   │   ├── model-api.ts        ← fetch /api/models
+│   │   └── user-api.ts         ← fetch /api/users
 │   ├── src/app/actions/
 │   │   └── auth-actions.ts     ← Server Actions เฉพาะ signIn credentials/google
-│   └── src/app/api/            ← Next.js Route Handlers (12 เส้น)
+│   └── src/app/api/            ← Next.js Route Handlers
 ├── ai/
 │   ├── app/main.py             ← /predict endpoint (FastAPI บน Render.com)
 │   ├── app/config.py           ← MODELS_PATH (cache dir)
@@ -187,7 +188,7 @@ apps/
 การคำนวณและประเมินระดับความรุนแรง อ้างอิงตามแนวทางสถาบันโรคผิวหนังแห่งสหรัฐอเมริกา (AAD) และ ALADIN
 
 **ไฟล์ที่เกี่ยวข้อง:**
-- `apps/web/src/lib/services/analyze-logic.ts` (Logic คำนวณ `calculateSeverity`)
+- `apps/web/src/server/analyze.ts` (Logic คำนวณ `calculateSeverity`)
 - `apps/web/src/types/analyze.ts` (ชื่อภาษาไทยและข้อความคำแนะนำ)
 - `apps/web/src/components/analyze/analysis-result.tsx` (UI แสดงผล)
 

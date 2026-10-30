@@ -56,7 +56,9 @@ async function seedModel(admin) {
     return;
   }
   if (!admin) {
-    console.warn("[seed] ไม่มีแอดมินสำหรับเป็นเจ้าของโมเดล ข้ามการใส่โมเดลเริ่มต้น");
+    console.warn(
+      "[seed] ไม่มีแอดมินสำหรับเป็นเจ้าของโมเดล ข้ามการใส่โมเดลเริ่มต้น",
+    );
     return;
   }
   if (!fs.existsSync(MODEL_PATH)) {

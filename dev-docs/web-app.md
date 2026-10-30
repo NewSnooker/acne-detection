@@ -29,33 +29,35 @@ Layout: `app/(dashboard)/layout.tsx` (Sidebar + Header, เช็ค session), `
 
 ```
 Client component
-   └─ src/services/*.ts            fetch wrapper (AnalyzeService, AuthService, ModelService, UserService)
-        └─ src/app/api/**/route.ts  Route Handler: auth() → เช็ค role → เรียก logic → NextResponse.json
-             └─ src/lib/services/*-logic.ts    เขียน/ลบ (Prisma)
-             └─ src/lib/storage/*              ไฟล์รูป/โมเดล
+   └─ src/lib/api-client/*-api.ts   fetch wrapper (AnalyzeService, AuthService, ModelService, UserService) ผ่าน apiRequest
+        └─ src/app/api/**/route.ts  Route Handler: guard → parseBody(zod) → เรียก server → NextResponse.json
+             └─ src/server/<feature>.ts    business logic (Prisma) — มี import "server-only"
+             └─ src/lib/storage/*          ไฟล์รูป/โมเดล
 
 Server component (page.tsx)
-   └─ src/lib/services/*-service.ts  อ่านข้อมูล (Prisma)  — บางหน้าเรียก prisma ตรงใน page
+   └─ src/server/<feature>.ts  อ่านข้อมูล (Prisma) — บางหน้าเรียก prisma ตรงใน page
 ```
 
 | ไฟล์ | export | หมายเหตุ |
 |---|---|---|
-| `lib/services/analyze-logic.ts` | `calculateSeverity`, `callFastApiForPrediction` | เกณฑ์ severity อยู่ที่นี่ |
-| `lib/services/auth-logic.ts` | `registerUserLogic` | คนแรก = ADMIN |
-| `lib/services/history-service.ts` | `getUserHistory`, `getAllHistory`, `deleteHistoryLogic`, `deleteHistoriesLogic` | ดึงทั้งหมดแล้ว filter ใน memory |
-| `lib/services/model-logic.ts` | `uploadModelLogic`, `deleteModelLogic`, `deleteModelsLogic`, `setActiveModelLogic`, `editModelLogic` | |
-| `lib/services/model-service.ts` | `getAdminModels` | |
-| `lib/services/statistics-service.ts` | `getAdminStatistics` | |
-| `lib/services/user-logic.ts` | `deleteUserLogic`, `deleteUsersLogic` | ลบรูป → Image → User |
-| `lib/services/user-service.ts` | `getAllUsers` | |
+| `server/analyze.ts` | `calculateSeverity`, `callFastApiForPrediction` | เกณฑ์ severity อยู่ที่นี่ |
+| `server/auth.ts` | `registerUserLogic` | คนแรก = ADMIN, อีเมลซ้ำตอบ 409 |
+| `server/history.ts` | `getHistory({ userId? })`, `filterHistory`, `countImagesByType`, `deleteHistories`, `deleteAnalysesWhere` | ไม่ระบุ `userId` = ของทุกคน (แอดมิน); ดึงทั้งหมดแล้วกรองใน memory เพราะตาราง ag-grid แบ่งหน้าฝั่ง client |
+| `server/models.ts` | `uploadModelLogic`, `deleteModelLogic`, `deleteModelsLogic`, `setActiveModelLogic`, `editModelLogic`, `getAdminModels` | ลบโมเดลหลักไม่ได้ (409), ตั้งโมเดลหลักใน `$transaction` |
+| `server/statistics.ts` | `getAdminStatistics` | |
+| `server/users.ts` | `deleteUserLogic`, `deleteUsersLogic`, `getAllUsers` | `getAllUsers` ใช้ `select` — ห้ามส่ง `password` ไปเบราว์เซอร์ |
+| `lib/http-error.ts` | `HttpError`, `errorResponse`, `parseBody`, `readJson` | service โยน `HttpError(status, ข้อความไทย)` แล้ว route แปลงเป็น response; error อื่นตอบ 500 โดยไม่เปิดเผยข้อความภายใน |
+| `lib/validation/api-input.ts` | `modelInfoSchema`, `editModelSchema`, `idListSchema` | zod schema ของ body |
+| `lib/acne-counts.ts` | `readCounts` | อ่าน `Analysis.counts` (Json) ใช้ได้ทั้ง server และ client |
 | `lib/storage/image-provider.ts` | `uploadImage`, `deleteImage` | local / vercel-blob |
 | `lib/storage/model-provider.ts` | `saveModel`, `deleteModelFile` | คืน Buffer เก็บลง Mongo |
 | `lib/auth/guards.ts` | `requireUserPage`, `requireAdminPage` (หน้าเว็บ: redirect), `requireUserApi`, `requireAdminApi` (API: ตอบ 401/403) | จุดเดียวสำหรับตรวจสิทธิ์ ทุกหน้าและทุก route ใช้ชุดนี้ |
 | `lib/auth/credentials.ts` | `authorizeCredentials` | ตรวจอีเมลและรหัสผ่านตอนเข้าสู่ระบบ ใช้ใน `auth.ts` |
 | `lib/auth/route-access.ts` | `resolveRedirect`, `PUBLIC_ROUTES`, `ADMIN_ROUTES` | กติกากันหน้าเว็บ ใช้ใน `proxy.ts` |
 | `lib/auth/google.ts` | `isGoogleEnabled` | true เมื่อมี `GOOGLE_CLIENT_ID` และ `GOOGLE_CLIENT_SECRET` ใช้ใน `auth.ts`, หน้า login, `loginWithGoogle` |
+| `hooks/use-mounted.ts` | `useMounted` | true หลัง hydrate (กราฟที่ขึ้นกับธีม) |
 
-ชื่อไฟล์ซ้ำกันสองที่ (ระวังสับสน): `src/services/model-service.ts` (client fetch) กับ `src/lib/services/model-service.ts` (server Prisma) และ `user-service.ts` เช่นกัน
+กติกา type: เปิด `noImplicitAny` และ lint `no-explicit-any` เป็น error — ใช้ type จาก `@prisma/client`, ตาราง ag-grid ใช้ `ColDef<T>` / `CustomCellRendererProps<T>`
 
 ## Components
 

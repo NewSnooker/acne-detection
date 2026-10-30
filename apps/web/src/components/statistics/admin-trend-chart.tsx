@@ -1,8 +1,8 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { useMounted } from "@/hooks/use-mounted";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
 import { ApexOptions } from "apexcharts";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
@@ -17,18 +17,16 @@ interface AdminTrendChartProps {
 
 export function AdminTrendChart({ data }: AdminTrendChartProps) {
   const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   if (!mounted) {
     return (
-      <div className="w-full relative z-0 mt-4 flex items-center justify-center min-h-[350px]">
+      <div className="relative z-0 mt-4 flex min-h-[350px] w-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-          <p className="text-muted-foreground animate-pulse text-sm">กำลังโหลดข้อมูลกราฟ...</p>
+          <div className="border-primary/20 border-t-primary h-10 w-10 animate-spin rounded-full border-4" />
+          <p className="text-muted-foreground animate-pulse text-sm">
+            กำลังโหลดข้อมูลกราฟ...
+          </p>
         </div>
       </div>
     );
@@ -39,10 +37,12 @@ export function AdminTrendChart({ data }: AdminTrendChartProps) {
   // Wait, in PersonalStatsChart it came as Date object.
   // We can either map "27 ก.ค." back to a timestamp, OR we can just use "category" x-axis but enable markers and labels.
   // The user wants it to look the same. Let's just use the category axis since we already formatted dates in getAdminStatistics!
-  
+
   const seriesData = data.map((item) => {
     // rawDate is 'yyyy-MM-dd' or undefined
-    const timestamp = item.rawDate ? new Date(item.rawDate).getTime() : new Date().getTime();
+    const timestamp = item.rawDate
+      ? new Date(item.rawDate).getTime()
+      : new Date().getTime();
     return [timestamp, item.count];
   });
 
@@ -81,7 +81,7 @@ export function AdminTrendChart({ data }: AdminTrendChartProps) {
         borderWidth: 0,
         opacity: 0.9,
       },
-      formatter: (value: number) => value === 0 ? "" : `${value} ครั้ง`,
+      formatter: (value: number) => (value === 0 ? "" : `${value} ครั้ง`),
     },
     markers: {
       size: 5,
@@ -168,15 +168,21 @@ export function AdminTrendChart({ data }: AdminTrendChartProps) {
 
   if (data.length === 0) {
     return (
-      <div className="h-[350px] flex items-center justify-center border rounded-2xl bg-card text-muted-foreground">
+      <div className="bg-card text-muted-foreground flex h-[350px] items-center justify-center rounded-2xl border">
         ไม่มีข้อมูลการใช้งานในช่วงเวลานี้
       </div>
     );
   }
 
   return (
-    <div className="w-full relative z-0 mt-4">
-      <Chart options={options} series={series} type="area" height={350} width="100%" />
+    <div className="relative z-0 mt-4 w-full">
+      <Chart
+        options={options}
+        series={series}
+        type="area"
+        height={350}
+        width="100%"
+      />
     </div>
   );
 }

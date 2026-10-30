@@ -111,26 +111,26 @@ export function HistoryGallery({
   return (
     <>
       {/* Filters at the top (Search, Date, Sort, Reset) */}
-      <div className="flex flex-col w-full md:flex-row justify-between items-start md:items-center gap-2 ">
-        <div className="flex flex-col sm:flex-row items-center w-full gap-4">
+      <div className="flex w-full flex-col items-start justify-between gap-2 md:flex-row md:items-center">
+        <div className="flex w-full flex-col items-center gap-4 sm:flex-row">
           <ViewToggle viewMode={viewMode} onChange={setViewMode} />
           {/* We will let FilterDropdown handle the Search since it has showSearch={true} by default. But it's inside the dropdown. If we want a global search input next to the toggle, we can add it here. The user requested: "ดันช่องค้นหาไว้แถวเดียวกันกับ tab เลือกการ์ด-ตาราง" */}
-          <div className="flex justify-center sm:justify-between items-center gap-4 w-full sm:w-auto">
+          <div className="flex w-full items-center justify-center gap-4 sm:w-auto sm:justify-between">
             <div className="relative w-full sm:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
                 placeholder="ค้นหารายการ..."
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
-                className="pl-9 h-10 bg-background"
+                className="bg-background h-10 pl-9"
               />
             </div>
           </div>
         </div>
-        <div className="flex flex-col-reverse md:flex-row md:justify-end items-center gap-4 w-full">
-          <div className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+        <div className="flex w-full flex-col-reverse items-center gap-4 md:flex-row md:justify-end">
+          <div className="text-muted-foreground text-sm font-medium whitespace-nowrap">
             พบข้อมูล:{" "}
-            <span className="font-bold text-foreground mx-1">
+            <span className="text-foreground mx-1 font-bold">
               {items.length}
             </span>{" "}
             รายการ
@@ -150,16 +150,16 @@ export function HistoryGallery({
       </div>
 
       {items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center bg-card border rounded-2xl shadow-sm ">
-          <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
-            <Activity className="h-8 w-8 text-muted-foreground" />
+        <div className="bg-card flex flex-col items-center justify-center rounded-2xl border py-20 text-center shadow-sm">
+          <div className="bg-muted mb-4 flex h-20 w-20 items-center justify-center rounded-full">
+            <Activity className="text-muted-foreground h-8 w-8" />
           </div>
           <h2 className="text-xl font-bold">
             {currentSearch || currentDate || currentTypes.length > 0
               ? "ไม่พบข้อมูลที่ตรงกับตัวกรอง"
               : "ยังไม่มีประวัติการวิเคราะห์"}
           </h2>
-          <p className="text-muted-foreground max-w-md text-sm px-4">
+          <p className="text-muted-foreground max-w-md px-4 text-sm">
             {currentSearch || currentDate || currentTypes.length > 0
               ? "ลองเปลี่ยนเงื่อนไขการกรอง หรือกดปุ่ม 'ล้างค่าทั้งหมด' ในเมนูตัวกรอง"
               : "คุณยังไม่เคยวิเคราะห์สิวเลย เริ่มต้นวิเคราะห์รูปภาพแรกของคุณเพื่อติดตามสุขภาพผิวหน้าได้ที่หน้าวิเคราะห์สิว"}

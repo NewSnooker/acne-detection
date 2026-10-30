@@ -1,5 +1,5 @@
 import { requireAdminPage } from "@/lib/auth/guards";
-import { getAdminStatistics } from "@/lib/services/statistics-service";
+import { getAdminStatistics } from "@/server/statistics";
 import { AdminStatisticsDashboard } from "@/components/statistics/admin-statistics-dashboard";
 
 export const metadata = {
@@ -30,7 +30,7 @@ export default async function AdminStatisticsPage(props: {
   );
 
   return (
-    <div className="max-w-6xl mx-auto flex flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <AdminStatisticsDashboard data={statisticsData} />
     </div>
   );

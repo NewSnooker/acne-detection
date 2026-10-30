@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ModelService } from "@/services/model-service";
+import { ModelService } from "@/lib/api-client/model-api";
 import { Button } from "@/components/ui/button";
 import { Edit, Loader2 } from "lucide-react";
 import {
@@ -23,7 +23,9 @@ export function EditModelDialog({ model }: { model: AiModel }) {
   const [version, setVersion] = useState(model.version);
   const [description, setDescription] = useState(model.description || "");
   const [metrics, setMetrics] = useState<Record<string, string>>(() =>
-    Object.fromEntries(MODEL_METRICS.map(({ key }) => [key, model[key]?.toString() ?? ""])),
+    Object.fromEntries(
+      MODEL_METRICS.map(({ key }) => [key, model[key]?.toString() ?? ""]),
+    ),
   );
 
   const [loading, setLoading] = useState(false);
@@ -74,18 +76,18 @@ export function EditModelDialog({ model }: { model: AiModel }) {
       {isOpen
         ? createPortal(
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-              <div className="bg-background border rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-left">
-                <div className="px-6 py-4 border-b">
+              <div className="bg-background animate-in fade-in zoom-in-95 w-full max-w-md overflow-hidden rounded-xl border text-left shadow-xl duration-200">
+                <div className="border-b px-6 py-4">
                   <h2 className="text-lg font-semibold">แก้ไขข้อมูลโมเดล</h2>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                  {error && <p className="text-sm text-destructive">{error}</p>}
+                <form onSubmit={handleSubmit} className="space-y-4 p-6">
+                  {error && <p className="text-destructive text-sm">{error}</p>}
 
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-sm font-medium mb-1 block">
+                        <label className="mb-1 block text-sm font-medium">
                           ชื่อโมเดล
                         </label>
                         <input
@@ -93,11 +95,11 @@ export function EditModelDialog({ model }: { model: AiModel }) {
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           required
-                          className="w-full h-10 rounded-md border bg-background px-3 py-2 text-sm"
+                          className="bg-background h-10 w-full rounded-md border px-3 py-2 text-sm"
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium mb-1 block">
+                        <label className="mb-1 block text-sm font-medium">
                           เวอร์ชัน
                         </label>
                         <input
@@ -105,28 +107,31 @@ export function EditModelDialog({ model }: { model: AiModel }) {
                           value={version}
                           onChange={(e) => setVersion(e.target.value)}
                           required
-                          className="w-full h-10 rounded-md border bg-background px-3 py-2 text-sm"
+                          className="bg-background h-10 w-full rounded-md border px-3 py-2 text-sm"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium mb-1 block">
+                      <label className="mb-1 block text-sm font-medium">
                         รายละเอียด (ถ้ามี)
                       </label>
                       <textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        className="w-full h-20 rounded-md border bg-background px-3 py-2 text-sm resize-none"
+                        className="bg-background h-20 w-full resize-none rounded-md border px-3 py-2 text-sm"
                       />
                     </div>
                     <fieldset>
-                      <legend className="text-sm font-medium mb-1">
+                      <legend className="mb-1 text-sm font-medium">
                         ค่าประเมินโมเดล (%) — เว้นว่างได้
                       </legend>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         {MODEL_METRICS.map(({ key, label }) => (
                           <div key={key}>
-                            <label htmlFor={`metric-${key}`} className="text-xs text-muted-foreground mb-1 block">
+                            <label
+                              htmlFor={`metric-${key}`}
+                              className="text-muted-foreground mb-1 block text-xs"
+                            >
                               {label}
                             </label>
                             <input
@@ -136,8 +141,13 @@ export function EditModelDialog({ model }: { model: AiModel }) {
                               max={100}
                               step="any"
                               value={metrics[key]}
-                              onChange={(e) => setMetrics((m) => ({ ...m, [key]: e.target.value }))}
-                              className="w-full h-10 rounded-md border bg-background px-3 py-2 text-sm"
+                              onChange={(e) =>
+                                setMetrics((m) => ({
+                                  ...m,
+                                  [key]: e.target.value,
+                                }))
+                              }
+                              className="bg-background h-10 w-full rounded-md border px-3 py-2 text-sm"
                             />
                           </div>
                         ))}
@@ -145,7 +155,7 @@ export function EditModelDialog({ model }: { model: AiModel }) {
                     </fieldset>
                   </div>
 
-                  <div className="pt-4 flex justify-end gap-3 border-t">
+                  <div className="flex justify-end gap-3 border-t pt-4">
                     <Button
                       type="button"
                       variant="outline"

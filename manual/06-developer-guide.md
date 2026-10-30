@@ -175,9 +175,9 @@ apps/web/src/
 ├── app/(auth)/         ← หน้าเข้าสู่ระบบ สมัครสมาชิก
 ├── app/(dashboard)/    ← หน้าวิเคราะห์ ประวัติ ภาพรวม และหน้าแอดมิน
 ├── app/api/            ← API ฝั่งเว็บ
-├── lib/services/       ← logic ฝั่ง server (ติดต่อฐานข้อมูล)
+├── server/             ← logic ฝั่ง server (ติดต่อฐานข้อมูล)
 ├── lib/storage/        ← การเก็บรูปและโมเดล
-├── services/           ← ตัวเรียก API จากฝั่งหน้าเว็บ
+├── lib/api-client/     ← ตัวเรียก API จากฝั่งหน้าเว็บ
 └── components/         ← ส่วนประกอบหน้าจอ
 
 apps/ai/app/

@@ -1,4 +1,4 @@
-import { getAdminModels } from "@/lib/services/model-service";
+import { getAdminModels } from "@/server/models";
 import { requireAdminPage } from "@/lib/auth/guards";
 import { UploadModelDialog } from "@/components/admin/upload-model-dialog";
 import { ModelTable } from "./model-table";
@@ -12,20 +12,21 @@ export default async function AdminModelsPage() {
   const models = await getAdminModels();
 
   return (
-    <div className="max-w-6xl mx-auto flex flex-col gap-6">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
+      <div className="flex shrink-0 flex-col items-center justify-between gap-4 sm:flex-row">
         <div>
-          <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
-            จัดการโมเดล AI <br className="sm:hidden" />(AI Model Management)
+          <h1 className="text-center text-2xl font-bold tracking-tight sm:text-start">
+            จัดการโมเดล AI <br className="sm:hidden" />
+            (AI Model Management)
           </h1>
-          <p className="text-center sm:text-start text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-center sm:text-start">
             อัปโหลด จัดการ และกำหนดโมเดล AI ที่ใช้สำหรับตรวจจับและจำแนกชนิดสิว
           </p>
         </div>
         <UploadModelDialog />
       </div>
 
-      <div className="flex-1 min-h-[500px]">
+      <div className="min-h-[500px] flex-1">
         <ModelTable models={models} />
       </div>
     </div>

@@ -81,7 +81,9 @@ export async function deleteImage(
     // ─── Delete from Vercel Blob ───
     try {
       if (!process.env.BLOB_READ_WRITE_TOKEN) {
-        console.warn(`[Image Delete] Skipped Vercel Blob delete (${originalImage}): BLOB_READ_WRITE_TOKEN is missing.`);
+        console.warn(
+          `[Image Delete] Skipped Vercel Blob delete (${originalImage}): BLOB_READ_WRITE_TOKEN is missing.`,
+        );
         return;
       }
       const target = imageUrl || originalImage;
@@ -100,7 +102,10 @@ export async function deleteImage(
         console.log(`[Image Delete] Deleted from local disk: ${filePath}`);
       }
     } catch (fsError) {
-      console.error("[Image Delete] Failed to delete local image file:", fsError);
+      console.error(
+        "[Image Delete] Failed to delete local image file:",
+        fsError,
+      );
     }
   }
 }

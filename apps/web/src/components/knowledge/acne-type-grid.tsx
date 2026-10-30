@@ -13,16 +13,33 @@ export function AcneTypeGrid({ detailed = false }: { detailed?: boolean }) {
           const info = ACNE_TYPE_INFO[type];
           const sample = ACNE_SAMPLES[type];
           return (
-            <article key={type} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-              <SampleImage src={sample.src} boxes={sample.boxes} alt={`ตัวอย่างภาพ${ACNE_LABELS[type]}`} />
+            <article
+              key={type}
+              className="bg-card overflow-hidden rounded-2xl border shadow-sm"
+            >
+              <SampleImage
+                src={sample.src}
+                boxes={sample.boxes}
+                alt={`ตัวอย่างภาพ${ACNE_LABELS[type]}`}
+              />
               <div className="flex flex-col gap-2 p-5">
-                <span className={cn("self-start rounded-full px-2.5 py-0.5 text-xs font-semibold", group.badge)}>
+                <span
+                  className={cn(
+                    "self-start rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                    group.badge,
+                  )}
+                >
                   {group.label}
                 </span>
                 <h3 className="text-lg">
-                  {ACNE_LABELS[type]} <span className="text-sm font-normal text-muted-foreground">{info.en}</span>
+                  {ACNE_LABELS[type]}{" "}
+                  <span className="text-muted-foreground text-sm font-normal">
+                    {info.en}
+                  </span>
                 </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">{info.desc}</p>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {info.desc}
+                </p>
                 {detailed && (
                   <p className="text-sm leading-relaxed">
                     <span className="font-semibold">การดูแล: </span>

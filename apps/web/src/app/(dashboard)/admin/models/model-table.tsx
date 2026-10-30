@@ -2,15 +2,17 @@
 
 import React, { useMemo, useState, useRef, useCallback } from "react";
 import type { AgGridReact } from "ag-grid-react";
+import type { ColDef, SelectionChangedEvent } from "ag-grid-community";
+import type { CustomCellRendererProps } from "ag-grid-react";
 import dynamic from "next/dynamic";
 import { TableLoading } from "@/components/ui/table-loading";
 import { DataGridToolbar } from "@/components/ui/data-grid-toolbar";
 import { AiModel } from "@prisma/client";
 import { ModelActions } from "@/components/admin/model-actions";
-import { ModelService } from "@/services/model-service";
+import { ModelService } from "@/lib/api-client/model-api";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import { CheckCircle2, Circle, Cpu, Trash2, Loader2 } from "lucide-react";
-import { SelectionChangedEvent } from "ag-grid-community";
+
 import { Button } from "@/components/ui/button";
 import { MODEL_METRICS } from "@/types/analyze";
 
@@ -99,13 +101,13 @@ export function ModelTable({ models }: ModelTableProps) {
     setSelectedRowCount(event.api.getSelectedNodes().length);
   }, []);
 
-  const NameCellRenderer = (props: any) => {
+  const NameCellRenderer = (props: CustomCellRendererProps<ModelWithCount>) => {
     const model = props.data;
     if (!model) return null;
     return (
-      <div className="flex items-center gap-3 h-full">
+      <div className="flex h-full items-center gap-3">
         <div
-          className={`p-2 rounded-lg ${
+          className={`rounded-lg p-2 ${
             model.isActive
               ? "bg-primary/10 text-primary"
               : "bg-muted text-muted-foreground"
@@ -114,17 +116,17 @@ export function ModelTable({ models }: ModelTableProps) {
           <Cpu className="h-5 w-5" />
         </div>
         <div className="flex flex-col justify-center leading-tight">
-          <p className="font-semibold text-sm m-0">
+          <p className="m-0 text-sm font-semibold">
             {model.name}{" "}
-            <span className="text-xs bg-muted px-2 py-0.5 rounded-full ml-1 font-normal">
+            <span className="bg-muted ml-1 rounded-full px-2 py-0.5 text-xs font-normal">
               v{model.version}
             </span>
           </p>
-          <p className="text-xs text-muted-foreground m-0 truncate max-w-[300px]">
+          <p className="text-muted-foreground m-0 max-w-[300px] truncate text-xs">
             {model.fileName}
           </p>
           {model.description && (
-            <p className="text-xs text-muted-foreground m-0 truncate max-w-[300px]">
+            <p className="text-muted-foreground m-0 max-w-[300px] truncate text-xs">
               {model.description}
             </p>
           )}
@@ -133,18 +135,20 @@ export function ModelTable({ models }: ModelTableProps) {
     );
   };
 
-  const StatusCellRenderer = (props: any) => {
+  const StatusCellRenderer = (
+    props: CustomCellRendererProps<ModelWithCount>,
+  ) => {
     const isActive = props.value;
     return isActive ? (
-      <div className="flex items-center h-full">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+      <div className="flex h-full items-center">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="h-3.5 w-3.5" />
           ใช้งาน
         </span>
       </div>
     ) : (
-      <div className="flex items-center h-full">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+      <div className="flex h-full items-center">
+        <span className="bg-muted text-muted-foreground inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
           <Circle className="h-3.5 w-3.5" />
           ไม่ใช้งาน
         </span>
@@ -152,7 +156,7 @@ export function ModelTable({ models }: ModelTableProps) {
     );
   };
 
-  const DateCellRenderer = (props: any) => {
+  const DateCellRenderer = (props: CustomCellRendererProps<ModelWithCount>) => {
     if (!props.value) return null;
     const date = new Date(props.value);
     const dateString = date.toLocaleDateString("th-TH", {
@@ -166,23 +170,25 @@ export function ModelTable({ models }: ModelTableProps) {
     });
 
     return (
-      <div className="flex flex-col justify-center h-full leading-tight">
-        <span className="text-sm font-bold text-foreground">{dateString}</span>
-        <span className="text-xs text-muted-foreground">{timeString} น.</span>
+      <div className="flex h-full flex-col justify-center leading-tight">
+        <span className="text-foreground text-sm font-bold">{dateString}</span>
+        <span className="text-muted-foreground text-xs">{timeString} น.</span>
       </div>
     );
   };
 
-  const ActionCellRenderer = (props: any) => {
+  const ActionCellRenderer = (
+    props: CustomCellRendererProps<ModelWithCount>,
+  ) => {
     if (!props.data) return null;
     return (
-      <div className="flex items-center justify-end h-full">
+      <div className="flex h-full items-center justify-end">
         <ModelActions model={props.data} />
       </div>
     );
   };
 
-  const colDefs = useMemo<any[]>(
+  const colDefs = useMemo<ColDef<ModelWithCount>[]>(
     () => [
       {
         field: "name",
@@ -191,11 +197,11 @@ export function ModelTable({ models }: ModelTableProps) {
         minWidth: 300,
         cellRenderer: NameCellRenderer,
         filter: "agTextColumnFilter",
-        filterValueGetter: (params: any) => {
-          if (!params.data) return params.data?.name || "";
+        filterValueGetter: (params) => {
+          if (!params.data) return "";
           return `${params.data.name || ""} ${params.data.version || ""} ${params.data.fileName || ""} ${params.data.description || ""}`;
         },
-        getQuickFilterText: (params: any) => {
+        getQuickFilterText: (params) => {
           if (!params.data) return params.value;
           return `${params.value} ${params.data.version || ""} ${params.data.fileName || ""} ${params.data.description || ""}`;
         },
@@ -207,7 +213,7 @@ export function ModelTable({ models }: ModelTableProps) {
         minWidth: 150,
         cellRenderer: StatusCellRenderer,
         filter: "agTextColumnFilter",
-        filterValueGetter: (params: any) =>
+        filterValueGetter: (params) =>
           params.data?.isActive ? "ใช้งานอยู่" : "ไม่ได้ใช้",
       },
       {
@@ -216,9 +222,9 @@ export function ModelTable({ models }: ModelTableProps) {
         flex: 1.5,
         minWidth: 200,
         sortable: false,
-        valueGetter: (params: any) =>
+        valueGetter: (params) =>
           MODEL_METRICS.filter(({ key }) => params.data?.[key] != null)
-            .map(({ key, label }) => `${label} ${params.data[key]}`)
+            .map(({ key, label }) => `${label} ${params.data?.[key]}`)
             .join(" · ") || "ยังไม่กรอก",
         wrapText: true,
         autoHeight: true,
@@ -229,7 +235,7 @@ export function ModelTable({ models }: ModelTableProps) {
         headerName: "ขนาด",
         flex: 1,
         minWidth: 120,
-        valueFormatter: (params: any) => `${params.value} MB`,
+        valueFormatter: (params) => `${params.value} MB`,
         filter: "agNumberColumnFilter",
       },
       {
@@ -237,7 +243,7 @@ export function ModelTable({ models }: ModelTableProps) {
         headerName: "ใช้งานไปแล้ว",
         flex: 1,
         minWidth: 120,
-        valueFormatter: (params: any) => `${params.value} ครั้ง`,
+        valueFormatter: (params) => `${params.value} ครั้ง`,
         filter: "agNumberColumnFilter",
       },
       {
@@ -249,7 +255,10 @@ export function ModelTable({ models }: ModelTableProps) {
         filter: "agDateColumnFilter",
         filterParams: {
           buttons: ["reset"],
-          comparator: (filterLocalDateAtMidnight: Date, cellValue: any) => {
+          comparator: (
+            filterLocalDateAtMidnight: Date,
+            cellValue: string | Date | null,
+          ) => {
             if (!cellValue) return -1;
             const cellDate = new Date(cellValue);
             cellDate.setHours(0, 0, 0, 0);
@@ -259,7 +268,7 @@ export function ModelTable({ models }: ModelTableProps) {
             return 1;
           },
         },
-        getQuickFilterText: (params: any) => {
+        getQuickFilterText: (params) => {
           if (!params.data?.createdAt) return "";
           const date = new Date(params.data.createdAt);
           const dateString = date.toLocaleDateString("th-TH", {
@@ -288,7 +297,7 @@ export function ModelTable({ models }: ModelTableProps) {
   );
 
   return (
-    <div className="space-y-4 h-[600px] flex flex-col">
+    <div className="flex h-[600px] flex-col space-y-4">
       <DataGridToolbar
         searchPlaceholder="ค้นหาโมเดล AI ทั่วทั้งตาราง..."
         searchValue={quickFilterText}
@@ -300,7 +309,7 @@ export function ModelTable({ models }: ModelTableProps) {
             variant="destructive"
             onClick={handleBatchDeleteClick}
             disabled={isBatchDeleting}
-            className="w-full sm:w-auto flex gap-1"
+            className="flex w-full gap-1 sm:w-auto"
           >
             {isBatchDeleting ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -335,7 +344,7 @@ export function ModelTable({ models }: ModelTableProps) {
               คุณแน่ใจหรือไม่ว่าต้องการลบโมเดลที่เลือกทั้งหมดนี้?
               การกระทำนี้จะลบไฟล์ .pt ออกจากเซิร์ฟเวอร์ และไม่สามารถกู้คืนได้
             </p>
-            <ul className="list-disc pl-5 text-sm max-h-32 overflow-y-auto">
+            <ul className="max-h-32 list-disc overflow-y-auto pl-5 text-sm">
               {selectedModels.map((m) => (
                 <li key={m.id}>
                   {m.name} (v{m.version})

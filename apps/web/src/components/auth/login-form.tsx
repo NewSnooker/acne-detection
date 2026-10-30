@@ -5,7 +5,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FcGoogle } from "react-icons/fc";
 import { loginSchema } from "@/schemas/auth";
-import { loginWithGoogle, loginWithCredentials } from "@/app/actions/auth-actions"; 
+import {
+  loginWithGoogle,
+  loginWithCredentials,
+} from "@/app/actions/auth-actions";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import * as z from "zod";
@@ -87,7 +90,7 @@ export function LoginForm({
           className="space-y-4"
         >
           {registered && !error && (
-            <div className="p-3 text-sm font-medium rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-center">
+            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/15 p-3 text-center text-sm font-medium text-emerald-700 dark:text-emerald-400">
               สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ
             </div>
           )}
@@ -95,7 +98,7 @@ export function LoginForm({
           {error && (
             <div
               role="alert"
-              className="p-3 text-sm font-medium rounded-lg bg-destructive/15 text-destructive border border-destructive/20 text-center"
+              className="bg-destructive/15 text-destructive border-destructive/20 rounded-lg border p-3 text-center text-sm font-medium"
             >
               {error}
             </div>
@@ -145,10 +148,10 @@ export function LoginForm({
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border" />
+          <span className="border-border w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-2 text-muted-foreground">
+          <span className="bg-card text-muted-foreground px-2">
             หรือเข้าสู่ระบบด้วย
           </span>
         </div>
@@ -180,11 +183,11 @@ export function LoginForm({
         </Button>
       )}
 
-      <div className="text-center text-sm pt-2">
+      <div className="pt-2 text-center text-sm">
         <span className="text-muted-foreground">ยังไม่มีบัญชี? </span>
         <Link
           href="/register"
-          className="text-primary hover:underline font-medium"
+          className="text-primary font-medium hover:underline"
         >
           สมัครสมาชิก
         </Link>

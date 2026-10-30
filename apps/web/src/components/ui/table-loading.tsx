@@ -8,8 +8,8 @@ export function TableLoading({
   message = "กำลังโหลดข้อมูล...",
 }: TableLoadingProps) {
   return (
-    <div className="h-[500px] w-full flex flex-col items-center justify-center border rounded-xl bg-muted/20 text-muted-foreground shadow-sm">
-      <Loader2 className="h-8 w-8 animate-spin mb-4 text-primary" />
+    <div className="bg-muted/20 text-muted-foreground flex h-[500px] w-full flex-col items-center justify-center rounded-xl border shadow-sm">
+      <Loader2 className="text-primary mb-4 h-8 w-8 animate-spin" />
       <p>{message}</p>
     </div>
   );

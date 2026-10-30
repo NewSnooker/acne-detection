@@ -108,40 +108,40 @@ export function FilterDropdown({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex w-full h-10 items-center cursor-pointer justify-center gap-2 px-3 py-1.5 bg-card border rounded-lg shadow-sm text-sm transition-colors hover:bg-muted",
+          "bg-card hover:bg-muted flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 py-1.5 text-sm shadow-sm transition-colors",
           isFiltered && "border-primary/50 text-primary",
         )}
       >
         <Filter className="size-4" />
         <span>ตัวกรอง</span>
         {isFiltered && (
-          <span className="flex h-2 w-2 rounded-full bg-primary absolute -top-0.5 right-0" />
+          <span className="bg-primary absolute -top-0.5 right-0 flex h-2 w-2 rounded-full" />
         )}
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-[calc(100vw-3rem)] sm:w-72 max-w-sm bg-background border rounded-lg shadow-xl z-50 overflow-hidden">
-          <div className="p-3 space-y-1 max-h-[75vh] overflow-y-auto scrollbar-thin">
+        <div className="bg-background absolute top-full left-0 z-50 mt-2 w-[calc(100vw-3rem)] max-w-sm overflow-hidden rounded-lg border shadow-xl sm:right-0 sm:left-auto sm:w-72">
+          <div className="max-h-[75vh] scrollbar-thin space-y-1 overflow-y-auto p-3">
             {/* 1. ค้นหา */}
             {showSearch && (
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                <label className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
                   ค้นหาคำ
                 </label>
                 <div className="relative flex items-center">
-                  <Search className="h-3.5 w-3.5 text-muted-foreground absolute left-2.5" />
+                  <Search className="text-muted-foreground absolute left-2.5 h-3.5 w-3.5" />
                   <input
                     type="text"
                     placeholder="พิมพ์ค้นหา..."
                     value={localSearch}
                     onChange={(e) => setLocalSearch(e.target.value)}
-                    className="w-full bg-muted border-none text-xs outline-none pl-8 pr-8 py-1.5 rounded-md"
+                    className="bg-muted w-full rounded-md border-none py-1.5 pr-8 pl-8 text-xs outline-none"
                   />
                   {localSearch && (
                     <button
                       onClick={() => setLocalSearch("")}
-                      className="absolute right-1.5 text-muted-foreground hover:text-foreground p-1"
+                      className="text-muted-foreground hover:text-foreground absolute right-1.5 p-1"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -152,7 +152,7 @@ export function FilterDropdown({
 
             {/* 2. กรองตามชนิดสิว */}
             <div className="space-y-1">
-              <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <label className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
                 ชนิดสิว
               </label>
               <div className="space-y-0.5">
@@ -166,9 +166,9 @@ export function FilterDropdown({
                     <label
                       key={type}
                       className={cn(
-                        "flex items-center justify-between px-2 py-1.5 rounded-md text-xs cursor-pointer transition-colors",
+                        "flex cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-xs transition-colors",
                         isDisabled
-                          ? "opacity-50 cursor-not-allowed line-through text-muted-foreground"
+                          ? "text-muted-foreground cursor-not-allowed line-through opacity-50"
                           : "hover:bg-muted",
                         isSelected && !isDisabled
                           ? "bg-primary/5 text-primary text-bold"
@@ -178,7 +178,7 @@ export function FilterDropdown({
                       <div className="flex items-center gap-2.5">
                         <div
                           className={cn(
-                            "h-3.5 w-3.5 rounded border flex items-center justify-center transition-colors",
+                            "flex h-3.5 w-3.5 items-center justify-center rounded border transition-colors",
                             isSelected
                               ? "bg-primary border-primary text-primary-foreground"
                               : "border-foreground border-2 bg-transparent",
@@ -198,7 +198,7 @@ export function FilterDropdown({
                           </Badge>{" "}
                         </span>
                       </div>
-                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                      <span className="text-muted-foreground text-[10px] whitespace-nowrap">
                         ({count} รายการ)
                       </span>
                       {/* Hidden Input */}
@@ -218,13 +218,13 @@ export function FilterDropdown({
 
           {/* Footer Actions */}
           {isFiltered && (
-            <div className="p-2 border-t bg-muted/30">
+            <div className="bg-muted/30 border-t p-2">
               <button
                 onClick={() => {
                   onReset();
                   setIsOpen(false);
                 }}
-                className="w-full cursor-pointer py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+                className="text-destructive hover:bg-destructive/10 w-full cursor-pointer rounded-md py-1.5 text-xs font-medium transition-colors"
               >
                 ล้างตัวกรองทั้งหมด
               </button>
