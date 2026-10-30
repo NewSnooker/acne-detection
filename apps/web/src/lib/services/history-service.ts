@@ -61,7 +61,8 @@ export async function getUserHistory(
       // 2. Search in Model Name/Version
       const modelName = (item as any).model?.name?.toLowerCase() || "";
       const modelVersion = (item as any).model?.version?.toLowerCase() || "";
-      const matchModel = modelName.includes(searchLower) || modelVersion.includes(searchLower);
+      const matchModel =
+        modelName.includes(searchLower) || modelVersion.includes(searchLower);
 
       // 3. Search in Severity (English and Thai)
       const severity = (item.severity || "").toLowerCase();
@@ -69,8 +70,9 @@ export async function getUserHistory(
       if (severity === "mild") severityThai = "เล็กน้อย น้อย";
       if (severity === "moderate") severityThai = "ปานกลาง";
       if (severity === "severe") severityThai = "รุนแรง มาก";
-      
-      const matchSeverity = severity.includes(searchLower) || severityThai.includes(searchLower);
+
+      const matchSeverity =
+        severity.includes(searchLower) || severityThai.includes(searchLower);
 
       // 4. Search in Total Count
       const matchTotal = item.total.toString().includes(searchLower);
@@ -79,9 +81,12 @@ export async function getUserHistory(
       const dateObj = new Date(item.createdAt);
       const isoDate = dateObj.toISOString().split("T")[0]; // YYYY-MM-DD
       const localDate = dateObj.toLocaleDateString("en-GB"); // DD/MM/YYYY
-      const matchDate = isoDate.includes(searchLower) || localDate.includes(searchLower);
+      const matchDate =
+        isoDate.includes(searchLower) || localDate.includes(searchLower);
 
-      return matchAcneType || matchModel || matchSeverity || matchTotal || matchDate;
+      return (
+        matchAcneType || matchModel || matchSeverity || matchTotal || matchDate
+      );
     });
   }
 
@@ -195,12 +200,14 @@ export async function getAllHistory(
       // 2. Search in User Name/Email (Admin only)
       const userName = item.user?.name?.toLowerCase() || "";
       const userEmail = item.user?.email?.toLowerCase() || "";
-      const matchUser = userName.includes(searchLower) || userEmail.includes(searchLower);
+      const matchUser =
+        userName.includes(searchLower) || userEmail.includes(searchLower);
 
       // 3. Search in Model Name/Version
       const modelName = (item as any).model?.name?.toLowerCase() || "";
       const modelVersion = (item as any).model?.version?.toLowerCase() || "";
-      const matchModel = modelName.includes(searchLower) || modelVersion.includes(searchLower);
+      const matchModel =
+        modelName.includes(searchLower) || modelVersion.includes(searchLower);
 
       // 4. Search in Severity (English and Thai)
       const severity = (item.severity || "").toLowerCase();
@@ -208,8 +215,9 @@ export async function getAllHistory(
       if (severity === "mild") severityThai = "เล็กน้อย น้อย";
       if (severity === "moderate") severityThai = "ปานกลาง";
       if (severity === "severe") severityThai = "รุนแรง มาก";
-      
-      const matchSeverity = severity.includes(searchLower) || severityThai.includes(searchLower);
+
+      const matchSeverity =
+        severity.includes(searchLower) || severityThai.includes(searchLower);
 
       // 5. Search in Total Count
       const matchTotal = item.total.toString().includes(searchLower);
@@ -218,9 +226,17 @@ export async function getAllHistory(
       const dateObj = new Date(item.createdAt);
       const isoDate = dateObj.toISOString().split("T")[0]; // YYYY-MM-DD
       const localDate = dateObj.toLocaleDateString("en-GB"); // DD/MM/YYYY
-      const matchDate = isoDate.includes(searchLower) || localDate.includes(searchLower);
+      const matchDate =
+        isoDate.includes(searchLower) || localDate.includes(searchLower);
 
-      return matchAcneType || matchUser || matchModel || matchSeverity || matchTotal || matchDate;
+      return (
+        matchAcneType ||
+        matchUser ||
+        matchModel ||
+        matchSeverity ||
+        matchTotal ||
+        matchDate
+      );
     });
   }
 
@@ -282,7 +298,11 @@ export async function deleteHistoryLogic(id: string) {
 
   // 1. Delete the image file
   try {
-    await deleteImage(analysis.image.fileName, analysis.image.provider, analysis.image.url);
+    await deleteImage(
+      analysis.image.fileName,
+      analysis.image.provider,
+      analysis.image.url,
+    );
   } catch (fsError) {
     console.error("Failed to delete image file:", fsError);
     throw new Error("Failed to delete image file");
@@ -304,16 +324,18 @@ export async function deleteHistoriesLogic(ids: string[]) {
   for (const analysis of analyses) {
     if (!analysis.image) continue;
     try {
-      await deleteImage(analysis.image.fileName, analysis.image.provider, analysis.image.url);
+      await deleteImage(
+        analysis.image.fileName,
+        analysis.image.provider,
+        analysis.image.url,
+      );
     } catch (fsError) {
       console.error("Failed to delete image file:", fsError);
     }
   }
 
   // 2. Delete Image records from DB (cascades to Analysis records)
-  const imageIds = analyses
-    .map((a) => a.image?.id)
-    .filter(Boolean) as string[];
+  const imageIds = analyses.map((a) => a.image?.id).filter(Boolean) as string[];
   await prisma.image.deleteMany({
     where: { id: { in: imageIds } },
   });

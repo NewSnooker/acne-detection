@@ -13,16 +13,16 @@ export function ViewToggle({ viewMode, onChange, className }: ViewToggleProps) {
   return (
     <div
       className={cn(
-        "bg-muted/60 p-1 rounded-xl inline-flex items-center border backdrop-blur-sm justify-center w-full sm:w-auto",
+        "bg-muted/60 inline-flex w-full items-center justify-center rounded-xl border p-1 backdrop-blur-sm sm:w-auto",
         className,
       )}
     >
       <button
         onClick={() => onChange("grid")}
         className={cn(
-          "flex items-center w-full cursor-pointer sm:w-auto justify-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200",
+          "flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 sm:w-auto",
           viewMode === "grid"
-            ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
+            ? "bg-background text-foreground ring-border/50 shadow-sm ring-1"
             : "text-muted-foreground hover:text-foreground hover:bg-muted/80",
         )}
       >
@@ -32,9 +32,9 @@ export function ViewToggle({ viewMode, onChange, className }: ViewToggleProps) {
       <button
         onClick={() => onChange("table")}
         className={cn(
-          "flex items-center w-full cursor-pointer sm:w-auto justify-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200",
+          "flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 sm:w-auto",
           viewMode === "table"
-            ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
+            ? "bg-background text-foreground ring-border/50 shadow-sm ring-1"
             : "text-muted-foreground hover:text-foreground hover:bg-muted/80",
         )}
       >

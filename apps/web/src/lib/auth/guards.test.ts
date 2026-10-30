@@ -10,7 +10,12 @@ const { auth, redirect } = vi.hoisted(() => ({
 vi.mock("@/lib/auth", () => ({ auth }));
 vi.mock("next/navigation", () => ({ redirect }));
 
-import { requireAdminApi, requireAdminPage, requireUserApi, requireUserPage } from "./guards";
+import {
+  requireAdminApi,
+  requireAdminPage,
+  requireUserApi,
+  requireUserPage,
+} from "./guards";
 
 const USER = { user: { id: "u1", role: "USER" } };
 const ADMIN = { user: { id: "a1", role: "ADMIN" } };
@@ -28,7 +33,9 @@ describe("API", () => {
     expect(guard.ok).toBe(false);
     if (!guard.ok) {
       expect(guard.response.status).toBe(401);
-      expect(await guard.response.json()).toEqual({ error: "กรุณาเข้าสู่ระบบก่อนใช้งาน" });
+      expect(await guard.response.json()).toEqual({
+        error: "กรุณาเข้าสู่ระบบก่อนใช้งาน",
+      });
     }
   });
 
@@ -65,7 +72,9 @@ describe("API", () => {
     expect(guard.ok).toBe(false);
     if (!guard.ok) {
       expect(guard.response.status).toBe(403);
-      expect(await guard.response.json()).toEqual({ error: "เฉพาะผู้ดูแลระบบเท่านั้น" });
+      expect(await guard.response.json()).toEqual({
+        error: "เฉพาะผู้ดูแลระบบเท่านั้น",
+      });
     }
   });
 

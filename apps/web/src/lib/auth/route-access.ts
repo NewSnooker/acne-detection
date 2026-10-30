@@ -19,10 +19,14 @@ export type RouteVisitor = { role?: string | null } | null;
  * @param pathname path ที่ขอเข้า เช่น "/analyze"
  * @param visitor  null = ยังไม่เข้าสู่ระบบ
  */
-export function resolveRedirect(pathname: string, visitor: RouteVisitor): string | null {
+export function resolveRedirect(
+  pathname: string,
+  visitor: RouteVisitor,
+): string | null {
   const isLoggedIn = visitor !== null;
   const isPublic =
-    PUBLIC_PAGES.includes(pathname) || PUBLIC_ROUTES.some((r) => pathname.startsWith(r));
+    PUBLIC_PAGES.includes(pathname) ||
+    PUBLIC_ROUTES.some((r) => pathname.startsWith(r));
   const isAdminRoute = ADMIN_ROUTES.some((r) => pathname.startsWith(r));
 
   // เข้าสู่ระบบแล้วไม่ต้องเห็นหน้า login อีก

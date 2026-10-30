@@ -103,9 +103,9 @@ export function ModelTable({ models }: ModelTableProps) {
     const model = props.data;
     if (!model) return null;
     return (
-      <div className="flex items-center gap-3 h-full">
+      <div className="flex h-full items-center gap-3">
         <div
-          className={`p-2 rounded-lg ${
+          className={`rounded-lg p-2 ${
             model.isActive
               ? "bg-primary/10 text-primary"
               : "bg-muted text-muted-foreground"
@@ -114,17 +114,17 @@ export function ModelTable({ models }: ModelTableProps) {
           <Cpu className="h-5 w-5" />
         </div>
         <div className="flex flex-col justify-center leading-tight">
-          <p className="font-semibold text-sm m-0">
+          <p className="m-0 text-sm font-semibold">
             {model.name}{" "}
-            <span className="text-xs bg-muted px-2 py-0.5 rounded-full ml-1 font-normal">
+            <span className="bg-muted ml-1 rounded-full px-2 py-0.5 text-xs font-normal">
               v{model.version}
             </span>
           </p>
-          <p className="text-xs text-muted-foreground m-0 truncate max-w-[300px]">
+          <p className="text-muted-foreground m-0 max-w-[300px] truncate text-xs">
             {model.fileName}
           </p>
           {model.description && (
-            <p className="text-xs text-muted-foreground m-0 truncate max-w-[300px]">
+            <p className="text-muted-foreground m-0 max-w-[300px] truncate text-xs">
               {model.description}
             </p>
           )}
@@ -136,15 +136,15 @@ export function ModelTable({ models }: ModelTableProps) {
   const StatusCellRenderer = (props: any) => {
     const isActive = props.value;
     return isActive ? (
-      <div className="flex items-center h-full">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+      <div className="flex h-full items-center">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="h-3.5 w-3.5" />
           ใช้งาน
         </span>
       </div>
     ) : (
-      <div className="flex items-center h-full">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+      <div className="flex h-full items-center">
+        <span className="bg-muted text-muted-foreground inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
           <Circle className="h-3.5 w-3.5" />
           ไม่ใช้งาน
         </span>
@@ -166,9 +166,9 @@ export function ModelTable({ models }: ModelTableProps) {
     });
 
     return (
-      <div className="flex flex-col justify-center h-full leading-tight">
-        <span className="text-sm font-bold text-foreground">{dateString}</span>
-        <span className="text-xs text-muted-foreground">{timeString} น.</span>
+      <div className="flex h-full flex-col justify-center leading-tight">
+        <span className="text-foreground text-sm font-bold">{dateString}</span>
+        <span className="text-muted-foreground text-xs">{timeString} น.</span>
       </div>
     );
   };
@@ -176,7 +176,7 @@ export function ModelTable({ models }: ModelTableProps) {
   const ActionCellRenderer = (props: any) => {
     if (!props.data) return null;
     return (
-      <div className="flex items-center justify-end h-full">
+      <div className="flex h-full items-center justify-end">
         <ModelActions model={props.data} />
       </div>
     );
@@ -288,7 +288,7 @@ export function ModelTable({ models }: ModelTableProps) {
   );
 
   return (
-    <div className="space-y-4 h-[600px] flex flex-col">
+    <div className="flex h-[600px] flex-col space-y-4">
       <DataGridToolbar
         searchPlaceholder="ค้นหาโมเดล AI ทั่วทั้งตาราง..."
         searchValue={quickFilterText}
@@ -300,7 +300,7 @@ export function ModelTable({ models }: ModelTableProps) {
             variant="destructive"
             onClick={handleBatchDeleteClick}
             disabled={isBatchDeleting}
-            className="w-full sm:w-auto flex gap-1"
+            className="flex w-full gap-1 sm:w-auto"
           >
             {isBatchDeleting ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -335,7 +335,7 @@ export function ModelTable({ models }: ModelTableProps) {
               คุณแน่ใจหรือไม่ว่าต้องการลบโมเดลที่เลือกทั้งหมดนี้?
               การกระทำนี้จะลบไฟล์ .pt ออกจากเซิร์ฟเวอร์ และไม่สามารถกู้คืนได้
             </p>
-            <ul className="list-disc pl-5 text-sm max-h-32 overflow-y-auto">
+            <ul className="max-h-32 list-disc overflow-y-auto pl-5 text-sm">
               {selectedModels.map((m) => (
                 <li key={m.id}>
                   {m.name} (v{m.version})

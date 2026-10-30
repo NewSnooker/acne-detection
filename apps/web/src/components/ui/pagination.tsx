@@ -35,7 +35,7 @@ export function Pagination({
   return (
     <div
       className={cn(
-        "flex flex-col sm:flex-row items-center justify-end border-t py-4 m2-4 gap-6 text-sm text-muted-foreground",
+        "m2-4 text-muted-foreground flex flex-col items-center justify-end gap-6 border-t py-4 text-sm sm:flex-row",
         className,
       )}
     >
@@ -46,7 +46,7 @@ export function Pagination({
           <select
             value={currentLimit.toString()}
             onChange={(e) => onLimitChange(Number(e.target.value))}
-            className="bg-transparent border-b border-muted-foreground/30 px-1 py-0.5 outline-none cursor-pointer focus:border-primary"
+            className="border-muted-foreground/30 focus:border-primary cursor-pointer border-b bg-transparent px-1 py-0.5 outline-none"
           >
             <option value="10">10</option>
             <option value="20">20</option>
@@ -67,7 +67,7 @@ export function Pagination({
           <button
             onClick={() => onPageChange(1)}
             disabled={currentPage === 1}
-            className="p-1 hover:text-foreground transition-colors disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+            className="hover:text-foreground cursor-pointer p-1 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
             title="หน้าแรก"
           >
             <ChevronsLeft className="h-4 w-4" />
@@ -75,7 +75,7 @@ export function Pagination({
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="p-1 hover:text-foreground transition-colors disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+            className="hover:text-foreground cursor-pointer p-1 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
             title="ก่อนหน้า"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -91,7 +91,7 @@ export function Pagination({
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages || totalPages === 0}
-            className="p-1 hover:text-foreground transition-colors disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+            className="hover:text-foreground cursor-pointer p-1 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
             title="ถัดไป"
           >
             <ChevronRight className="h-4 w-4" />
@@ -99,7 +99,7 @@ export function Pagination({
           <button
             onClick={() => onPageChange(totalPages)}
             disabled={currentPage === totalPages || totalPages === 0}
-            className="p-1 hover:text-foreground transition-colors disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+            className="hover:text-foreground cursor-pointer p-1 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
             title="หน้าสุดท้าย"
           >
             <ChevronsRight className="h-4 w-4" />

@@ -5,17 +5,22 @@ export const AnalyzeService = {
    * ส่งไฟล์รูปภาพไปวิเคราะห์สิว (Upload -> AI -> DB)
    * ยิงไปที่: POST /api/analyze
    */
-  analyzeImage: async (formData: FormData): Promise<{ success?: boolean; data?: AnalysisResult; error?: string }> => {
+  analyzeImage: async (
+    formData: FormData,
+  ): Promise<{ success?: boolean; data?: AnalysisResult; error?: string }> => {
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
         body: formData,
       });
       if (response.status === 413) {
-        throw new Error("ไฟล์รูปภาพใหญ่เกินกว่าที่เซิร์ฟเวอร์รับได้ กรุณาเลือกไฟล์ที่เล็กลง");
+        throw new Error(
+          "ไฟล์รูปภาพใหญ่เกินกว่าที่เซิร์ฟเวอร์รับได้ กรุณาเลือกไฟล์ที่เล็กลง",
+        );
       }
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Failed to analyze image");
+      if (!response.ok)
+        throw new Error(result.error || "Failed to analyze image");
       return result;
     } catch (error: any) {
       console.error("AnalyzeService Error (analyzeImage):", error);
@@ -27,7 +32,9 @@ export const AnalyzeService = {
    * ลบประวัติการวิเคราะห์ 1 รายการ
    * ยิงไปที่: DELETE /api/analyze/history
    */
-  deleteHistory: async (id: string): Promise<{ success?: boolean; error?: string }> => {
+  deleteHistory: async (
+    id: string,
+  ): Promise<{ success?: boolean; error?: string }> => {
     try {
       const response = await fetch("/api/analyze/history", {
         method: "DELETE",
@@ -35,7 +42,8 @@ export const AnalyzeService = {
         body: JSON.stringify({ id }),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Failed to delete history");
+      if (!response.ok)
+        throw new Error(result.error || "Failed to delete history");
       return result;
     } catch (error: any) {
       console.error("AnalyzeService Error (deleteHistory):", error);
@@ -47,7 +55,9 @@ export const AnalyzeService = {
    * ลบประวัติการวิเคราะห์ทีละหลายรายการ (Batch Delete)
    * ยิงไปที่: DELETE /api/analyze/history
    */
-  deleteHistories: async (ids: string[]): Promise<{ success?: boolean; error?: string }> => {
+  deleteHistories: async (
+    ids: string[],
+  ): Promise<{ success?: boolean; error?: string }> => {
     try {
       const response = await fetch("/api/analyze/history", {
         method: "DELETE",
@@ -55,11 +65,12 @@ export const AnalyzeService = {
         body: JSON.stringify({ ids }),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Failed to delete histories");
+      if (!response.ok)
+        throw new Error(result.error || "Failed to delete histories");
       return result;
     } catch (error: any) {
       console.error("AnalyzeService Error (deleteHistories):", error);
       return { error: error.message || "เกิดข้อผิดพลาดในการเชื่อมต่อ" };
     }
-  }
+  },
 };

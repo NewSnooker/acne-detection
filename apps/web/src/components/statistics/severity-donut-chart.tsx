@@ -24,9 +24,9 @@ export function SeverityDonutChart({
 
   if (!mounted) {
     return (
-      <div className="w-full flex items-center justify-center min-h-[350px] relative z-0 mt-4">
+      <div className="relative z-0 mt-4 flex min-h-[350px] w-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <div className="border-primary/20 border-t-primary h-10 w-10 animate-spin rounded-full border-4" />
           <p className="text-muted-foreground animate-pulse text-sm">
             กำลังโหลดข้อมูลกราฟ...
           </p>
@@ -184,7 +184,7 @@ export function SeverityDonutChart({
     (preAggregated && Object.values(preAggregated).every((v) => v === 0))
   ) {
     return (
-      <div className="h-[400px] w-full flex items-center justify-center text-muted-foreground">
+      <div className="text-muted-foreground flex h-[400px] w-full items-center justify-center">
         ยังไม่มีประวัติการวิเคราะห์
       </div>
     );
@@ -193,14 +193,14 @@ export function SeverityDonutChart({
   // If all zeros, show empty
   if (series.every((val) => val === 0)) {
     return (
-      <div className="h-[400px] w-full flex items-center justify-center text-muted-foreground">
+      <div className="text-muted-foreground flex h-[400px] w-full items-center justify-center">
         ไม่พบข้อมูลระดับความรุนแรง
       </div>
     );
   }
 
   return (
-    <div className="w-full flex items-center justify-center h-[350px] relative z-0 mt-4">
+    <div className="relative z-0 mt-4 flex h-[350px] w-full items-center justify-center">
       <Chart
         options={options}
         series={series}

@@ -43,13 +43,14 @@ export default async function HistoryPage({
   );
 
   return (
-    <div className="max-w-6xl mx-auto flex flex-col gap-6">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
+      <div className="flex shrink-0 flex-col items-center justify-between gap-4 sm:flex-row">
         <div>
-          <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
-            ประวัติการวิเคราะห์ <br className="sm:hidden" />(Analysis History)
+          <h1 className="text-center text-2xl font-bold tracking-tight sm:text-start">
+            ประวัติการวิเคราะห์ <br className="sm:hidden" />
+            (Analysis History)
           </h1>
-          <p className="text-center sm:text-start text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-center sm:text-start">
             ดูประวัติการวิเคราะห์สิวที่ผ่านมา
             พร้อมรายละเอียดและผลลัพธ์ของแต่ละครั้ง
           </p>

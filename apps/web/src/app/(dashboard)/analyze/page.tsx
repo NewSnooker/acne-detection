@@ -5,7 +5,7 @@ import { HolisticCare } from "@/components/knowledge/holistic-care";
 
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "วิเคราะห์สิวด้วย AI (AI Acne Analysis)",
@@ -20,13 +20,14 @@ export default async function AnalyzePage() {
   const isModelAvailable = activeModelCount > 0;
 
   return (
-    <div className="max-w-6xl mx-auto flex flex-col gap-6">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
+      <div className="flex shrink-0 flex-col items-center justify-between gap-4 sm:flex-row">
         <div>
-          <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight">
-            วิเคราะห์สิวด้วย AI <br className="sm:hidden" />(AI Acne Analysis)
+          <h1 className="text-center text-2xl font-bold tracking-tight sm:text-start">
+            วิเคราะห์สิวด้วย AI <br className="sm:hidden" />
+            (AI Acne Analysis)
           </h1>
-          <p className="text-center sm:text-start text-muted-foreground">
+          <p className="text-muted-foreground text-center sm:text-start">
             อัปโหลดภาพถ่ายใบหน้าเพื่อวิเคราะห์สิวด้วย AI
             และแสดงผลลัพธ์การตรวจจับ
           </p>

@@ -29,8 +29,7 @@ export async function requireAdminPage(): Promise<Session> {
 // ─── สำหรับ API (Route Handler) ────────────────────────────────
 
 export type ApiGuard =
-  | { ok: true; session: Session }
-  | { ok: false; response: NextResponse };
+  { ok: true; session: Session } | { ok: false; response: NextResponse };
 
 /** ต้องเข้าสู่ระบบ — ใช้: const guard = await requireUserApi(); if (!guard.ok) return guard.response; */
 export async function requireUserApi(): Promise<ApiGuard> {
@@ -38,7 +37,10 @@ export async function requireUserApi(): Promise<ApiGuard> {
   if (!session?.user?.id) {
     return {
       ok: false,
-      response: NextResponse.json({ error: "กรุณาเข้าสู่ระบบก่อนใช้งาน" }, { status: 401 }),
+      response: NextResponse.json(
+        { error: "กรุณาเข้าสู่ระบบก่อนใช้งาน" },
+        { status: 401 },
+      ),
     };
   }
   return { ok: true, session };
@@ -51,7 +53,10 @@ export async function requireAdminApi(): Promise<ApiGuard> {
   if (guard.session.user.role !== "ADMIN") {
     return {
       ok: false,
-      response: NextResponse.json({ error: "เฉพาะผู้ดูแลระบบเท่านั้น" }, { status: 403 }),
+      response: NextResponse.json(
+        { error: "เฉพาะผู้ดูแลระบบเท่านั้น" },
+        { status: 403 },
+      ),
     };
   }
   return guard;

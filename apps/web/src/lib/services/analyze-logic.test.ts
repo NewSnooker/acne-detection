@@ -15,7 +15,14 @@ describe("calculateSeverity", () => {
 
     it("ทุกชนิดเป็น 0", () => {
       expect(
-        calculateSeverity({ blackhead: 0, whitehead: 0, papule: 0, pustule: 0, nodule: 0, cyst: 0 }),
+        calculateSeverity({
+          blackhead: 0,
+          whitehead: 0,
+          papule: 0,
+          pustule: 0,
+          nodule: 0,
+          cyst: 0,
+        }),
       ).toBe("MILD");
     });
 
@@ -34,7 +41,9 @@ describe("calculateSeverity", () => {
 
   describe("ระดับปานกลาง (MODERATE)", () => {
     it("สิวไม่อักเสบ 21 จุด (เกินค่าขอบ 1 จุด)", () => {
-      expect(calculateSeverity({ blackhead: 11, whitehead: 10 })).toBe("MODERATE");
+      expect(calculateSeverity({ blackhead: 11, whitehead: 10 })).toBe(
+        "MODERATE",
+      );
     });
 
     it("สิวอักเสบตื้น 6 จุด (ค่าขอบล่าง)", () => {
@@ -64,7 +73,9 @@ describe("calculateSeverity", () => {
     });
 
     it("สิวอักเสบลึกมีน้ำหนักเหนือกว่าจำนวนสิวชนิดอื่นที่น้อย", () => {
-      expect(calculateSeverity({ blackhead: 2, papule: 1, cyst: 1 })).toBe("SEVERE");
+      expect(calculateSeverity({ blackhead: 2, papule: 1, cyst: 1 })).toBe(
+        "SEVERE",
+      );
     });
   });
 

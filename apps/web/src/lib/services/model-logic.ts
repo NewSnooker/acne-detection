@@ -3,7 +3,13 @@ import crypto from "crypto";
 import { saveModel, deleteModelFile } from "@/lib/storage/model-provider";
 import { MODEL_METRICS, type ModelMetricKey } from "@/types/analyze";
 
-export async function uploadModelLogic(file: File, name: string, version: string, description: string, userId: string) {
+export async function uploadModelLogic(
+  file: File,
+  name: string,
+  version: string,
+  description: string,
+  userId: string,
+) {
   if (!file || !file.name.endsWith(".pt")) {
     throw new Error("กรุณาอัปโหลดไฟล์นามสกุล .pt เท่านั้น");
   }
@@ -12,7 +18,7 @@ export async function uploadModelLogic(file: File, name: string, version: string
   const uniqueId = crypto.randomBytes(8).toString("hex");
   const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
   const fileName = `${uniqueId}_${safeName}`;
-  
+
   const saveResult = await saveModel(file, fileName);
   const sizeMb = parseFloat((file.size / (1024 * 1024)).toFixed(2));
 
@@ -121,7 +127,11 @@ export function parseModelMetrics(input: ModelMetricInput) {
 
 export async function editModelLogic(
   id: string,
-  data: { name: string; version: string; description?: string } & ModelMetricInput,
+  data: {
+    name: string;
+    version: string;
+    description?: string;
+  } & ModelMetricInput,
 ) {
   await prisma.aiModel.update({
     where: { id },

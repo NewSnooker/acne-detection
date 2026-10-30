@@ -160,8 +160,8 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
     const user = props.data;
     if (!user) return null;
     return (
-      <div className="flex items-center gap-3 h-full">
-        <div className="h-8 w-8 rounded-full bg-muted overflow-hidden relative shrink-0 border shadow-sm flex items-center justify-center text-primary font-bold text-sm">
+      <div className="flex h-full items-center gap-3">
+        <div className="bg-muted text-primary relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border text-sm font-bold shadow-sm">
           {user.image ? (
             <Image
               src={user.image}
@@ -174,11 +174,11 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
             (user.name || user.email || "U").charAt(0).toUpperCase()
           )}
         </div>
-        <div className="flex flex-col leading-tight justify-center">
-          <span className="text-sm font-bold text-foreground">
+        <div className="flex flex-col justify-center leading-tight">
+          <span className="text-foreground text-sm font-bold">
             {user.name || "ผู้ใช้ไม่ระบุชื่อ"}
           </span>
-          <span className="text-xs text-muted-foreground">{user.email}</span>
+          <span className="text-muted-foreground text-xs">{user.email}</span>
         </div>
       </div>
     );
@@ -187,7 +187,7 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
   const RoleCellRenderer = (props: any) => {
     const role = props.value;
     return (
-      <div className="flex items-center h-full">
+      <div className="flex h-full items-center">
         <Badge
           variant={role === "ADMIN" ? "default" : "secondary"}
           className={
@@ -216,9 +216,9 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
     });
 
     return (
-      <div className="flex flex-col justify-center h-full leading-tight">
-        <span className="text-sm font-bold text-foreground">{dateString}</span>
-        <span className="text-xs text-muted-foreground">{timeString} น.</span>
+      <div className="flex h-full flex-col justify-center leading-tight">
+        <span className="text-foreground text-sm font-bold">{dateString}</span>
+        <span className="text-muted-foreground text-xs">{timeString} น.</span>
       </div>
     );
   };
@@ -226,13 +226,13 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
   const ScansCellRenderer = (props: any) => {
     const count = props.value;
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex h-full items-center justify-center">
         <Badge
           variant="outline"
-          className="font-normal gap-1 px-2.5 py-0.5 bg-background shadow-sm"
+          className="bg-background gap-1 px-2.5 py-0.5 font-normal shadow-sm"
         >
-          <Activity className="h-3.5 w-3.5 text-primary" />
-          <span className="font-bold text-primary">{count}</span> ครั้ง
+          <Activity className="text-primary h-3.5 w-3.5" />
+          <span className="text-primary font-bold">{count}</span> ครั้ง
         </Badge>
       </div>
     );
@@ -244,14 +244,14 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
     if (user.id === currentUserId) return null;
 
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex h-full items-center justify-center">
         <TooltipProvider delayDuration={150}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="outline"
                 size="icon"
-                className={`rounded-md hover:text-destructive h-8 w-8`}
+                className={`hover:text-destructive h-8 w-8 rounded-md`}
                 onClick={() =>
                   handleDeleteUser(user.id, user.name || user.email)
                 }
@@ -377,7 +377,7 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
   );
 
   return (
-    <div className="space-y-4 h-[600px] flex flex-col">
+    <div className="flex h-[600px] flex-col space-y-4">
       <DataGridToolbar
         searchValue={quickFilterText}
         onSearchChange={setQuickFilterText}
@@ -389,7 +389,7 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
             variant="destructive"
             onClick={handleBatchDeleteClick}
             disabled={isBatchDeleting}
-            className="w-full sm:w-auto flex gap-1"
+            className="flex w-full gap-1 sm:w-auto"
           >
             {isBatchDeleting ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -426,7 +426,7 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
         description={
           <>
             คุณแน่ใจหรือไม่ว่าต้องการลบบัญชี{" "}
-            <span className="font-semibold text-foreground">
+            <span className="text-foreground font-semibold">
               {userToDelete?.name}
             </span>{" "}
             ถาวร?
@@ -448,12 +448,12 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
           <div className="space-y-2">
             <p>
               คุณแน่ใจหรือไม่ว่าต้องการลบบัญชีผู้ใช้ที่เลือกจำนวน{" "}
-              <span className="font-semibold text-foreground">
+              <span className="text-foreground font-semibold">
                 {selectedUsers.length}
               </span>{" "}
               บัญชี ถาวร? ข้อมูลทั้งหมดจะถูกลบและไม่สามารถกู้คืนได้
             </p>
-            <ul className="list-disc pl-5 text-sm max-h-32 overflow-y-auto">
+            <ul className="max-h-32 list-disc overflow-y-auto pl-5 text-sm">
               {selectedUsers.map((m) => (
                 <li key={m.id}>{m.name}</li>
               ))}

@@ -46,9 +46,9 @@ export function ImageUploader({
 
   if (!isModelAvailable) {
     return (
-      <div className="border-2 border-dashed rounded-2xl p-12 flex flex-col items-center justify-center text-center transition-colors h-[500px] border-destructive/50 bg-card">
-        <AlertTriangle className="h-16 w-16 mb-4 text-destructive" />
-        <h3 className="text-xl font-bold text-destructive">
+      <div className="border-destructive/50 bg-card flex h-[500px] flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 text-center transition-colors">
+        <AlertTriangle className="text-destructive mb-4 h-16 w-16" />
+        <h3 className="text-destructive text-xl font-bold">
           ระบบไม่พร้อมใช้งาน
         </h3>
         <p className="text-destructive/80 mb-6 font-semibold">
@@ -68,7 +68,7 @@ export function ImageUploader({
       initial="initial"
       animate={isDragging ? "hover" : "initial"}
       className={cn(
-        "border-2 border-dashed rounded-2xl p-12 flex flex-col items-center justify-center text-center cursor-pointer transition-colors h-[500px]",
+        "flex h-[500px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 text-center transition-colors",
         isDragging
           ? "border-primary bg-primary/5"
           : "border-muted-foreground/25 hover:bg-muted/50 hover:border-primary/50",
@@ -83,19 +83,20 @@ export function ImageUploader({
       >
         <UploadCloud
           className={cn(
-            "h-16 w-16 mb-4 transition-colors",
+            "mb-4 h-16 w-16 transition-colors",
             isDragging ? "text-primary" : "text-muted-foreground",
           )}
         />
       </motion.div>
-      <h3 className="text-xl font-medium mb-2">อัปโหลดรูปภาพใบหน้า</h3>
+      <h3 className="mb-2 text-xl font-medium">อัปโหลดรูปภาพใบหน้า</h3>
       <p className="text-muted-foreground mb-6">
-        ลากและวางรูปภาพที่นี่ หรือคลิกเพื่อเลือกไฟล์ (รองรับ JPEG, PNG ขนาดไม่เกิน {MAX_IMAGE_SIZE_MB} MB)
+        ลากและวางรูปภาพที่นี่ หรือคลิกเพื่อเลือกไฟล์ (รองรับ JPEG, PNG
+        ขนาดไม่เกิน {MAX_IMAGE_SIZE_MB} MB)
       </p>
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="bg-primary text-primary-foreground cursor-pointer px-6 py-2 rounded-full font-medium shadow-sm hover:bg-primary/80 transition-colors"
+        className="bg-primary text-primary-foreground hover:bg-primary/80 cursor-pointer rounded-full px-6 py-2 font-medium shadow-sm transition-colors"
       >
         เลือกไฟล์
       </motion.button>

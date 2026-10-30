@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     console.error("API /api/auth/register Error:", error);
     return NextResponse.json(
       { error: error.message || "เกิดข้อผิดพลาดในการสมัครสมาชิก" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }

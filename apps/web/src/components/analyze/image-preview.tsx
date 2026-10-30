@@ -71,13 +71,13 @@ export function ImagePreview({
   }, [result, previewUrl]);
 
   return (
-    <div className="w-full bg-card border rounded-2xl overflow-hidden shadow-sm relative group h-auto min-h-[250px] lg:min-h-[400px] flex items-center justify-center bg-muted/20">
+    <div className="bg-card group bg-muted/20 relative flex h-auto min-h-[250px] w-full items-center justify-center overflow-hidden rounded-2xl border shadow-sm lg:min-h-[400px]">
       {!result ? (
-        <div className="relative w-full h-full flex justify-center p-2">
+        <div className="relative flex h-full w-full justify-center p-2">
           <Image
             src={previewUrl}
             alt="Preview"
-            className="w-auto h-auto max-w-full max-h-[300px] md:max-h-[500px] object-contain"
+            className="h-auto max-h-[300px] w-auto max-w-full object-contain md:max-h-[500px]"
             width={500}
             height={500}
           />
@@ -85,14 +85,14 @@ export function ImagePreview({
       ) : (
         <canvas
           ref={canvasRef}
-          className="w-full h-full max-h-[300px] md:max-h-[500px] object-contain p-2"
+          className="h-full max-h-[300px] w-full object-contain p-2 md:max-h-[500px]"
         />
       )}
 
       {!loading && !readOnly && (
         <button
           onClick={onChangeImage}
-          className="absolute cursor-pointer top-4 right-4 bg-background/80 backdrop-blur-md p-2 rounded-full shadow-sm hover:bg-background transition-colors"
+          className="bg-background/80 hover:bg-background absolute top-4 right-4 cursor-pointer rounded-full p-2 shadow-sm backdrop-blur-md transition-colors"
           title="เปลี่ยนรูปภาพ"
         >
           <RefreshCw className="h-5 w-5" />

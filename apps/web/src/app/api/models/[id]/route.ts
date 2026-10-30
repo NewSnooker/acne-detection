@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminApi } from "@/lib/auth/guards";
-import { deleteModelLogic, setActiveModelLogic } from "@/lib/services/model-logic";
+import {
+  deleteModelLogic,
+  setActiveModelLogic,
+} from "@/lib/services/model-logic";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // ไฟล์โมเดลโหลดได้เฉพาะ AI service (ส่ง header X-API-Key) หรือผู้ดูแลระบบที่เข้าสู่ระบบอยู่
@@ -28,7 +31,9 @@ export async function GET(
     }
 
     if (model.provider !== "mongodb" || !model.modelData) {
-      return new NextResponse("Model is not stored in MongoDB", { status: 400 });
+      return new NextResponse("Model is not stored in MongoDB", {
+        status: 400,
+      });
     }
 
     // Convert Prisma Bytes to Buffer for response
@@ -49,7 +54,7 @@ export async function GET(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const guard = await requireAdminApi();
@@ -60,14 +65,14 @@ export async function DELETE(
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || "เกิดข้อผิดพลาดในการลบโมเดล" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const guard = await requireAdminApi();
@@ -78,7 +83,7 @@ export async function PUT(
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || "เกิดข้อผิดพลาดในการเปิดใช้งานโมเดล" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

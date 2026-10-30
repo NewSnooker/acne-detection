@@ -4,14 +4,14 @@ import bcrypt from "bcryptjs";
 
 export async function registerUserLogic(data: any) {
   const parsed = registerSchema.safeParse(data);
-  
+
   if (!parsed.success) {
     throw new Error("ข้อมูลไม่ถูกต้อง");
   }
 
   // 1. เช็คอีเมลซ้ำ
   const existing = await prisma.user.findUnique({
-    where: { email: parsed.data.email }
+    where: { email: parsed.data.email },
   });
 
   if (existing) {
@@ -28,8 +28,8 @@ export async function registerUserLogic(data: any) {
       email: parsed.data.email,
       password: hashedPassword,
       // คนแรกที่สมัครจะเป็น ADMIN เสมอ นอกนั้นเป็น USER
-      role: await prisma.user.count() === 0 ? "ADMIN" : "USER"
-    }
+      role: (await prisma.user.count()) === 0 ? "ADMIN" : "USER",
+    },
   });
 
   return newUser;

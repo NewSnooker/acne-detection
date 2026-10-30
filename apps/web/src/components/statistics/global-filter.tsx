@@ -29,10 +29,14 @@ function GlobalFilterInner() {
   const currentStart = searchParams.get("start");
   const currentEnd = searchParams.get("end");
   const urlPreset =
-    currentStart && currentEnd ? presetFromRange(currentStart, currentEnd) : "all";
+    currentStart && currentEnd
+      ? presetFromRange(currentStart, currentEnd)
+      : "all";
 
   // state ที่ผู้ใช้กำลังแก้ จะถูกล้างเมื่อ URL เปลี่ยน (ผ่าน key ใน GlobalFilterRoute)
-  const [customModeOverride, setCustomModeOverride] = useState<boolean | null>(null);
+  const [customModeOverride, setCustomModeOverride] = useState<boolean | null>(
+    null,
+  );
   const [startDate, setStartDate] = useState(currentStart || "");
   const [endDate, setEndDate] = useState(currentEnd || "");
 
@@ -95,13 +99,13 @@ function GlobalFilterInner() {
   };
 
   return (
-    <div className="flex flex-wrap w-full sm:w-auto items-center justify-center sm:justify-end gap-2">
+    <div className="flex w-full flex-wrap items-center justify-center gap-2 sm:w-auto sm:justify-end">
       {!isCustomMode ? (
-        <div className="flex gap-2 w-full ">
+        <div className="flex w-full gap-2">
           <select
             value={preset}
             onChange={handlePresetChange}
-            className="h-9 px-3 py-1 w-full rounded-lg border bg-card shadow text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer min-w-[150px]"
+            className="bg-card focus:ring-primary/50 h-9 w-full min-w-[150px] cursor-pointer rounded-lg border px-3 py-1 text-sm shadow focus:ring-2 focus:outline-none"
           >
             <option value="all">ทั้งหมด (All Time)</option>
             <option value="todayHourly">วันนี้ (Today)</option>
@@ -111,15 +115,15 @@ function GlobalFilterInner() {
           </select>
           <button
             onClick={() => setCustomModeOverride(true)}
-            className="h-9 w-9 flex items-center justify-center rounded-lg border bg-card shadow hover:bg-muted transition-colors shrink-0"
+            className="bg-card hover:bg-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border shadow transition-colors"
             title="ระบุช่วงเวลาเอง"
           >
-            <Calendar className="h-3.5 w-3.5 cursor-pointer text-muted-foreground" />
+            <Calendar className="text-muted-foreground h-3.5 w-3.5 cursor-pointer" />
           </button>
         </div>
       ) : (
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <div className="flex flex-1 sm:flex-initial bg-card shadow items-center justify-between gap-2 border rounded-lg p-2 h-9">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <div className="bg-card flex h-9 flex-1 items-center justify-between gap-2 rounded-lg border p-2 shadow sm:flex-initial">
             <input
               type="date"
               value={startDate}
@@ -129,7 +133,7 @@ function GlobalFilterInner() {
                   updateUrlParams(e.target.value, endDate);
                 }
               }}
-              className="bg-transparent border-none focus:outline-none text-xs px-1 w-full sm:w-[110px]"
+              className="w-full border-none bg-transparent px-1 text-xs focus:outline-none sm:w-[110px]"
             />
             <span className="text-muted-foreground text-xs font-medium">
               ถึง
@@ -143,28 +147,28 @@ function GlobalFilterInner() {
                   updateUrlParams(startDate, e.target.value);
                 }
               }}
-              className="bg-transparent border-none focus:outline-none text-xs px-1 w-full sm:w-[110px]"
+              className="w-full border-none bg-transparent px-1 text-xs focus:outline-none sm:w-[110px]"
             />
           </div>
-          <div className="flex items-center bg-card shadow border rounded-lg px-1 py-1 h-9 shrink-0">
+          <div className="bg-card flex h-9 shrink-0 items-center rounded-lg border px-1 py-1 shadow">
             <button
               onClick={handleReset}
-              className="p-1 cursor-pointer hover:bg-muted rounded-md transition-colors"
+              className="hover:bg-muted cursor-pointer rounded-md p-1 transition-colors"
               title="รีเซ็ต"
             >
-              <RotateCcw className="h-3.5 w-3.5 text-muted-foreground" />
+              <RotateCcw className="text-muted-foreground h-3.5 w-3.5" />
             </button>
-            <div className="w-px h-4 bg-border mx-1" />
+            <div className="bg-border mx-1 h-4 w-px" />
             <button
               onClick={() => {
                 setStartDate("");
                 setEndDate("");
                 setCustomModeOverride(false);
               }}
-              className="p-1 cursor-pointer hover:bg-muted rounded-md transition-colors"
+              className="hover:bg-muted cursor-pointer rounded-md p-1 transition-colors"
               title="สลับกลับไปใช้ตัวเลือกด่วน"
             >
-              <Calendar className="h-3.5 w-3.5 cursor-pointer text-primary" />
+              <Calendar className="text-primary h-3.5 w-3.5 cursor-pointer" />
             </button>
           </div>
         </div>
@@ -183,7 +187,7 @@ export function GlobalFilter() {
   return (
     <Suspense
       fallback={
-        <div className="h-9 w-full sm:w-40 bg-muted animate-pulse rounded-md" />
+        <div className="bg-muted h-9 w-full animate-pulse rounded-md sm:w-40" />
       }
     >
       <GlobalFilterRoute />

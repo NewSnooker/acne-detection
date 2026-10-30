@@ -13,14 +13,20 @@ export async function POST(req: NextRequest) {
     const version = formData.get("version") as string;
     const description = formData.get("description") as string;
 
-    const newModel = await uploadModelLogic(file, name, version, description, guard.session.user.id);
+    const newModel = await uploadModelLogic(
+      file,
+      name,
+      version,
+      description,
+      guard.session.user.id,
+    );
 
     return NextResponse.json({ success: true, model: newModel });
   } catch (error: any) {
     console.error("API /api/models/create Error:", error);
     return NextResponse.json(
       { error: error.message || "เกิดข้อผิดพลาดในการอัปโหลดไฟล์" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -17,30 +17,43 @@ interface AcneTypesChartProps {
   clearSkinCount?: number;
 }
 
-export function AcneTypesChart({ data = [], preAggregated, clearSkinCount: passedClearSkinCount = 0 }: AcneTypesChartProps) {
+export function AcneTypesChart({
+  data = [],
+  preAggregated,
+  clearSkinCount: passedClearSkinCount = 0,
+}: AcneTypesChartProps) {
   const { theme } = useTheme();
   const mounted = useMounted();
 
   if (!mounted) {
     return (
-      <div className="w-full flex items-center justify-center min-h-[350px] relative z-0 mt-4">
+      <div className="relative z-0 mt-4 flex min-h-[350px] w-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-          <p className="text-muted-foreground animate-pulse text-sm">กำลังโหลดข้อมูลกราฟ...</p>
+          <div className="border-primary/20 border-t-primary h-10 w-10 animate-spin rounded-full border-4" />
+          <p className="text-muted-foreground animate-pulse text-sm">
+            กำลังโหลดข้อมูลกราฟ...
+          </p>
         </div>
       </div>
     );
   }
 
-  const types = ["papule", "pustule", "nodule", "cyst", "blackhead", "whitehead"];
-  
+  const types = [
+    "papule",
+    "pustule",
+    "nodule",
+    "cyst",
+    "blackhead",
+    "whitehead",
+  ];
+
   // Aggregate counts over the selected period
   const aggregatedCounts: Record<string, number> = {};
-  types.forEach(t => aggregatedCounts[t] = 0);
+  types.forEach((t) => (aggregatedCounts[t] = 0));
   let clearSkinCount = passedClearSkinCount;
 
   if (preAggregated) {
-    preAggregated.forEach(item => {
+    preAggregated.forEach((item) => {
       if (item.type === "no_acne") {
         clearSkinCount = item.count;
       } else if (types.includes(item.type)) {
@@ -52,7 +65,7 @@ export function AcneTypesChart({ data = [], preAggregated, clearSkinCount: passe
       if (item.total === 0) {
         clearSkinCount++;
       } else {
-        types.forEach(type => {
+        types.forEach((type) => {
           if (item.counts?.[type]) {
             aggregatedCounts[type] += item.counts[type];
           }
@@ -62,11 +75,11 @@ export function AcneTypesChart({ data = [], preAggregated, clearSkinCount: passe
   }
 
   // Filter out types with 0 counts to keep the pie chart clean
-  const activeTypes = types.filter(t => aggregatedCounts[t] > 0);
-  
-  const series = activeTypes.map(t => aggregatedCounts[t]);
-  const labels = activeTypes.map(t => ACNE_LABELS[t] || t);
-  const colors = activeTypes.map(t => ACNE_COLORS[t] || "#ccc");
+  const activeTypes = types.filter((t) => aggregatedCounts[t] > 0);
+
+  const series = activeTypes.map((t) => aggregatedCounts[t]);
+  const labels = activeTypes.map((t) => ACNE_LABELS[t] || t);
+  const colors = activeTypes.map((t) => ACNE_COLORS[t] || "#ccc");
 
   // Add "Clear Skin" (หน้าใส) to the pie chart if there are any
   if (clearSkinCount > 0) {
@@ -88,8 +101,8 @@ export function AcneTypesChart({ data = [], preAggregated, clearSkinCount: passe
         speed: 800,
         dynamicAnimation: {
           enabled: true,
-          speed: 350
-        }
+          speed: 350,
+        },
       },
       dropShadow: {
         enabled: true,
@@ -162,9 +175,12 @@ export function AcneTypesChart({ data = [], preAggregated, clearSkinCount: passe
     },
   };
 
-  if ((!preAggregated && data.length === 0) || (preAggregated && preAggregated.length === 0)) {
+  if (
+    (!preAggregated && data.length === 0) ||
+    (preAggregated && preAggregated.length === 0)
+  ) {
     return (
-      <div className="h-[350px] flex items-center justify-center text-muted-foreground">
+      <div className="text-muted-foreground flex h-[350px] items-center justify-center">
         ยังไม่มีประวัติการวิเคราะห์
       </div>
     );
@@ -172,15 +188,21 @@ export function AcneTypesChart({ data = [], preAggregated, clearSkinCount: passe
 
   if (series.length === 0) {
     return (
-      <div className="h-[350px] flex items-center justify-center text-muted-foreground">
+      <div className="text-muted-foreground flex h-[350px] items-center justify-center">
         ไม่พบข้อมูลสิวในช่วงเวลานี้
       </div>
     );
   }
 
   return (
-    <div className="w-full flex items-center justify-center h-[350px] relative z-0 mt-4">
-      <Chart options={options} series={series} type="pie" height={350} width="100%" />
+    <div className="relative z-0 mt-4 flex h-[350px] w-full items-center justify-center">
+      <Chart
+        options={options}
+        series={series}
+        type="pie"
+        height={350}
+        width="100%"
+      />
     </div>
   );
 }

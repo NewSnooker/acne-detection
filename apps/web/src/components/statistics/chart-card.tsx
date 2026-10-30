@@ -20,7 +20,12 @@ interface ChartCardProps {
   children: (filteredData: AnalysisData[]) => React.ReactNode;
 }
 
-export function ChartCard({ title, description, data, children }: ChartCardProps) {
+export function ChartCard({
+  title,
+  description,
+  data,
+  children,
+}: ChartCardProps) {
   const [preset, setPreset] = useState<Preset>("all");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
@@ -36,7 +41,7 @@ export function ChartCard({ title, description, data, children }: ChartCardProps
 
   const filteredData = useMemo(() => {
     if (data.length === 0) return [];
-    
+
     const now = new Date();
     let start: Date | null = null;
     let end: Date | null = endOfDay(now);
@@ -63,21 +68,21 @@ export function ChartCard({ title, description, data, children }: ChartCardProps
   }, [data, preset, startDate, endDate]);
 
   return (
-    <div className="bg-card border rounded-2xl p-6 shadow-sm flex flex-col h-full">
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
+    <div className="bg-card flex h-full flex-col rounded-2xl border p-6 shadow-sm">
+      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <h2 className="text-lg font-semibold">{title}</h2>
           {description && (
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+            <p className="text-muted-foreground mt-1 text-sm">{description}</p>
           )}
         </div>
 
         {/* Local Filter for this specific chart */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex shrink-0 items-center gap-2">
           <select
             value={preset}
             onChange={handlePresetChange}
-            className="h-9 px-3 py-1 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer"
+            className="bg-background focus:ring-primary/50 h-9 cursor-pointer rounded-lg border px-3 py-1 text-sm focus:ring-2 focus:outline-none"
           >
             <option value="all">ทั้งหมด</option>
             <option value="7days">7 วันล่าสุด</option>
@@ -87,28 +92,26 @@ export function ChartCard({ title, description, data, children }: ChartCardProps
           </select>
 
           {preset === "custom" && (
-            <div className="flex items-center gap-2 border rounded-lg px-2 py-1 bg-background h-9">
+            <div className="bg-background flex h-9 items-center gap-2 rounded-lg border px-2 py-1">
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="bg-transparent border-none focus:outline-none text-xs px-1 py-1"
+                className="border-none bg-transparent px-1 py-1 text-xs focus:outline-none"
               />
               <span className="text-muted-foreground text-xs">ถึง</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="bg-transparent border-none focus:outline-none text-xs px-1 py-1"
+                className="border-none bg-transparent px-1 py-1 text-xs focus:outline-none"
               />
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex-1 relative z-0">
-        {children(filteredData)}
-      </div>
+      <div className="relative z-0 flex-1">{children(filteredData)}</div>
     </div>
   );
 }

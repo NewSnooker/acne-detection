@@ -136,7 +136,7 @@ export function ImageAnalyzer({
 
   return (
     <motion.div
-      className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+      className="grid grid-cols-1 gap-6 lg:grid-cols-3"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -151,7 +151,7 @@ export function ImageAnalyzer({
       />
 
       {/* Left: Image / Uploader */}
-      <motion.div className="lg:col-span-2 space-y-4" variants={itemVariants}>
+      <motion.div className="space-y-4 lg:col-span-2" variants={itemVariants}>
         <AnimatePresence mode="wait">
           {!previewUrl ? (
             <motion.div

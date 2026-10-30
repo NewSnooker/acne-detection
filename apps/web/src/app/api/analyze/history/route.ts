@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/guards";
-import { deleteHistoryLogic, deleteHistoriesLogic } from "@/lib/services/history-service";
+import {
+  deleteHistoryLogic,
+  deleteHistoriesLogic,
+} from "@/lib/services/history-service";
 
 export async function DELETE(req: NextRequest) {
   try {
@@ -19,12 +22,15 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
-    return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request data" },
+      { status: 400 },
+    );
   } catch (error: any) {
     console.error("API /api/analyze/history Error:", error);
     return NextResponse.json(
       { error: error.message || "Failed to delete history" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

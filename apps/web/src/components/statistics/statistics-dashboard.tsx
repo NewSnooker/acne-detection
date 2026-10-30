@@ -188,73 +188,73 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
   return (
     <div className="space-y-6">
       {/* Header and Filter */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
+          <h1 className="text-center text-2xl font-bold tracking-tight sm:text-start">
             ภาพรวมของฉัน <br className="sm:hidden" />
             (My Overview)
           </h1>
-          <p className="text-center sm:text-start text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-center sm:text-start">
             แสดงภาพรวมผลการวิเคราะห์สิว สถิติการใช้งาน และข้อมูลสรุปของคุณ
           </p>
         </div>
 
-        <div className="flex flex-wrap w-full sm:w-auto items-center justify-center sm:justify-end gap-2">
+        <div className="flex w-full flex-wrap items-center justify-center gap-2 sm:w-auto sm:justify-end">
           <GlobalFilter />
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-col justify-center relative overflow-hidden">
-          <div className="absolute right-4 top-4 opacity-10">
-            <ScanFace className="w-12 h-12 text-primary" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="bg-card relative flex flex-col justify-center overflow-hidden rounded-2xl border p-5 shadow-sm">
+          <div className="absolute top-4 right-4 opacity-10">
+            <ScanFace className="text-primary h-12 w-12" />
           </div>
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <ScanFace className="w-4 h-4 text-primary" />
+            <div className="bg-primary/10 rounded-lg p-2">
+              <ScanFace className="text-primary h-4 w-4" />
             </div>
-            <p className="text-sm text-muted-foreground font-medium">
+            <p className="text-muted-foreground text-sm font-medium">
               การสแกนทั้งหมด
             </p>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-bold">{totalScans}</span>
-            <span className="text-sm text-muted-foreground">ครั้ง</span>
+            <span className="text-muted-foreground text-sm">ครั้ง</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">{dateSuffix}</p>
+          <p className="text-muted-foreground mt-1 text-xs">{dateSuffix}</p>
         </div>
 
-        <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-col justify-center relative overflow-hidden">
-          <div className="absolute right-4 top-4 opacity-10">
-            <Sparkles className="w-12 h-12 text-emerald-500" />
+        <div className="bg-card relative flex flex-col justify-center overflow-hidden rounded-2xl border p-5 shadow-sm">
+          <div className="absolute top-4 right-4 opacity-10">
+            <Sparkles className="h-12 w-12 text-emerald-500" />
           </div>
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-emerald-500/10 rounded-lg">
-              <Sparkles className="w-4 h-4 text-emerald-500" />
+            <div className="rounded-lg bg-emerald-500/10 p-2">
+              <Sparkles className="h-4 w-4 text-emerald-500" />
             </div>
-            <p className="text-sm text-muted-foreground font-medium">
+            <p className="text-muted-foreground text-sm font-medium">
               จำนวนครั้งที่หน้าใส
             </p>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-bold">{clearSkinCount}</span>
-            <span className="text-sm text-muted-foreground">ครั้ง</span>
+            <span className="text-muted-foreground text-sm">ครั้ง</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-xs">
             สแกนแล้วไม่พบสิวเลย {dateSuffix}
           </p>
         </div>
 
-        <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-col justify-center relative overflow-hidden">
-          <div className="absolute right-4 top-4 opacity-10">
-            <Activity className="w-12 h-12 text-primary" />
+        <div className="bg-card relative flex flex-col justify-center overflow-hidden rounded-2xl border p-5 shadow-sm">
+          <div className="absolute top-4 right-4 opacity-10">
+            <Activity className="text-primary h-12 w-12" />
           </div>
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Activity className="w-4 h-4 text-primary" />
+            <div className="bg-primary/10 rounded-lg p-2">
+              <Activity className="text-primary h-4 w-4" />
             </div>
-            <p className="text-sm text-muted-foreground font-medium">
+            <p className="text-muted-foreground text-sm font-medium">
               ระดับความรุนแรงที่พบบ่อย
             </p>
           </div>
@@ -263,52 +263,52 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
               {mostFrequentSeverity}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-xs">
             จากประวัติสแกน {dateSuffix}
           </p>
         </div>
       </div>
 
       {/* Grid Layout Row 1 (3 columns total) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Main Chart (Spans 2 columns) */}
-        <div className="lg:col-span-2 bg-card border rounded-2xl p-6 shadow-sm flex flex-col">
-          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+        <div className="bg-card flex flex-col rounded-2xl border p-6 shadow-sm lg:col-span-2">
+          <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
             <div>
-              <h2 className="text-xl font-semibold flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-xl font-semibold">
                 จำนวนสิวทั้งหมด{" "}
                 <span className="text-muted-foreground text-sm font-normal">
                   (Total Acne Count)
                 </span>
               </h2>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-1 text-sm">
                 แสดงจำนวนสิวรวมที่พบจากการสแกนแต่ละครั้ง {dateSuffix}
               </p>
             </div>
           </div>
-          <div className="flex-1 min-h-[350px]">
+          <div className="min-h-[350px] flex-1">
             <PersonalStatsChart data={paddedDailyData} />
           </div>
         </div>
 
         {/* Combined Severity & Types Chart (Spans 1 column) */}
-        <div className="lg:col-span-1 bg-card border rounded-2xl p-6 shadow-sm flex flex-col">
+        <div className="bg-card flex flex-col rounded-2xl border p-6 shadow-sm lg:col-span-1">
           <div className="mb-4 flex flex-col gap-3">
             <div>
-              <h2 className="text-xl font-semibold flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-xl font-semibold">
                 ภาพรวมและประเภทสิว
               </h2>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-1 text-sm">
                 สัดส่วนระดับความรุนแรงและประเภทสิวที่พบ {dateSuffix}
               </p>
             </div>
 
             {/* Custom Tabs */}
-            <div className="flex bg-muted p-1 rounded-lg">
+            <div className="bg-muted flex rounded-lg p-1">
               <button
-                className={`flex-1 cursor-pointer text-sm py-1.5 rounded-md transition-all ${
+                className={`flex-1 cursor-pointer rounded-md py-1.5 text-sm transition-all ${
                   activeTab === "severity"
-                    ? "bg-background shadow-sm font-medium text-foreground"
+                    ? "bg-background text-foreground font-medium shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
                 onClick={() => setActiveTab("severity")}
@@ -316,9 +316,9 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
                 ระดับความรุนแรง
               </button>
               <button
-                className={`flex-1 cursor-pointer text-sm py-1.5 rounded-md transition-all ${
+                className={`flex-1 cursor-pointer rounded-md py-1.5 text-sm transition-all ${
                   activeTab === "types"
-                    ? "bg-background shadow-sm font-medium text-foreground"
+                    ? "bg-background text-foreground font-medium shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
                 onClick={() => setActiveTab("types")}
@@ -327,7 +327,7 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
               </button>
             </div>
           </div>
-          <div className="flex-1 flex items-center justify-center min-h-[350px]">
+          <div className="flex min-h-[350px] flex-1 items-center justify-center">
             {activeTab === "severity" ? (
               <SeverityDonutChart data={filteredData} />
             ) : (

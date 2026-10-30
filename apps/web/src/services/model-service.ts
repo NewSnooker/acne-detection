@@ -3,7 +3,9 @@ export const ModelService = {
    * อัปโหลดไฟล์โมเดล (.pt) ใหม่เข้าระบบ
    * ยิงไปที่: POST /api/models/create
    */
-  uploadModel: async (formData: FormData): Promise<{ success?: boolean; error?: string }> => {
+  uploadModel: async (
+    formData: FormData,
+  ): Promise<{ success?: boolean; error?: string }> => {
     try {
       const response = await fetch("/api/models/create", {
         method: "POST",
@@ -16,7 +18,8 @@ export const ModelService = {
         );
       }
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Failed to upload model");
+      if (!response.ok)
+        throw new Error(result.error || "Failed to upload model");
       return result;
     } catch (error: any) {
       console.error("ModelService Error (uploadModel):", error);
@@ -28,13 +31,16 @@ export const ModelService = {
    * เปิด/ปิด การใช้งานโมเดล (Set Active/Inactive)
    * ยิงไปที่: PUT /api/models/[id]
    */
-  toggleModelActive: async (id: string): Promise<{ success?: boolean; error?: string }> => {
+  toggleModelActive: async (
+    id: string,
+  ): Promise<{ success?: boolean; error?: string }> => {
     try {
       const response = await fetch(`/api/models/${id}`, {
         method: "PUT",
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Failed to toggle model active state");
+      if (!response.ok)
+        throw new Error(result.error || "Failed to toggle model active state");
       return result;
     } catch (error: any) {
       console.error("ModelService Error (toggleModelActive):", error);
@@ -46,13 +52,16 @@ export const ModelService = {
    * ลบโมเดลออกจากระบบ (รวมถึงไฟล์ Binary ในฐานข้อมูล)
    * ยิงไปที่: DELETE /api/models/[id]
    */
-  deleteModel: async (id: string): Promise<{ success?: boolean; error?: string }> => {
+  deleteModel: async (
+    id: string,
+  ): Promise<{ success?: boolean; error?: string }> => {
     try {
       const response = await fetch(`/api/models/${id}`, {
         method: "DELETE",
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Failed to delete model");
+      if (!response.ok)
+        throw new Error(result.error || "Failed to delete model");
       return result;
     } catch (error: any) {
       console.error("ModelService Error (deleteModel):", error);
@@ -64,7 +73,9 @@ export const ModelService = {
    * ลบโมเดลแบบกลุ่ม
    * ยิงไปที่: DELETE /api/models
    */
-  deleteModels: async (ids: string[]): Promise<{ success?: boolean; error?: string }> => {
+  deleteModels: async (
+    ids: string[],
+  ): Promise<{ success?: boolean; error?: string }> => {
     try {
       const response = await fetch(`/api/models`, {
         method: "DELETE",
@@ -72,7 +83,8 @@ export const ModelService = {
         body: JSON.stringify({ ids }),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Failed to delete models");
+      if (!response.ok)
+        throw new Error(result.error || "Failed to delete models");
       return result;
     } catch (error: any) {
       console.error("ModelService Error (deleteModels):", error);
@@ -84,7 +96,10 @@ export const ModelService = {
    * แก้ไขข้อมูลโมเดล (ชื่อ, เวอร์ชั่น, คำอธิบาย)
    * ยิงไปที่: PUT /api/models/[id]/edit
    */
-  editModel: async (id: string, data: Record<string, string>): Promise<{ success?: boolean; error?: string }> => {
+  editModel: async (
+    id: string,
+    data: Record<string, string>,
+  ): Promise<{ success?: boolean; error?: string }> => {
     try {
       const response = await fetch(`/api/models/${id}/edit`, {
         method: "PUT",
@@ -98,5 +113,5 @@ export const ModelService = {
       console.error("ModelService Error (editModel):", error);
       return { error: error.message || "เกิดข้อผิดพลาดในการแก้ไขโมเดล" };
     }
-  }
+  },
 };

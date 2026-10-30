@@ -22,23 +22,31 @@ import {
   uploadModelLogic,
 } from "./model-logic";
 
-const ptFile = (name = "best.pt", bytes = 1024 * 1024) => new File([new Uint8Array(bytes)], name);
+const ptFile = (name = "best.pt", bytes = 1024 * 1024) =>
+  new File([new Uint8Array(bytes)], name);
 
 beforeEach(() => {
-  [...Object.values(db.aiModel), ...Object.values(db.analysis)].forEach((fn) => fn.mockReset());
-  db.aiModel.create.mockImplementation(async ({ data }: any) => ({ id: "new", ...data }));
+  [...Object.values(db.aiModel), ...Object.values(db.analysis)].forEach((fn) =>
+    fn.mockReset(),
+  );
+  db.aiModel.create.mockImplementation(async ({ data }: any) => ({
+    id: "new",
+    ...data,
+  }));
 });
 
 describe("uploadModelLogic", () => {
   it("ไม่รับไฟล์ที่ไม่ใช่ .pt", async () => {
-    await expect(uploadModelLogic(ptFile("model.onnx"), "n", "v1", "", "a1")).rejects.toThrow(
-      "กรุณาอัปโหลดไฟล์นามสกุล .pt เท่านั้น",
-    );
+    await expect(
+      uploadModelLogic(ptFile("model.onnx"), "n", "v1", "", "a1"),
+    ).rejects.toThrow("กรุณาอัปโหลดไฟล์นามสกุล .pt เท่านั้น");
     expect(db.aiModel.create).not.toHaveBeenCalled();
   });
 
   it("ไม่ส่งไฟล์มา ตอบ error เดียวกัน", async () => {
-    await expect(uploadModelLogic(undefined as any, "n", "v1", "", "a1")).rejects.toThrow(".pt");
+    await expect(
+      uploadModelLogic(undefined as any, "n", "v1", "", "a1"),
+    ).rejects.toThrow(".pt");
   });
 
   it("ยังไม่มีโมเดลหลัก โมเดลที่อัปโหลดเป็นโมเดลหลักทันที", async () => {
@@ -47,7 +55,9 @@ describe("uploadModelLogic", () => {
     const model = await uploadModelLogic(ptFile(), "YOLO", "v1", "ทดสอบ", "a1");
 
     expect(model.isActive).toBe(true);
-    expect(db.aiModel.count).toHaveBeenCalledWith({ where: { isActive: true } });
+    expect(db.aiModel.count).toHaveBeenCalledWith({
+      where: { isActive: true },
+    });
   });
 
   it("มีโมเดลหลักอยู่แล้ว โมเดลใหม่อยู่ในสถานะไม่ได้ใช้", async () => {
@@ -61,7 +71,13 @@ describe("uploadModelLogic", () => {
   it("บันทึกชื่อ เวอร์ชัน ขนาด (MB) ผู้อัปโหลด และเนื้อไฟล์ลงฐานข้อมูล", async () => {
     db.aiModel.count.mockResolvedValue(0);
 
-    await uploadModelLogic(ptFile("best.pt", 1.5 * 1024 * 1024), "YOLO", "v1", "รายละเอียด", "a1");
+    await uploadModelLogic(
+      ptFile("best.pt", 1.5 * 1024 * 1024),
+      "YOLO",
+      "v1",
+      "รายละเอียด",
+      "a1",
+    );
 
     const { data } = db.aiModel.create.mock.calls[0][0];
     expect(data).toMatchObject({
@@ -82,7 +98,9 @@ describe("uploadModelLogic", () => {
     await uploadModelLogic(ptFile("../โมเดล ใหม่.pt"), "n", "v", "", "a1");
     await uploadModelLogic(ptFile("../โมเดล ใหม่.pt"), "n", "v", "", "a1");
 
-    const [first, second] = db.aiModel.create.mock.calls.map((c: any) => c[0].data.fileName as string);
+    const [first, second] = db.aiModel.create.mock.calls.map(
+      (c: any) => c[0].data.fileName as string,
+    );
     expect(first).toMatch(/^[0-9a-f]{16}_[a-zA-Z0-9._-]+\.pt$/);
     expect(first).not.toContain("/");
     expect(first).not.toBe(second);
@@ -93,8 +111,14 @@ describe("setActiveModelLogic", () => {
   it("ปิดโมเดลหลักตัวเดิมก่อน แล้วเปิดตัวที่เลือก (มีโมเดลหลักได้ครั้งละ 1 ตัว)", async () => {
     await setActiveModelLogic("m2");
 
-    expect(db.aiModel.updateMany).toHaveBeenCalledWith({ where: { isActive: true }, data: { isActive: false } });
-    expect(db.aiModel.update).toHaveBeenCalledWith({ where: { id: "m2" }, data: { isActive: true } });
+    expect(db.aiModel.updateMany).toHaveBeenCalledWith({
+      where: { isActive: true },
+      data: { isActive: false },
+    });
+    expect(db.aiModel.update).toHaveBeenCalledWith({
+      where: { id: "m2" },
+      data: { isActive: true },
+    });
     expect(db.aiModel.updateMany.mock.invocationCallOrder[0]).toBeLessThan(
       db.aiModel.update.mock.invocationCallOrder[0],
     );
@@ -110,11 +134,19 @@ describe("deleteModelLogic (ลบ 1 ตัว)", () => {
   });
 
   it("ลบโมเดลแล้วประวัติการวิเคราะห์ยังอยู่ แค่ตัดการอ้างถึงโมเดล", async () => {
-    db.aiModel.findUnique.mockResolvedValue({ id: "m1", isActive: false, provider: "mongodb", filePath: "" });
+    db.aiModel.findUnique.mockResolvedValue({
+      id: "m1",
+      isActive: false,
+      provider: "mongodb",
+      filePath: "",
+    });
 
     await deleteModelLogic("m1");
 
-    expect(db.analysis.updateMany).toHaveBeenCalledWith({ where: { modelId: "m1" }, data: { modelId: null } });
+    expect(db.analysis.updateMany).toHaveBeenCalledWith({
+      where: { modelId: "m1" },
+      data: { modelId: null },
+    });
     expect(db.aiModel.delete).toHaveBeenCalledWith({ where: { id: "m1" } });
   });
 
@@ -147,7 +179,11 @@ describe("deleteModelsLogic (ลบหลายตัว)", () => {
 
 describe("editModelLogic", () => {
   it("แก้ชื่อ เวอร์ชัน และรายละเอียด โดยไม่แตะสถานะโมเดลหลัก", async () => {
-    await editModelLogic("m1", { name: "ใหม่", version: "v2", description: "" });
+    await editModelLogic("m1", {
+      name: "ใหม่",
+      version: "v2",
+      description: "",
+    });
 
     expect(db.aiModel.update).toHaveBeenCalledWith({
       where: { id: "m1" },
@@ -156,18 +192,31 @@ describe("editModelLogic", () => {
   });
 
   it("บันทึกค่าประเมินโมเดล ช่องว่างเป็น null", async () => {
-    await editModelLogic("m1", { name: "n", version: "v", mAP50: "85.5", recall: 70, f1Score: "" });
+    await editModelLogic("m1", {
+      name: "n",
+      version: "v",
+      mAP50: "85.5",
+      recall: 70,
+      f1Score: "",
+    });
 
     expect(db.aiModel.update).toHaveBeenCalledWith({
       where: { id: "m1" },
-      data: { name: "n", version: "v", description: null, mAP50: 85.5, recall: 70, f1Score: null },
+      data: {
+        name: "n",
+        version: "v",
+        description: null,
+        mAP50: 85.5,
+        recall: 70,
+        f1Score: null,
+      },
     });
   });
 
   it.each([-1, 100.1, "abc"])("ไม่รับค่าประเมิน %s", async (value) => {
-    await expect(editModelLogic("m1", { name: "n", version: "v", precision: value })).rejects.toThrow(
-      "Precision ต้องเป็นตัวเลข 0–100",
-    );
+    await expect(
+      editModelLogic("m1", { name: "n", version: "v", precision: value }),
+    ).rejects.toThrow("Precision ต้องเป็นตัวเลข 0–100");
     expect(db.aiModel.update).not.toHaveBeenCalled();
   });
 });

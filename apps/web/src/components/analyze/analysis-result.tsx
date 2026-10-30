@@ -51,8 +51,8 @@ export function AnalysisResultPanel({
   isModelAvailable = true,
 }: AnalysisResultPanelProps) {
   return (
-    <div className="bg-card border rounded-2xl p-6 mt-2 mb-2 shadow-sm overflow-hidden relative">
-      <h2 className="text-lg font-bold mb-4">สถานะการวิเคราะห์</h2>
+    <div className="bg-card relative mt-2 mb-2 overflow-hidden rounded-2xl border p-6 shadow-sm">
+      <h2 className="mb-4 text-lg font-bold">สถานะการวิเคราะห์</h2>
 
       <AnimatePresence mode="wait">
         {error && (
@@ -61,7 +61,7 @@ export function AnalysisResultPanel({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-destructive/10 text-destructive p-4 rounded-lg flex gap-3 mb-6"
+            className="bg-destructive/10 text-destructive mb-6 flex gap-3 rounded-lg p-4"
           >
             <AlertCircle className="h-5 w-5 shrink-0" />
             <p className="text-sm">{error}</p>
@@ -76,11 +76,11 @@ export function AnalysisResultPanel({
             exit={{ opacity: 0 }}
           >
             {isModelAvailable ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-muted-foreground py-8 text-center">
                 กรุณาอัปโหลดรูปภาพเพื่อเริ่มต้น
               </div>
             ) : (
-              <div className="bg-destructive/10 text-destructive p-4 rounded-lg flex gap-3">
+              <div className="bg-destructive/10 text-destructive flex gap-3 rounded-lg p-4">
                 <AlertCircle className="h-5 w-5 shrink-0" />
                 <p className="text-sm">ระบบยังไม่พร้อมประมวลผล</p>
               </div>
@@ -97,7 +97,7 @@ export function AnalysisResultPanel({
             className="space-y-4"
           >
             {!error && (
-              <p className="text-sm mb-4 text-muted-foreground">
+              <p className="text-muted-foreground mb-4 text-sm">
                 ระบบพร้อมทำการวิเคราะห์รูปภาพของคุณแล้ว
               </p>
             )}
@@ -106,37 +106,47 @@ export function AnalysisResultPanel({
                 whileTap={!loading ? { scale: 0.98 } : {}}
                 onClick={onAnalyze}
                 className={cn(
-                  "w-full cursor-pointer h-14 rounded-xl font-bold transition-all flex items-center justify-center relative overflow-hidden",
-                  loading 
-                    ? "bg-secondary text-foreground cursor-not-allowed" 
-                    : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm disabled:opacity-50"
+                  "relative flex h-14 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl font-bold transition-all",
+                  loading
+                    ? "bg-secondary text-foreground cursor-not-allowed"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm disabled:opacity-50",
                 )}
                 disabled={loading}
               >
                 {/* Gradient Progress Bar inside Button */}
                 {loading && (
-                  <div 
-                    className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 transition-all duration-300 ease-out overflow-hidden"
+                  <div
+                    className="absolute top-0 bottom-0 left-0 overflow-hidden bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 transition-all duration-300 ease-out"
                     style={{ width: `${progress}%` }}
                   >
                     {/* Continuous Shimmer Animation */}
-                    <motion.div 
-                      className="absolute inset-0 w-[200%] bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
+                    <motion.div
+                      className="absolute inset-0 w-[200%] -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent"
                       animate={{ x: ["-100%", "100%"] }}
-                      transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 1.2,
+                        ease: "linear",
+                      }}
                     />
                   </div>
                 )}
 
-                <div className={cn(
-                  "relative z-10 flex items-center justify-center font-medium drop-shadow-sm",
-                  loading ? "text-white text-base" : "text-lg" 
-                )}>
+                <div
+                  className={cn(
+                    "relative z-10 flex items-center justify-center font-medium drop-shadow-sm",
+                    loading ? "text-base text-white" : "text-lg",
+                  )}
+                >
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin text-white/90" />
-                      <span className="min-w-[140px] text-left">{loadingText}</span>
-                      <span className="ml-1 font-bold">{Math.round(progress)}%</span>
+                      <span className="min-w-[140px] text-left">
+                        {loadingText}
+                      </span>
+                      <span className="ml-1 font-bold">
+                        {Math.round(progress)}%
+                      </span>
                     </>
                   ) : (
                     "วิเคราะห์รูปภาพ"
@@ -160,12 +170,12 @@ export function AnalysisResultPanel({
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.1, type: "spring" }}
-                className="bg-muted p-4 rounded-xl"
+                className="bg-muted rounded-xl p-4"
               >
-                <p className="text-xs text-muted-foreground mb-1">
+                <p className="text-muted-foreground mb-1 text-xs">
                   พบสิวทั้งหมด
                 </p>
-                <p className="text-3xl font-black text-primary">
+                <p className="text-primary text-3xl font-black">
                   {result.total}
                 </p>
               </motion.div>
@@ -175,16 +185,16 @@ export function AnalysisResultPanel({
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2, type: "spring" }}
                 className={cn(
-                  "p-4 rounded-xl",
+                  "rounded-xl p-4",
                   SEVERITY_LABELS[result.severity]?.bg || "bg-muted",
                 )}
               >
-                <p className="text-xs text-muted-foreground mb-1">
+                <p className="text-muted-foreground mb-1 text-xs">
                   ระดับความรุนแรง
                 </p>
                 <p
                   className={cn(
-                    "text-xl font-bold mt-1",
+                    "mt-1 text-xl font-bold",
                     SEVERITY_LABELS[result.severity]?.color || "text-primary",
                   )}
                 >
@@ -194,7 +204,7 @@ export function AnalysisResultPanel({
             </div>
 
             <div>
-              <h3 className="font-semibold mb-3 border-b pb-2">
+              <h3 className="mb-3 border-b pb-2 font-semibold">
                 สรุปตามประเภทสิว
               </h3>
               <motion.div
@@ -216,12 +226,12 @@ export function AnalysisResultPanel({
                     >
                       <div className="flex items-center gap-2">
                         <div
-                          className="w-3 h-3 rounded-full shadow-sm"
+                          className="h-3 w-3 rounded-full shadow-sm"
                           style={{ backgroundColor: color }}
                         />
                         <span className="text-sm font-medium">
                           {label}{" "}
-                          <span className="text-muted-foreground text-xs ml-1">
+                          <span className="text-muted-foreground ml-1 text-xs">
                             ({type})
                           </span>
                         </span>
@@ -236,7 +246,7 @@ export function AnalysisResultPanel({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4 }}
-                    className="text-center py-4 text-emerald-600 font-medium bg-emerald-50 rounded-lg"
+                    className="rounded-lg bg-emerald-50 py-4 text-center font-medium text-emerald-600"
                   >
                     ยอดเยี่ยม! ผิวหน้าของคุณดูสุขภาพดี
                   </motion.div>
@@ -249,13 +259,14 @@ export function AnalysisResultPanel({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-primary/5 border border-primary/20 rounded-xl p-4 mt-4"
+                className="bg-primary/5 border-primary/20 mt-4 rounded-xl border p-4"
               >
-                <h3 className="font-semibold mb-2 flex items-center gap-2 text-primary">
+                <h3 className="text-primary mb-2 flex items-center gap-2 font-semibold">
                   <span className="text-lg">💡</span> คำแนะนำการดูแลผิว
                 </h3>
-                <p className="text-sm leading-relaxed text-foreground/80">
-                  {ACNE_CARE_ADVICE[result.severity] || "แนะนำให้ปรึกษาแพทย์ผู้เชี่ยวชาญด้านผิวหนัง"}
+                <p className="text-foreground/80 text-sm leading-relaxed">
+                  {ACNE_CARE_ADVICE[result.severity] ||
+                    "แนะนำให้ปรึกษาแพทย์ผู้เชี่ยวชาญด้านผิวหนัง"}
                 </p>
               </motion.div>
             )}
@@ -274,7 +285,7 @@ export function AnalysisResultPanel({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={onUploadNew}
-                  className="w-full cursor-pointer h-10 border-2 border-primary text-primary rounded-xl font-bold hover:bg-primary/5 transition-colors shadow-sm"
+                  className="border-primary text-primary hover:bg-primary/5 h-10 w-full cursor-pointer rounded-xl border-2 font-bold shadow-sm transition-colors"
                 >
                   อัปโหลดรูปภาพใหม่
                 </motion.button>

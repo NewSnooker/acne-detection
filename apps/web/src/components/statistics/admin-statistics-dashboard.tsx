@@ -79,32 +79,32 @@ export function AdminStatisticsDashboard({
   return (
     <div className="space-y-6">
       {/* Top Header and Filter */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+      <div className="flex shrink-0 flex-col items-center justify-between gap-4 sm:flex-row">
         <div className="w-full sm:w-auto">
-          <h1 className="text-center sm:text-start text-2xl font-bold tracking-tight ">
+          <h1 className="text-center text-2xl font-bold tracking-tight sm:text-start">
             ภาพรวมระบบ <br className="sm:hidden" />
             (System Overview)
           </h1>
-          <p className="text-center sm:text-start text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-center sm:text-start">
             แสดงสถิติการใช้งาน ข้อมูลผู้ใช้ และผลการวิเคราะห์โดยรวมของระบบ
           </p>
         </div>
-        <div className="w-full sm:w-auto flex justify-center sm:justify-end">
+        <div className="flex w-full justify-center sm:w-auto sm:justify-end">
           <GlobalFilter />
         </div>
       </div>
 
       {/* Row 1: Overview Cards (1|1|1) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-col justify-center relative overflow-hidden">
-          <div className="absolute right-4 top-4 opacity-10">
-            <Users className="w-12 h-12 text-primary" />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="bg-card relative flex flex-col justify-center overflow-hidden rounded-2xl border p-5 shadow-sm">
+          <div className="absolute top-4 right-4 opacity-10">
+            <Users className="text-primary h-12 w-12" />
           </div>
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Users className="w-4 h-4 text-primary" />
+            <div className="bg-primary/10 rounded-lg p-2">
+              <Users className="text-primary h-4 w-4" />
             </div>
-            <p className="text-sm text-muted-foreground font-medium">
+            <p className="text-muted-foreground text-sm font-medium">
               ผู้ใช้งานหน้าใหม่
             </p>
           </div>
@@ -112,22 +112,22 @@ export function AdminStatisticsDashboard({
             <span className="text-3xl font-bold">
               {data.overview.totalUsers}
             </span>
-            <span className="text-sm text-muted-foreground">บัญชี</span>
+            <span className="text-muted-foreground text-sm">บัญชี</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-xs">
             บัญชีที่สมัคร {dateSuffix}
           </p>
         </div>
 
-        <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-col justify-center relative overflow-hidden">
-          <div className="absolute right-4 top-4 opacity-10">
-            <ScanFace className="w-12 h-12 text-primary" />
+        <div className="bg-card relative flex flex-col justify-center overflow-hidden rounded-2xl border p-5 shadow-sm">
+          <div className="absolute top-4 right-4 opacity-10">
+            <ScanFace className="text-primary h-12 w-12" />
           </div>
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <ScanFace className="w-4 h-4 text-primary" />
+            <div className="bg-primary/10 rounded-lg p-2">
+              <ScanFace className="text-primary h-4 w-4" />
             </div>
-            <p className="text-sm text-muted-foreground font-medium">
+            <p className="text-muted-foreground text-sm font-medium">
               การสแกนทั้งหมด
             </p>
           </div>
@@ -135,22 +135,22 @@ export function AdminStatisticsDashboard({
             <span className="text-3xl font-bold">
               {data.overview.totalAnalyses}
             </span>
-            <span className="text-sm text-muted-foreground">ครั้ง</span>
+            <span className="text-muted-foreground text-sm">ครั้ง</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-xs">
             ครั้ง {dateSuffix}
           </p>
         </div>
 
-        <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-col justify-center relative overflow-hidden">
-          <div className="absolute right-4 top-4 opacity-10">
-            <BrainCircuit className="w-12 h-12 text-primary" />
+        <div className="bg-card relative flex flex-col justify-center overflow-hidden rounded-2xl border p-5 shadow-sm">
+          <div className="absolute top-4 right-4 opacity-10">
+            <BrainCircuit className="text-primary h-12 w-12" />
           </div>
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <BrainCircuit className="w-4 h-4 text-primary" />
+            <div className="bg-primary/10 rounded-lg p-2">
+              <BrainCircuit className="text-primary h-4 w-4" />
             </div>
-            <p className="text-sm text-muted-foreground font-medium">
+            <p className="text-muted-foreground text-sm font-medium">
               AI Models
             </p>
           </div>
@@ -158,18 +158,18 @@ export function AdminStatisticsDashboard({
             <span className="text-3xl font-bold">
               {data.overview.totalModels}
             </span>
-            <span className="text-sm text-muted-foreground">โมเดล</span>
+            <span className="text-muted-foreground text-sm">โมเดล</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-xs">
             โมเดลถูกเพิ่ม {dateSuffix}
           </p>
         </div>
       </div>
 
       {/* Row 2: Growth & Top Users (2|1) */}
-      <div className="grid gap-4 md:grid-cols-3 grid-cols-1">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {/* Growth Chart (Span 2) */}
-        <Card className="col-span-1 md:col-span-2 flex flex-col">
+        <Card className="col-span-1 flex flex-col md:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-xl">
               การเติบโตของฐานผู้ใช้งาน <br className="sm:hidden" />
@@ -181,7 +181,7 @@ export function AdminStatisticsDashboard({
               แสดงยอดผู้ใช้งานสะสมทั้งหมดในระบบ {dateSuffix}
             </CardDescription>
           </CardHeader>
-          <CardContent className="pl-2 flex-1 min-h-[350px]">
+          <CardContent className="min-h-[350px] flex-1 pl-2">
             <AdminGrowthChart data={data.growthTrend} />
           </CardContent>
         </Card>
@@ -200,16 +200,16 @@ export function AdminStatisticsDashboard({
           <CardContent className="flex-1">
             <div className="space-y-6">
               {data.topUsers.length === 0 ? (
-                <div className="text-sm text-muted-foreground text-center py-10">
+                <div className="text-muted-foreground py-10 text-center text-sm">
                   ไม่มีข้อมูลผู้ใช้งาน
                 </div>
               ) : (
                 data.topUsers.slice(0, 10).map((user, index) => (
                   <div key={index} className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-6 font-bold text-muted-foreground">
+                    <div className="text-muted-foreground flex w-6 items-center justify-center font-bold">
                       {index + 1}.
                     </div>
-                    <div className="h-9 w-9 rounded-full bg-muted overflow-hidden relative shrink-0">
+                    <div className="bg-muted relative h-9 w-9 shrink-0 overflow-hidden rounded-full">
                       {user.image ? (
                         <Image
                           src={user.image}
@@ -219,19 +219,19 @@ export function AdminStatisticsDashboard({
                           className="object-cover"
                         />
                       ) : (
-                        <div className="h-full w-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">
+                        <div className="bg-primary/20 text-primary flex h-full w-full items-center justify-center text-xs font-bold">
                           {(user.name || user.email || "U")
                             .charAt(0)
                             .toUpperCase()}
                         </div>
                       )}
                     </div>
-                    <div className="flex flex-col overflow-hidden flex-1">
-                      <p className="text-sm font-medium truncate">
+                    <div className="flex flex-1 flex-col overflow-hidden">
+                      <p className="truncate text-sm font-medium">
                         {user.name || user.email || "ผู้ใช้ไม่ระบุชื่อ"}
                       </p>
                     </div>
-                    <div className="font-bold text-primary text-sm">
+                    <div className="text-primary text-sm font-bold">
                       {user.scans} ครั้ง
                     </div>
                   </div>
@@ -243,9 +243,9 @@ export function AdminStatisticsDashboard({
       </div>
 
       {/* Row 3: Trend & Recent Activity (2|1) */}
-      <div className="grid gap-4 md:grid-cols-3 grid-cols-1">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {/* Trend Chart (Span 2) */}
-        <Card className="col-span-1 md:col-span-2 flex flex-col">
+        <Card className="col-span-1 flex flex-col md:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-xl">
               สถิติการสแกนระบบรวม <br className="sm:hidden" />
@@ -258,7 +258,7 @@ export function AdminStatisticsDashboard({
               {dateSuffix}
             </CardDescription>
           </CardHeader>
-          <CardContent className="pl-2 flex-1 min-h-[350px]">
+          <CardContent className="min-h-[350px] flex-1 pl-2">
             <AdminTrendChart data={data.dailyTrend} />
           </CardContent>
         </Card>
@@ -271,16 +271,16 @@ export function AdminStatisticsDashboard({
               รายการการวิเคราะห์สิว 10 รายการล่าสุด {dateSuffix}
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto min-h-[350px] max-h-[400px]">
+          <CardContent className="max-h-[400px] min-h-[350px] flex-1 overflow-y-auto">
             <div className="space-y-6">
               {data.recentAnalyses.length === 0 ? (
-                <div className="text-sm text-muted-foreground text-center py-10">
+                <div className="text-muted-foreground py-10 text-center text-sm">
                   ไม่มีข้อมูลการสแกน
                 </div>
               ) : (
                 data.recentAnalyses.slice(0, 10).map((analysis) => (
                   <div key={analysis.id} className="flex items-center gap-4">
-                    <div className="h-9 w-9 rounded-full bg-muted overflow-hidden relative shrink-0">
+                    <div className="bg-muted relative h-9 w-9 shrink-0 overflow-hidden rounded-full">
                       {analysis.user?.image ? (
                         <Image
                           src={analysis.user.image}
@@ -290,7 +290,7 @@ export function AdminStatisticsDashboard({
                           className="object-cover"
                         />
                       ) : (
-                        <div className="h-full w-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">
+                        <div className="bg-primary/20 text-primary flex h-full w-full items-center justify-center text-xs font-bold">
                           {(analysis.user?.name || analysis.user?.email || "U")
                             .charAt(0)
                             .toUpperCase()}
@@ -298,12 +298,12 @@ export function AdminStatisticsDashboard({
                       )}
                     </div>
                     <div className="flex flex-col overflow-hidden">
-                      <p className="text-sm font-medium truncate">
+                      <p className="truncate text-sm font-medium">
                         {analysis.user?.name ||
                           analysis.user?.email ||
                           "ผู้ใช้ไม่ระบุชื่อ"}
                       </p>
-                      <p className="text-xs text-muted-foreground truncate">
+                      <p className="text-muted-foreground truncate text-xs">
                         สแกนสิวเมื่อ{" "}
                         {formatDistanceToNow(new Date(analysis.createdAt), {
                           addSuffix: true,
@@ -322,14 +322,14 @@ export function AdminStatisticsDashboard({
       {/* Row 4: AI Insights (1|1|1) */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {/* Detection Results */}
-        <Card className="w-full col-span-1 flex flex-col">
+        <Card className="col-span-1 flex w-full flex-col">
           <CardHeader>
             <CardTitle className="text-xl">สัดส่วนผลการตรวจพบ</CardTitle>
             <CardDescription>
               สัดส่วนพบสิว vs หน้าใส {dateSuffix}
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 w-full pb-0 flex items-center justify-center min-h-[300px]">
+          <CardContent className="flex min-h-[300px] w-full flex-1 items-center justify-center pb-0">
             <DetectionResultsChart data={data.detectionResults} />
           </CardContent>
         </Card>
@@ -342,7 +342,7 @@ export function AdminStatisticsDashboard({
               ภาพรวมระดับความรุนแรงของสิวทั้งระบบ {dateSuffix}
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 pb-0 flex items-center justify-center min-h-[300px]">
+          <CardContent className="flex min-h-[300px] flex-1 items-center justify-center pb-0">
             <SeverityDonutChart preAggregated={data.severityDistribution} />
           </CardContent>
         </Card>
@@ -355,7 +355,7 @@ export function AdminStatisticsDashboard({
               ภาพรวมสิวแต่ละประเภททั้งระบบ {dateSuffix}
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 min-h-[300px]">
+          <CardContent className="min-h-[300px] flex-1">
             <AcneTypesChart preAggregated={data.topAcneTypes} />
           </CardContent>
         </Card>

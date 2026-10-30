@@ -6,7 +6,10 @@ const { jwt, session } = authConfig.callbacks;
 
 describe("authConfig.callbacks", () => {
   it("ตอนเข้าสู่ระบบ เก็บ id และ role ของผู้ใช้ลง token", async () => {
-    const token = await jwt({ token: {}, user: { id: "u1", role: "ADMIN" } } as any);
+    const token = await jwt({
+      token: {},
+      user: { id: "u1", role: "ADMIN" },
+    } as any);
 
     expect(token).toMatchObject({ id: "u1", role: "ADMIN" });
   });
@@ -23,7 +26,11 @@ describe("authConfig.callbacks", () => {
       token: { id: "u1", role: "ADMIN" },
     } as any);
 
-    expect(result.user).toMatchObject({ id: "u1", role: "ADMIN", email: "a@b.c" });
+    expect(result.user).toMatchObject({
+      id: "u1",
+      role: "ADMIN",
+      email: "a@b.c",
+    });
   });
 
   it("หน้าเข้าสู่ระบบและหน้า error ชี้ไปที่ /login", () => {

@@ -54,7 +54,7 @@ export default async function StatisticsPage({
   });
 
   return (
-    <div className="max-w-6xl mx-auto flex flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <div className="pb-8">
         <StatisticsDashboard data={analyses as any} />
       </div>

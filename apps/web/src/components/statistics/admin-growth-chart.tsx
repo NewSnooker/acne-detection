@@ -22,26 +22,30 @@ export function AdminGrowthChart({ data }: AdminGrowthChartProps) {
 
   if (!mounted) {
     return (
-      <div className="w-full relative z-0 flex items-center justify-center min-h-[350px]">
+      <div className="relative z-0 flex min-h-[350px] w-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-          <p className="text-muted-foreground animate-pulse text-sm">กำลังโหลดข้อมูลการเติบโต...</p>
+          <div className="border-primary/20 border-t-primary h-10 w-10 animate-spin rounded-full border-4" />
+          <p className="text-muted-foreground animate-pulse text-sm">
+            กำลังโหลดข้อมูลการเติบโต...
+          </p>
         </div>
       </div>
     );
   }
 
   const seriesData = data.map((item) => {
-    const timestamp = item.rawDate ? new Date(item.rawDate).getTime() : new Date().getTime();
+    const timestamp = item.rawDate
+      ? new Date(item.rawDate).getTime()
+      : new Date().getTime();
     return [timestamp, item.existingUsers + item.newUsers];
   });
-  
+
   const series = [
     {
       name: "ยอดผู้ใช้สะสม (Total Users)",
       type: "area",
       data: seriesData,
-    }
+    },
   ];
 
   const isDark = theme === "dark";
@@ -63,7 +67,7 @@ export function AdminGrowthChart({ data }: AdminGrowthChartProps) {
     },
     colors: ["#6366f1"], // Indigo for Growth
     stroke: {
-      width: 3, 
+      width: 3,
       curve: seriesData.length > 2 ? "smooth" : "straight",
     },
     fill: {
@@ -75,8 +79,8 @@ export function AdminGrowthChart({ data }: AdminGrowthChartProps) {
         type: "vertical",
         opacityFrom: 0.5,
         opacityTo: 0.05,
-        stops: [0, 100, 100, 100]
-      }
+        stops: [0, 100, 100, 100],
+      },
     },
     markers: {
       size: 4,
@@ -103,7 +107,7 @@ export function AdminGrowthChart({ data }: AdminGrowthChartProps) {
         borderWidth: 0,
         opacity: 0.9,
       },
-      formatter: (value: number) => value === 0 ? "" : `${value} คน`,
+      formatter: (value: number) => (value === 0 ? "" : `${value} คน`),
     },
     xaxis: {
       type: "datetime",
@@ -158,11 +162,11 @@ export function AdminGrowthChart({ data }: AdminGrowthChartProps) {
             return y.toFixed(0) + " คน";
           }
           return y;
-        }
-      }
+        },
+      },
     },
     legend: {
-      show: false
+      show: false,
     },
     theme: {
       mode: isDark ? "dark" : "light",
@@ -171,15 +175,21 @@ export function AdminGrowthChart({ data }: AdminGrowthChartProps) {
 
   if (data.length === 0) {
     return (
-      <div className="h-[350px] flex items-center justify-center border rounded-2xl bg-card text-muted-foreground">
+      <div className="bg-card text-muted-foreground flex h-[350px] items-center justify-center rounded-2xl border">
         ไม่มีข้อมูลการเติบโตในช่วงเวลานี้
       </div>
     );
   }
 
   return (
-    <div className="w-full relative z-0 mt-2">
-      <Chart options={options} series={series} type="area" height={350} width="100%" />
+    <div className="relative z-0 mt-2 w-full">
+      <Chart
+        options={options}
+        series={series}
+        type="area"
+        height={350}
+        width="100%"
+      />
     </div>
   );
 }

@@ -14,7 +14,7 @@ export function MedicalDisclaimer({ className }: { className?: string }) {
         className,
       )}
     >
-      <Info className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-300" />
+      <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
       <p>
         <span className="font-semibold">ข้อควรทราบ: </span>
         {MEDICAL_DISCLAIMER}

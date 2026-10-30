@@ -105,18 +105,18 @@ export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-background border rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b">
+          <div className="bg-background animate-in fade-in zoom-in-95 w-full max-w-md overflow-hidden rounded-xl border shadow-xl duration-200">
+            <div className="border-b px-6 py-4">
               <h2 className="text-lg font-semibold">อัปโหลดโมเดล AI ใหม่</h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 เฉพาะไฟล์ .pt จากการเทรน YOLO
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 p-6">
               {/* File Upload Area */}
               <div
-                className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center transition-colors cursor-pointer ${
+                className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors ${
                   file
                     ? "border-primary bg-primary/5"
                     : "border-muted-foreground/25 hover:bg-accent"
@@ -133,21 +133,21 @@ export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
 
                 {file ? (
                   <div className="text-center">
-                    <CheckCircle2 className="h-10 w-10 text-primary mx-auto mb-2" />
-                    <p className="font-medium text-sm truncate max-w-[200px]">
+                    <CheckCircle2 className="text-primary mx-auto mb-2 h-10 w-10" />
+                    <p className="max-w-[200px] truncate text-sm font-medium">
                       {file.name}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       {(file.size / (1024 * 1024)).toFixed(2)} MB
                     </p>
                   </div>
                 ) : (
                   <div className="text-center">
-                    <FileType className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                    <p className="font-medium text-sm">
+                    <FileType className="text-muted-foreground mx-auto mb-2 h-10 w-10" />
+                    <p className="text-sm font-medium">
                       คลิกเพื่อเลือกไฟล์ .pt
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-muted-foreground mt-1 text-xs">
                       ขนาดสูงสุด 100MB
                     </p>
                   </div>
@@ -155,7 +155,7 @@ export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
               </div>
 
               {error && (
-                <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md flex items-center gap-2">
+                <div className="bg-destructive/15 text-destructive flex items-center gap-2 rounded-md p-3 text-sm">
                   <AlertCircle className="h-4 w-4" />
                   <span>{error}</span>
                 </div>
@@ -163,43 +163,43 @@ export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
 
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium mb-1 block">
+                  <label className="mb-1 block text-sm font-medium">
                     ชื่อโมเดล
                   </label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder="เช่น AcneYolo V1"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">
+                  <label className="mb-1 block text-sm font-medium">
                     เวอร์ชัน
                   </label>
                   <input
                     type="text"
                     value={version}
                     onChange={(e) => setVersion(e.target.value)}
-                    className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder="1.0"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">
+                  <label className="mb-1 block text-sm font-medium">
                     รายละเอียด (Optional)
                   </label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full flex min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder="เพิ่มเมื่อ..., แก้ไข..."
                   />
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end gap-3 border-t">
+              <div className="flex justify-end gap-3 border-t pt-4">
                 <Button
                   type="button"
                   variant="outline"

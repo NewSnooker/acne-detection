@@ -42,7 +42,9 @@ describe("loginWithCredentials", () => {
   it("ข้อมูลถูกต้อง เรียก signIn แบบ credentials และตอบ success", async () => {
     signIn.mockResolvedValue(undefined);
 
-    const result = await loginWithCredentials(form({ email: "a@b.com", password: "Admin1234" }));
+    const result = await loginWithCredentials(
+      form({ email: "a@b.com", password: "Admin1234" }),
+    );
 
     expect(result).toEqual({ success: true });
     expect(signIn).toHaveBeenCalledWith("credentials", {
@@ -55,7 +57,9 @@ describe("loginWithCredentials", () => {
   it("อีเมลหรือรหัสผ่านผิด ตอบข้อความภาษาไทย", async () => {
     signIn.mockRejectedValue(new AuthError("CredentialsSignin"));
 
-    const result = await loginWithCredentials(form({ email: "a@b.com", password: "wrong" }));
+    const result = await loginWithCredentials(
+      form({ email: "a@b.com", password: "wrong" }),
+    );
 
     expect(result).toEqual({ error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
   });
@@ -63,16 +67,24 @@ describe("loginWithCredentials", () => {
   it("error ชนิดอื่นของระบบเข้าสู่ระบบ ตอบข้อความทั่วไป", async () => {
     signIn.mockRejectedValue(new AuthError("CallbackRouteError"));
 
-    const result = await loginWithCredentials(form({ email: "a@b.com", password: "x" }));
+    const result = await loginWithCredentials(
+      form({ email: "a@b.com", password: "x" }),
+    );
 
     expect(result).toEqual({ error: "เกิดข้อผิดพลาดบางอย่าง" });
   });
 
   it("กรอกไม่ครบหรืออีเมลผิดรูปแบบ ไม่เรียก signIn", async () => {
-    expect(await loginWithCredentials(form({ email: "not-an-email", password: "x" }))).toEqual({
+    expect(
+      await loginWithCredentials(
+        form({ email: "not-an-email", password: "x" }),
+      ),
+    ).toEqual({
       error: "ข้อมูลไม่ถูกต้อง",
     });
-    expect(await loginWithCredentials(form({ email: "a@b.com", password: "" }))).toEqual({
+    expect(
+      await loginWithCredentials(form({ email: "a@b.com", password: "" })),
+    ).toEqual({
       error: "ข้อมูลไม่ถูกต้อง",
     });
     expect(signIn).not.toHaveBeenCalled();
@@ -81,7 +93,9 @@ describe("loginWithCredentials", () => {
   it("error ที่ไม่เกี่ยวกับการเข้าสู่ระบบ (เช่น ฐานข้อมูลล่ม) ถูกโยนต่อ ไม่กลืนทิ้ง", async () => {
     signIn.mockRejectedValue(new Error("db down"));
 
-    await expect(loginWithCredentials(form({ email: "a@b.com", password: "x" }))).rejects.toThrow("db down");
+    await expect(
+      loginWithCredentials(form({ email: "a@b.com", password: "x" })),
+    ).rejects.toThrow("db down");
   });
 });
 
@@ -90,7 +104,9 @@ describe("loginWithGoogle", () => {
     vi.stubEnv("GOOGLE_CLIENT_ID", "");
     vi.stubEnv("GOOGLE_CLIENT_SECRET", "");
 
-    await expect(loginWithGoogle()).rejects.toThrow("REDIRECT:/login?error=GoogleNotConfigured");
+    await expect(loginWithGoogle()).rejects.toThrow(
+      "REDIRECT:/login?error=GoogleNotConfigured",
+    );
     expect(signIn).not.toHaveBeenCalled();
   });
 

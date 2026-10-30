@@ -9,7 +9,9 @@ const m = vi.hoisted(() => ({
   setActiveModelLogic: vi.fn(),
 }));
 vi.mock("@/lib/auth", () => ({ auth: m.auth }));
-vi.mock("@/lib/prisma", () => ({ prisma: { aiModel: { findUnique: m.modelFindUnique } } }));
+vi.mock("@/lib/prisma", () => ({
+  prisma: { aiModel: { findUnique: m.modelFindUnique } },
+}));
 vi.mock("@/lib/services/model-logic", () => ({
   deleteModelLogic: m.deleteModelLogic,
   setActiveModelLogic: m.setActiveModelLogic,
@@ -105,7 +107,9 @@ describe("PUT (ตั้งเป็นโมเดลหลัก) และ DE
 
   it("key ของบริการ AI ใช้ตั้งโมเดลหลักหรือลบโมเดลไม่ได้", async () => {
     expect((await PUT(req({ "x-api-key": KEY }, "PUT"), ctx)).status).toBe(401);
-    expect((await DELETE(req({ "x-api-key": KEY }, "DELETE"), ctx)).status).toBe(401);
+    expect(
+      (await DELETE(req({ "x-api-key": KEY }, "DELETE"), ctx)).status,
+    ).toBe(401);
   });
 
   it("ผู้ดูแลระบบตั้งโมเดลหลักได้", async () => {

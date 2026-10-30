@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUserApi } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 import { uploadImage } from "@/lib/storage/image-provider";
-import { callFastApiForPrediction, calculateSeverity } from "@/lib/services/analyze-logic";
+import {
+  callFastApiForPrediction,
+  calculateSeverity,
+} from "@/lib/services/analyze-logic";
 import { Prisma } from "@prisma/client";
-import { detectImageKind, validateImageFile } from "@/lib/validation/image-file";
+import {
+  detectImageKind,
+  validateImageFile,
+} from "@/lib/validation/image-file";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,8 +26,11 @@ export async function POST(req: NextRequest) {
 
     if (!userExists) {
       return NextResponse.json(
-        { error: "ไม่พบบัญชีผู้ใช้งานในระบบ (Session ไม่ถูกต้องหรือฐานข้อมูลถูกรีเซ็ต) กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่" },
-        { status: 401 }
+        {
+          error:
+            "ไม่พบบัญชีผู้ใช้งานในระบบ (Session ไม่ถูกต้องหรือฐานข้อมูลถูกรีเซ็ต) กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่",
+        },
+        { status: 401 },
       );
     }
 
@@ -44,7 +53,7 @@ export async function POST(req: NextRequest) {
     if (!imageKind) {
       return NextResponse.json(
         { error: "ไฟล์นี้ไม่ใช่รูปภาพ JPEG หรือ PNG ที่ถูกต้อง" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -56,7 +65,7 @@ export async function POST(req: NextRequest) {
     if (!activeModel) {
       return NextResponse.json(
         { error: "ไม่มีโมเดลที่กำลังเปิดใช้งานอยู่ในระบบ กรุณาติดต่อแอดมิน" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -106,7 +115,7 @@ export async function POST(req: NextRequest) {
     console.error("API /api/analyze Error:", error);
     return NextResponse.json(
       { error: error.message || "เกิดข้อผิดพลาดในการวิเคราะห์รูปภาพ" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

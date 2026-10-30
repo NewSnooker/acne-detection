@@ -4,7 +4,9 @@ export const AuthService = {
    * ยิงไปที่: POST /api/account/register
    * (ไม่ใช้ /api/auth/ เพราะ NextAuth ยึดครอง path นั้น)
    */
-  register: async (formData: FormData): Promise<{ success?: boolean; error?: string }> => {
+  register: async (
+    formData: FormData,
+  ): Promise<{ success?: boolean; error?: string }> => {
     try {
       const data = Object.fromEntries(formData.entries());
       const response = await fetch("/api/account/register", {
@@ -19,5 +21,5 @@ export const AuthService = {
       console.error("AuthService Error (register):", error);
       return { error: error.message || "เกิดข้อผิดพลาดในการสมัครสมาชิก" };
     }
-  }
+  },
 };
