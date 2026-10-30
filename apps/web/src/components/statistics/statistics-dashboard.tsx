@@ -88,7 +88,7 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
     if (!start || !end) return filteredData; // Fallback for All Time
 
     const dailyMap = new Map<string, number>();
-    let curr = new Date(start);
+    const curr = new Date(start);
     const maxDays = 365; // safety limit
     let days = 0;
     while (curr <= end && days < maxDays) {

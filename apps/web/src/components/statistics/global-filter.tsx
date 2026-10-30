@@ -2,10 +2,24 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { format, subDays, startOfMonth, startOfYear } from "date-fns";
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState } from "react";
 import { Calendar, RotateCcw } from "lucide-react";
 
 type Preset = "todayHourly" | "7days" | "thisMonth" | "thisYear" | "all";
+
+function presetFromRange(start: string, end: string): Preset | "custom" {
+  const today = new Date();
+  const startDate = new Date(start);
+  const diffDays = Math.round(
+    (today.getTime() - startDate.getTime()) / (1000 * 3600 * 24),
+  );
+
+  if (diffDays === 0) return "todayHourly";
+  if (diffDays <= 7 && diffDays > 0) return "7days";
+  if (startDate.getTime() === startOfMonth(today).getTime()) return "thisMonth";
+  if (startDate.getTime() === startOfYear(today).getTime()) return "thisYear";
+  return "custom";
+}
 
 function GlobalFilterInner() {
   const router = useRouter();
@@ -14,43 +28,16 @@ function GlobalFilterInner() {
 
   const currentStart = searchParams.get("start");
   const currentEnd = searchParams.get("end");
+  const urlPreset =
+    currentStart && currentEnd ? presetFromRange(currentStart, currentEnd) : "all";
 
-  const [preset, setPreset] = useState<Preset>("all");
-  const [isCustomMode, setIsCustomMode] = useState(false);
+  // state ที่ผู้ใช้กำลังแก้ จะถูกล้างเมื่อ URL เปลี่ยน (ผ่าน key ใน GlobalFilterRoute)
+  const [customModeOverride, setCustomModeOverride] = useState<boolean | null>(null);
   const [startDate, setStartDate] = useState(currentStart || "");
   const [endDate, setEndDate] = useState(currentEnd || "");
 
-  // Sync state with URL params on mount or param change
-  useEffect(() => {
-    if (currentStart && currentEnd) {
-      const today = new Date();
-      const start = new Date(currentStart);
-      const diffDays = Math.round(
-        (today.getTime() - start.getTime()) / (1000 * 3600 * 24),
-      );
-
-      if (diffDays === 0) setPreset("todayHourly");
-      else if (diffDays <= 7 && diffDays > 0) setPreset("7days");
-      else {
-        // Could be custom or thisMonth/thisYear, checking roughly
-        const startOfThisMonth = startOfMonth(today);
-        const startOfThisYear = startOfYear(today);
-        if (start.getTime() === startOfThisMonth.getTime())
-          setPreset("thisMonth");
-        else if (start.getTime() === startOfThisYear.getTime())
-          setPreset("thisYear");
-        else {
-          setIsCustomMode(true);
-          setPreset("all"); // doesn't matter in custom mode
-        }
-      }
-      setStartDate(currentStart);
-      setEndDate(currentEnd);
-    } else {
-      setPreset("all");
-      setIsCustomMode(false);
-    }
-  }, [currentStart, currentEnd, searchParams]);
+  const isCustomMode = customModeOverride ?? urlPreset === "custom";
+  const preset: Preset = urlPreset === "custom" ? "all" : urlPreset;
 
   const updateUrlParams = (start?: string, end?: string, isAll?: boolean) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -74,8 +61,7 @@ function GlobalFilterInner() {
 
   const handlePresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value as Preset;
-    setPreset(val);
-    setIsCustomMode(false);
+    setCustomModeOverride(false);
 
     const today = new Date();
 
@@ -104,8 +90,7 @@ function GlobalFilterInner() {
   const handleReset = () => {
     setStartDate("");
     setEndDate("");
-    setPreset("all");
-    setIsCustomMode(false);
+    setCustomModeOverride(false);
     updateUrlParams(undefined, undefined, true);
   };
 
@@ -125,7 +110,7 @@ function GlobalFilterInner() {
             <option value="thisYear">รายปี (Yearly)</option>
           </select>
           <button
-            onClick={() => setIsCustomMode(true)}
+            onClick={() => setCustomModeOverride(true)}
             className="h-9 w-9 flex items-center justify-center rounded-lg border bg-card shadow hover:bg-muted transition-colors shrink-0"
             title="ระบุช่วงเวลาเอง"
           >
@@ -174,7 +159,7 @@ function GlobalFilterInner() {
               onClick={() => {
                 setStartDate("");
                 setEndDate("");
-                setIsCustomMode(false);
+                setCustomModeOverride(false);
               }}
               className="p-1 cursor-pointer hover:bg-muted rounded-md transition-colors"
               title="สลับกลับไปใช้ตัวเลือกด่วน"
@@ -188,6 +173,12 @@ function GlobalFilterInner() {
   );
 }
 
+function GlobalFilterRoute() {
+  const searchParams = useSearchParams();
+  const rangeKey = `${searchParams.get("start")}|${searchParams.get("end")}`;
+  return <GlobalFilterInner key={rangeKey} />;
+}
+
 export function GlobalFilter() {
   return (
     <Suspense
@@ -195,7 +186,7 @@ export function GlobalFilter() {
         <div className="h-9 w-full sm:w-40 bg-muted animate-pulse rounded-md" />
       }
     >
-      <GlobalFilterInner />
+      <GlobalFilterRoute />
     </Suspense>
   );
 }

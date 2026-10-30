@@ -1,8 +1,8 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { useMounted } from "@/hooks/use-mounted";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
 import { ApexOptions } from "apexcharts";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
@@ -17,11 +17,7 @@ interface AdminTrendChartProps {
 
 export function AdminTrendChart({ data }: AdminTrendChartProps) {
   const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   if (!mounted) {
     return (

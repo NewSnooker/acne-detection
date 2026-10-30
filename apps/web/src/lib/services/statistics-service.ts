@@ -68,7 +68,7 @@ export async function getAdminStatistics(startDateStr?: string, endDateStr?: str
   
   // If dateFilter is provided, build continuous trend map for the date range
   if (dateFilter && startDate && endDate) {
-    let curr = new Date(startDate);
+    const curr = new Date(startDate);
     let maxDays = 365; // Cap at 365 days
     while (curr <= endDate && maxDays > 0) {
       const key = format(curr, "yyyy-MM-dd");
@@ -128,7 +128,7 @@ export async function getAdminStatistics(startDateStr?: string, endDateStr?: str
   
   // Initialize growthMap for the date range if filter exists, to ensure empty days are shown
   if (dateFilter && startDate && endDate) {
-    let curr = new Date(startDate);
+    const curr = new Date(startDate);
     let maxDays = 365;
     while (curr <= endDate && maxDays > 0) {
       const key = format(curr, "yyyy-MM-dd");
