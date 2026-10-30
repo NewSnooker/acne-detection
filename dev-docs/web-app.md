@@ -42,7 +42,7 @@ Server component (page.tsx)
 |---|---|---|
 | `server/analyze.ts` | `calculateSeverity`, `callFastApiForPrediction` | เกณฑ์ severity อยู่ที่นี่ |
 | `server/auth.ts` | `registerUserLogic` | คนแรก = ADMIN, อีเมลซ้ำตอบ 409 |
-| `server/history.ts` | `getHistory({ userId? })`, `filterHistory`, `countImagesByType`, `deleteHistories` | ไม่ระบุ `userId` = ของทุกคน (แอดมิน); ดึงทั้งหมดแล้วกรองใน memory เพราะตาราง ag-grid แบ่งหน้าฝั่ง client |
+| `server/history.ts` | `getHistory({ userId? })`, `filterHistory`, `countImagesByType`, `deleteHistories`, `deleteAnalysesWhere` | ไม่ระบุ `userId` = ของทุกคน (แอดมิน); ดึงทั้งหมดแล้วกรองใน memory เพราะตาราง ag-grid แบ่งหน้าฝั่ง client |
 | `server/models.ts` | `uploadModelLogic`, `deleteModelLogic`, `deleteModelsLogic`, `setActiveModelLogic`, `editModelLogic`, `getAdminModels` | ลบโมเดลหลักไม่ได้ (409), ตั้งโมเดลหลักใน `$transaction` |
 | `server/statistics.ts` | `getAdminStatistics` | |
 | `server/users.ts` | `deleteUserLogic`, `deleteUsersLogic`, `getAllUsers` | `getAllUsers` ใช้ `select` — ห้ามส่ง `password` ไปเบราว์เซอร์ |

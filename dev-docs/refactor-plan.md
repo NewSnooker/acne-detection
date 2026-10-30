@@ -21,7 +21,7 @@
 | 28 `.gitattributes` | เพิ่มแล้ว |
 | 29 CI, prettier, typecheck | ทำแล้ว (2026-10-30) — `.github/workflows/ci.yml`, prettier + `prettier-plugin-tailwindcss`, commit จัดรูปแบบอยู่ใน `.git-blame-ignore-revs` |
 | 14 ชั้นโค้ดชื่อสับสน | แก้แล้ว (2026-10-30) — server logic อยู่ `src/server/<feature>.ts` (มี `server-only`), client fetch อยู่ `src/lib/api-client/` |
-| 16 โค้ดซ้ำ | แก้แล้ว — ประวัติเหลือ `getHistory` / `deleteHistories`, ลบโมเดลใช้ `removeModel` ร่วมกัน (ลบผู้ใช้เดี่ยว/กลุ่มยังแยกกัน) |
+| 16 โค้ดซ้ำ | แก้แล้ว — ประวัติเหลือ `getHistory` / `deleteHistories`, ลบโมเดลเดี่ยว/กลุ่มใช้ `removeInactiveModels` ร่วมกัน, ลบผู้ใช้และลบประวัติใช้ `deleteAnalysesWhere` ร่วมกัน |
 | 17 ดึงข้อมูลมากรองใน memory | แก้บางส่วน — ไม่ดึง `modelData` ตอนวิเคราะห์; ประวัติยังกรองใน memory เพราะตาราง ag-grid แบ่งหน้าฝั่ง client (ต้องเปลี่ยน UI เป็นแบ่งหน้าฝั่ง server ก่อน) |
 | 18 REST + zod | แก้แล้ว — `POST /api/models`, `PATCH /api/models/[id]`, `POST /api/models/[id]/activate`; body ทุก route ตรวจด้วย zod; `HttpError` ให้ status ถูกต้อง (400/404/409) |
 | 20 transaction / ลบตัว active | แก้แล้ว |
