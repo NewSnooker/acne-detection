@@ -1,5 +1,5 @@
 import { requireAdminPage } from "@/lib/auth/guards";
-import { getAllUsers } from "@/lib/services/user-service";
+import { getAllUsers } from "@/server/users";
 import { UserTable } from "./user-table";
 
 export const metadata = {

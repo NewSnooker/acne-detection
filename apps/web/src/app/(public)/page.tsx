@@ -7,7 +7,7 @@ import {
   Upload,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { calculateSeverity } from "@/lib/services/analyze-logic";
+import { calculateSeverity } from "@/server/analyze";
 import {
   ACNE_CARE_ADVICE,
   ACNE_COLORS,

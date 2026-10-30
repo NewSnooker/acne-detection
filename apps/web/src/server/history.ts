@@ -1,3 +1,4 @@
+import "server-only";
 import type { Prisma, Severity } from "@prisma/client";
 import { readCounts } from "@/lib/acne-counts";
 import { prisma } from "@/lib/prisma";

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminApi } from "@/lib/auth/guards";
-import { deleteHistories } from "@/lib/services/history-service";
+import { deleteHistories } from "@/server/history";
 
 // รับได้ทั้ง { id } (ลบเดี่ยว) และ { ids } (ลบกลุ่ม)
 const deleteSchema = z.union([

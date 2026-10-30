@@ -1,3 +1,4 @@
+import "server-only";
 import { AnalysisResult } from "@/types/analyze";
 import path from "path";
 import { getStoragePath } from "@/lib/storage/image-provider";

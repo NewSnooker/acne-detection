@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminApi } from "@/lib/auth/guards";
 import { errorResponse, parseBody, readJson } from "@/lib/http-error";
-import { deleteModelLogic, editModelLogic } from "@/lib/services/model-logic";
+import { deleteModelLogic, editModelLogic } from "@/server/models";
 import { editModelSchema } from "@/lib/validation/api-input";
 
 export async function GET(

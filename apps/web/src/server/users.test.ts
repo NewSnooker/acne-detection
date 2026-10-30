@@ -17,7 +17,7 @@ vi.mock("@/lib/prisma", () => ({
 }));
 vi.mock("@/lib/storage/image-provider", () => ({ deleteImage: m.deleteImage }));
 
-import { deleteUserLogic, deleteUsersLogic } from "./user-logic";
+import { deleteUserLogic, deleteUsersLogic } from "./users";
 
 const analysis = (n: number) => ({
   id: `an${n}`,

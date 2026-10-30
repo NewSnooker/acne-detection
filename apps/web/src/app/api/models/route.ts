@@ -6,10 +6,7 @@ import {
   parseBody,
   readJson,
 } from "@/lib/http-error";
-import {
-  deleteModelsLogic,
-  uploadModelLogic,
-} from "@/lib/services/model-logic";
+import { deleteModelsLogic, uploadModelLogic } from "@/server/models";
 import { idListSchema, modelInfoSchema } from "@/lib/validation/api-input";
 
 // อัปโหลดโมเดลใหม่ (multipart: file, name, version, description)

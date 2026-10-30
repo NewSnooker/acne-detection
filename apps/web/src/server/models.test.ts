@@ -23,7 +23,7 @@ import {
   editModelLogic,
   setActiveModelLogic,
   uploadModelLogic,
-} from "./model-logic";
+} from "./models";
 
 const ptFile = (name = "best.pt", bytes = 1024 * 1024) =>
   new File([new Uint8Array(bytes)], name);

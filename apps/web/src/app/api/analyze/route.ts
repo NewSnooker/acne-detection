@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUserApi } from "@/lib/auth/guards";
 import { prisma } from "@/lib/prisma";
 import { uploadImage } from "@/lib/storage/image-provider";
-import {
-  callFastApiForPrediction,
-  calculateSeverity,
-} from "@/lib/services/analyze-logic";
+import { callFastApiForPrediction, calculateSeverity } from "@/server/analyze";
 import { Prisma } from "@prisma/client";
 import {
   detectImageKind,

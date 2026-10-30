@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateSeverity } from "./analyze-logic";
+import { calculateSeverity } from "./analyze";
 
 // เกณฑ์ตามขอบเขตโครงงานข้อ 1.3.3.5
 //   เล็กน้อย (MILD)     : สิวไม่อักเสบ ≤ 20 จุด หรือ สิวอักเสบตื้น ≤ 5 จุด

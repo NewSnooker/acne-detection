@@ -21,8 +21,8 @@ vi.mock("@/lib/prisma", () => ({
 }));
 vi.mock("@/lib/storage/image-provider", () => ({ uploadImage: m.uploadImage }));
 // ใช้ calculateSeverity ตัวจริง จำลองเฉพาะการเรียกบริการ AI
-vi.mock("@/lib/services/analyze-logic", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/services/analyze-logic")>()),
+vi.mock("@/server/analyze", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/server/analyze")>()),
   callFastApiForPrediction: m.callFastApiForPrediction,
 }));
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { errorResponse, readJson } from "@/lib/http-error";
-import { registerUserLogic } from "@/lib/services/auth-logic";
+import { registerUserLogic } from "@/server/auth";
 
 export async function POST(req: NextRequest) {
   try {

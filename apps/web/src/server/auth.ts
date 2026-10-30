@@ -1,3 +1,4 @@
+import "server-only";
 import { registerSchema } from "@/schemas/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";

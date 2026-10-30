@@ -1,5 +1,5 @@
 import { requireAdminPage } from "@/lib/auth/guards";
-import { getAdminStatistics } from "@/lib/services/statistics-service";
+import { getAdminStatistics } from "@/server/statistics";
 import { AdminStatisticsDashboard } from "@/components/statistics/admin-statistics-dashboard";
 
 export const metadata = {

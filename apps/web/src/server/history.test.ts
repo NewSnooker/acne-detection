@@ -21,7 +21,7 @@ import {
   getHistory,
   toOrderBy,
   type FilterableAnalysis,
-} from "./history-service";
+} from "./history";
 import { readCounts } from "@/lib/acne-counts";
 
 const row = (over: Partial<FilterableAnalysis> = {}): FilterableAnalysis => ({

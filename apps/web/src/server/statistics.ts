@@ -1,3 +1,4 @@
+import "server-only";
 import { prisma } from "@/lib/prisma";
 import { startOfDay, format, endOfDay } from "date-fns";
 import { th } from "date-fns/locale";

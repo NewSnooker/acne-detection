@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/guards";
 import { errorResponse } from "@/lib/http-error";
-import { deleteUserLogic } from "@/lib/services/user-logic";
+import { deleteUserLogic } from "@/server/users";
 
 export async function DELETE(
   _req: NextRequest,

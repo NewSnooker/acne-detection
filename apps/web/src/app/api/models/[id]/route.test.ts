@@ -13,7 +13,7 @@ vi.mock("@/lib/auth", () => ({ auth: m.auth }));
 vi.mock("@/lib/prisma", () => ({
   prisma: { aiModel: { findUnique: m.modelFindUnique } },
 }));
-vi.mock("@/lib/services/model-logic", () => ({
+vi.mock("@/server/models", () => ({
   deleteModelLogic: m.deleteModelLogic,
   setActiveModelLogic: m.setActiveModelLogic,
   editModelLogic: m.editModelLogic,

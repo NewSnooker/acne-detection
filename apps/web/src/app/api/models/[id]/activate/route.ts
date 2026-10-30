@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/guards";
 import { errorResponse } from "@/lib/http-error";
-import { setActiveModelLogic } from "@/lib/services/model-logic";
+import { setActiveModelLogic } from "@/server/models";
 
 // ตั้งเป็นโมเดลหลัก (ตัวที่ใช้วิเคราะห์)
 export async function POST(

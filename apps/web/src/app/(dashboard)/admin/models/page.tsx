@@ -1,4 +1,4 @@
-import { getAdminModels } from "@/lib/services/model-service";
+import { getAdminModels } from "@/server/models";
 import { requireAdminPage } from "@/lib/auth/guards";
 import { UploadModelDialog } from "@/components/admin/upload-model-dialog";
 import { ModelTable } from "./model-table";

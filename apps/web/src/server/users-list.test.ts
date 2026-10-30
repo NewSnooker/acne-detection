@@ -6,7 +6,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: { user: { findMany: m.userFindMany } },
 }));
 
-import { getAllUsers } from "./user-service";
+import { getAllUsers } from "./users";
 
 beforeEach(() => {
   m.userFindMany.mockReset();

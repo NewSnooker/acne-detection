@@ -1,5 +1,5 @@
 import { requireUserPage } from "@/lib/auth/guards";
-import { getHistory } from "@/lib/services/history-service";
+import { getHistory } from "@/server/history";
 import { HistoryGallery } from "@/components/history/history-gallery";
 
 export const metadata = {

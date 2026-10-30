@@ -7,7 +7,7 @@ const db = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: db }));
 
-import { registerUserLogic } from "./auth-logic";
+import { registerUserLogic } from "./auth";
 
 const valid = {
   name: "ผู้ใช้ทดสอบ",
