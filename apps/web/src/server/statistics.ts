@@ -1,4 +1,5 @@
 import "server-only";
+import { readCounts } from "@/lib/acne-counts";
 import { prisma } from "@/lib/prisma";
 import { startOfDay, format, endOfDay } from "date-fns";
 import { th } from "date-fns/locale";
@@ -123,7 +124,7 @@ export async function getAdminStatistics(
 
     // Types & Detection Results
     let totalAcneForScan = 0;
-    const counts = (analysis.counts as Record<string, number>) || {};
+    const counts = readCounts(analysis.counts);
     Object.entries(counts).forEach(([type, count]) => {
       if (typeof count === "number" && count > 0) {
         typeDistribution[type] = (typeDistribution[type] || 0) + count;

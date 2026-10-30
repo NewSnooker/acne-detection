@@ -49,50 +49,58 @@ export async function uploadModelLogic(
   return newModel;
 }
 
-type StoredModel = { id: string; provider: string; filePath: string };
+const ACTIVE_MODEL_ERROR =
+  "ลบโมเดลหลักที่ใช้งานอยู่ไม่ได้ กรุณาตั้งโมเดลอื่นเป็นโมเดลหลักก่อน";
 
-// ประวัติการวิเคราะห์ยังอยู่ แค่ตัดการอ้างถึงโมเดล แล้วจึงลบโมเดลและไฟล์
-async function removeModel(model: StoredModel) {
-  await prisma.$transaction([
-    prisma.analysis.updateMany({
-      where: { modelId: model.id },
+/**
+ * ลบโมเดลที่ไม่ใช่โมเดลหลักใน transaction เดียว — ประวัติการวิเคราะห์ยังอยู่ แค่ตัดการอ้างถึงโมเดล
+ * ตรวจ isActive ใน transaction เดียวกับการลบ จึงไม่พลาดกรณีมีคนตั้งเป็นโมเดลหลักพร้อมกัน
+ * คืนรายการที่ลบได้จริง (ข้ามรหัสที่ไม่มีอยู่และโมเดลหลัก)
+ */
+async function removeInactiveModels(ids: string[]) {
+  const removed = await prisma.$transaction(async (tx) => {
+    const models = await tx.aiModel.findMany({
+      where: { id: { in: ids }, isActive: false },
+      select: { id: true, provider: true, filePath: true },
+    });
+    const removableIds = models.map((m) => m.id);
+    if (removableIds.length === 0) return [];
+
+    await tx.analysis.updateMany({
+      where: { modelId: { in: removableIds } },
       data: { modelId: null },
-    }),
-    prisma.aiModel.delete({ where: { id: model.id } }),
-  ]);
+    });
+    const { count } = await tx.aiModel.deleteMany({
+      where: { id: { in: removableIds }, isActive: false },
+    });
+    if (count !== removableIds.length)
+      throw new HttpError(409, ACTIVE_MODEL_ERROR);
+    return models;
+  });
 
-  try {
-    await deleteModelFile(model.provider, model.filePath);
-  } catch (fsError) {
-    console.warn("Could not delete file:", fsError);
-  }
+  await Promise.all(
+    removed.map((model) =>
+      deleteModelFile(model.provider, model.filePath).catch((fsError) =>
+        console.warn("Could not delete file:", fsError),
+      ),
+    ),
+  );
+  return removed;
 }
 
 export async function deleteModelLogic(id: string) {
-  const model = await prisma.aiModel.findUnique({
-    where: { id },
-    omit: { modelData: true },
-  });
-  if (!model) throw new HttpError(404, "ไม่พบข้อมูลโมเดล");
-  if (model.isActive) {
-    throw new HttpError(
-      409,
-      "ลบโมเดลหลักที่ใช้งานอยู่ไม่ได้ กรุณาตั้งโมเดลอื่นเป็นโมเดลหลักก่อน",
-    );
-  }
-  await removeModel(model);
+  const removed = await removeInactiveModels([id]);
+  if (removed.length > 0) return;
+
+  const exists = await prisma.aiModel.count({ where: { id } });
+  throw exists
+    ? new HttpError(409, ACTIVE_MODEL_ERROR)
+    : new HttpError(404, "ไม่พบข้อมูลโมเดล");
 }
 
 /** ลบหลายตัว ข้ามโมเดลหลักและรหัสที่ไม่มีอยู่ — คืนจำนวนที่ลบได้จริง */
 export async function deleteModelsLogic(ids: string[]) {
-  const models = await prisma.aiModel.findMany({
-    where: { id: { in: ids }, isActive: false },
-    omit: { modelData: true },
-  });
-  for (const model of models) {
-    await removeModel(model);
-  }
-  return models.length;
+  return (await removeInactiveModels(ids)).length;
 }
 
 // ปิดตัวเดิมและเปิดตัวใหม่ใน transaction เดียว — มีโมเดลหลักได้ครั้งละ 1 ตัวเสมอ

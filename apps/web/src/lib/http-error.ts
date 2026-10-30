@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import type { z } from "zod";
+import { z } from "zod";
+
+// ข้อความ error มาตรฐานของ zod เป็นภาษาไทย (กรณี schema ไม่ได้กำหนดข้อความเอง)
+z.config(z.locales.th());
 
 /** error ที่ตั้งใจให้ผู้ใช้เห็น พร้อม HTTP status — โยนจาก service แล้ว route แปลงเป็น response */
 export class HttpError extends Error {

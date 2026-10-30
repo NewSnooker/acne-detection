@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminApi } from "@/lib/auth/guards";
+import {
+  errorResponse,
+  HttpError,
+  parseBody,
+  readJson,
+} from "@/lib/http-error";
+import { idListSchema } from "@/lib/validation/api-input";
 import { deleteHistories } from "@/server/history";
 
 // รับได้ทั้ง { id } (ลบเดี่ยว) และ { ids } (ลบกลุ่ม)
 const deleteSchema = z.union([
   z.object({ id: z.string().min(1) }),
-  z.object({ ids: z.array(z.string().min(1)).min(1) }),
+  idListSchema,
 ]);
 
 export async function DELETE(req: NextRequest) {
@@ -14,25 +21,16 @@ export async function DELETE(req: NextRequest) {
     const guard = await requireAdminApi();
     if (!guard.ok) return guard.response;
 
-    const parsed = deleteSchema.safeParse(await req.json().catch(() => null));
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "ข้อมูลที่ส่งมาไม่ถูกต้อง" },
-        { status: 400 },
-      );
-    }
-
-    const ids = "id" in parsed.data ? [parsed.data.id] : parsed.data.ids;
+    const body = parseBody(deleteSchema, await readJson(req));
+    const ids = "id" in body ? [body.id] : body.ids;
     const deleted = await deleteHistories(ids);
-    if (deleted === 0) {
-      return NextResponse.json(
-        { error: "ไม่พบประวัติที่ต้องการลบ" },
-        { status: 404 },
-      );
-    }
+    if (deleted === 0) throw new HttpError(404, "ไม่พบประวัติที่ต้องการลบ");
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("API /api/analyze/history Error:", error);
-    return NextResponse.json({ error: "ลบประวัติไม่สำเร็จ" }, { status: 500 });
+    return errorResponse(
+      error,
+      "ลบประวัติไม่สำเร็จ",
+      "DELETE /api/analyze/history",
+    );
   }
 }

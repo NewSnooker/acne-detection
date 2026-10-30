@@ -8,12 +8,13 @@ const db = vi.hoisted(() => ({
     findUnique: vi.fn(),
     findMany: vi.fn(),
     delete: vi.fn(),
+    deleteMany: vi.fn(),
     update: vi.fn(),
     updateMany: vi.fn(),
   },
   analysis: { updateMany: vi.fn() },
-  // จำลอง transaction แบบ array: คำสั่งข้างในถูกเรียกไปแล้ว แค่รอผล
-  $transaction: vi.fn((ops: unknown[]) => Promise.all(ops)),
+  // จำลอง transaction: แบบ array รอผลคำสั่งที่เรียกไปแล้ว, แบบ callback ส่ง db ตัวเดิมเป็น tx
+  $transaction: vi.fn(),
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: db }));
 
@@ -32,7 +33,16 @@ beforeEach(() => {
   [...Object.values(db.aiModel), ...Object.values(db.analysis)].forEach((fn) =>
     fn.mockReset(),
   );
+  db.$transaction.mockReset();
+  db.$transaction.mockImplementation((arg: unknown) =>
+    typeof arg === "function" ? arg(db) : Promise.all(arg as unknown[]),
+  );
   db.aiModel.count.mockResolvedValue(1);
+  db.aiModel.deleteMany.mockImplementation(
+    async ({ where }: { where: { id: { in: string[] } } }) => ({
+      count: where.id.in.length,
+    }),
+  );
   db.aiModel.create.mockImplementation(
     async ({ data }: { data: Record<string, unknown> }) => ({
       id: "new",
@@ -142,45 +152,52 @@ describe("setActiveModelLogic", () => {
 });
 
 describe("deleteModelLogic (ลบ 1 ตัว)", () => {
-  it("ไม่พบโมเดล ตอบ error และไม่ลบอะไร", async () => {
-    db.aiModel.findUnique.mockResolvedValue(null);
+  it("ไม่พบโมเดล ตอบ 404 และไม่ลบอะไร", async () => {
+    db.aiModel.findMany.mockResolvedValue([]);
+    db.aiModel.count.mockResolvedValue(0);
 
-    await expect(deleteModelLogic("none")).rejects.toThrow("ไม่พบข้อมูลโมเดล");
-    expect(db.aiModel.delete).not.toHaveBeenCalled();
+    await expect(deleteModelLogic("none")).rejects.toMatchObject({
+      status: 404,
+    });
+    expect(db.aiModel.deleteMany).not.toHaveBeenCalled();
   });
 
   it("ลบโมเดลแล้วประวัติการวิเคราะห์ยังอยู่ แค่ตัดการอ้างถึงโมเดล", async () => {
-    db.aiModel.findUnique.mockResolvedValue({
-      id: "m1",
-      isActive: false,
-      provider: "mongodb",
-      filePath: "",
-    });
+    db.aiModel.findMany.mockResolvedValue([
+      { id: "m1", provider: "mongodb", filePath: "" },
+    ]);
 
     await deleteModelLogic("m1");
 
     expect(db.analysis.updateMany).toHaveBeenCalledWith({
-      where: { modelId: "m1" },
+      where: { modelId: { in: ["m1"] } },
       data: { modelId: null },
     });
-    expect(db.aiModel.delete).toHaveBeenCalledWith({ where: { id: "m1" } });
+    expect(db.aiModel.deleteMany).toHaveBeenCalledWith({
+      where: { id: { in: ["m1"] }, isActive: false },
+    });
   });
 
   it("ลบโมเดลหลักที่ใช้งานอยู่ไม่ได้ (409)", async () => {
-    db.aiModel.findUnique.mockResolvedValue({
-      id: "m1",
-      isActive: true,
-      provider: "mongodb",
-      filePath: "",
-    });
+    db.aiModel.findMany.mockResolvedValue([]); // ไม่ผ่านเงื่อนไข isActive: false
+    db.aiModel.count.mockResolvedValue(1);
 
     await expect(deleteModelLogic("m1")).rejects.toMatchObject({ status: 409 });
-    expect(db.aiModel.delete).not.toHaveBeenCalled();
+    expect(db.aiModel.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("มีคนตั้งเป็นโมเดลหลักระหว่างลบ → 409 และ transaction ย้อนกลับ", async () => {
+    db.aiModel.findMany.mockResolvedValue([
+      { id: "m1", provider: "mongodb", filePath: "" },
+    ]);
+    db.aiModel.deleteMany.mockResolvedValue({ count: 0 });
+
+    await expect(deleteModelLogic("m1")).rejects.toMatchObject({ status: 409 });
   });
 });
 
 describe("deleteModelsLogic (ลบหลายตัว)", () => {
-  it("ค้นเฉพาะตัวที่ไม่ใช่โมเดลหลัก แล้วลบทีละตัว คืนจำนวนที่ลบ", async () => {
+  it("ลบเฉพาะตัวที่ไม่ใช่โมเดลหลักใน transaction เดียว คืนจำนวนที่ลบ", async () => {
     db.aiModel.findMany.mockResolvedValue([
       { id: "old1", provider: "mongodb", filePath: "" },
       { id: "old2", provider: "mongodb", filePath: "" },
@@ -194,15 +211,17 @@ describe("deleteModelsLogic (ลบหลายตัว)", () => {
       id: { in: ["active", "old1", "old2"] },
       isActive: false,
     });
-    const deleted = db.aiModel.delete.mock.calls.map((c) => c[0].where.id);
-    expect(deleted).toEqual(["old1", "old2"]);
+    expect(db.aiModel.deleteMany).toHaveBeenCalledWith({
+      where: { id: { in: ["old1", "old2"] }, isActive: false },
+    });
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
   });
 
   it("ไม่มีตัวที่ลบได้ คืน 0 โดยไม่ error", async () => {
     db.aiModel.findMany.mockResolvedValue([]);
 
     await expect(deleteModelsLogic(["x", "y"])).resolves.toBe(0);
-    expect(db.aiModel.delete).not.toHaveBeenCalled();
+    expect(db.aiModel.deleteMany).not.toHaveBeenCalled();
   });
 });
 

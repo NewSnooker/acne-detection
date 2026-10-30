@@ -158,11 +158,14 @@ export async function getHistory({
   return { items, total: filtered.length, typeCounts };
 }
 
-/** ลบประวัติ (ลบไฟล์รูปก่อน แล้วลบ Image ซึ่ง cascade ไปลบ Analysis) */
-export async function deleteHistories(ids: string[]) {
+/**
+ * ลบประวัติที่ตรงเงื่อนไข: ลบไฟล์รูปก่อน (พลาดบางรูปไม่หยุด) แล้วลบ Image ซึ่ง cascade ไปลบ Analysis
+ * คืนจำนวนรายการที่ลบ — ใช้ร่วมกับการลบผู้ใช้ด้วย
+ */
+export async function deleteAnalysesWhere(where: Prisma.AnalysisWhereInput) {
   const analyses = await prisma.analysis.findMany({
-    where: { id: { in: ids } },
-    include: { image: true },
+    where,
+    select: { image: true },
   });
 
   for (const { image } of analyses) {
@@ -173,8 +176,14 @@ export async function deleteHistories(ids: string[]) {
     }
   }
 
-  await prisma.image.deleteMany({
-    where: { id: { in: analyses.map((a) => a.image.id) } },
-  });
+  if (analyses.length > 0) {
+    await prisma.image.deleteMany({
+      where: { id: { in: analyses.map((a) => a.image.id) } },
+    });
+  }
   return analyses.length;
+}
+
+export function deleteHistories(ids: string[]) {
+  return deleteAnalysesWhere({ id: { in: ids } });
 }

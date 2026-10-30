@@ -33,12 +33,23 @@ function GlobalFilterInner() {
       ? presetFromRange(currentStart, currentEnd)
       : "all";
 
-  // state ที่ผู้ใช้กำลังแก้ จะถูกล้างเมื่อ URL เปลี่ยน (ผ่าน key ใน GlobalFilterRoute)
+  // ผู้ใช้เลือกโหมดเอง (ปุ่มปฏิทิน) — ค้างไว้แม้ URL เปลี่ยน ไม่งั้นช่วงวันที่เลือกเอง
+  // เช่น 3 วันล่าสุด จะถูกแปลงกลับเป็นตัวเลือก "7 วันล่าสุด"
   const [customModeOverride, setCustomModeOverride] = useState<boolean | null>(
     null,
   );
   const [startDate, setStartDate] = useState(currentStart || "");
   const [endDate, setEndDate] = useState(currentEnd || "");
+
+  // URL เปลี่ยนจากที่อื่น (เช่น ปุ่มย้อนกลับ) → sync ช่องวันที่ระหว่าง render
+  // ไม่ใช้ key remount เพราะจะทำให้ช่องวันที่หลุดโฟกัสขณะพิมพ์
+  const rangeKey = `${currentStart}|${currentEnd}`;
+  const [syncedRangeKey, setSyncedRangeKey] = useState(rangeKey);
+  if (rangeKey !== syncedRangeKey) {
+    setSyncedRangeKey(rangeKey);
+    setStartDate(currentStart || "");
+    setEndDate(currentEnd || "");
+  }
 
   const isCustomMode = customModeOverride ?? urlPreset === "custom";
   const preset: Preset = urlPreset === "custom" ? "all" : urlPreset;
@@ -177,12 +188,6 @@ function GlobalFilterInner() {
   );
 }
 
-function GlobalFilterRoute() {
-  const searchParams = useSearchParams();
-  const rangeKey = `${searchParams.get("start")}|${searchParams.get("end")}`;
-  return <GlobalFilterInner key={rangeKey} />;
-}
-
 export function GlobalFilter() {
   return (
     <Suspense
@@ -190,7 +195,7 @@ export function GlobalFilter() {
         <div className="bg-muted h-9 w-full animate-pulse rounded-md sm:w-40" />
       }
     >
-      <GlobalFilterRoute />
+      <GlobalFilterInner />
     </Suspense>
   );
 }

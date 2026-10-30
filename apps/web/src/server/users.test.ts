@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const m = vi.hoisted(() => ({
   analysisFindMany: vi.fn(),
   imageDeleteMany: vi.fn(),
-  userDelete: vi.fn(),
   userDeleteMany: vi.fn(),
   deleteImage: vi.fn(),
 }));
@@ -12,7 +11,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     analysis: { findMany: m.analysisFindMany },
     image: { deleteMany: m.imageDeleteMany },
-    user: { delete: m.userDelete, deleteMany: m.userDeleteMany },
+    user: { deleteMany: m.userDeleteMany },
   },
 }));
 vi.mock("@/lib/storage/image-provider", () => ({ deleteImage: m.deleteImage }));
@@ -35,13 +34,15 @@ describe("deleteUserLogic (ลบ 1 คน)", () => {
     await expect(deleteUserLogic("a1", "a1")).rejects.toThrow(
       "คุณไม่สามารถลบบัญชีผู้ดูแลระบบของตัวเองได้",
     );
-    expect(m.userDelete).not.toHaveBeenCalled();
+    expect(m.userDeleteMany).not.toHaveBeenCalled();
   });
 
   it("ลบผู้ใช้ที่ไม่มีประวัติ", async () => {
     await deleteUserLogic("u1", "a1");
 
-    expect(m.userDelete).toHaveBeenCalledWith({ where: { id: "u1" } });
+    expect(m.userDeleteMany).toHaveBeenCalledWith({
+      where: { id: { in: ["u1"] } },
+    });
     expect(m.imageDeleteMany).not.toHaveBeenCalled();
   });
 
@@ -51,15 +52,17 @@ describe("deleteUserLogic (ลบ 1 คน)", () => {
     await deleteUserLogic("u1", "a1");
 
     expect(m.analysisFindMany).toHaveBeenCalledWith({
-      where: { userId: "u1" },
-      include: { image: true },
+      where: { userId: { in: ["u1"] } },
+      select: { image: true },
     });
     expect(m.deleteImage).toHaveBeenCalledTimes(2);
     expect(m.deleteImage).toHaveBeenCalledWith("f1.jpg", "local", null);
     expect(m.imageDeleteMany).toHaveBeenCalledWith({
       where: { id: { in: ["img1", "img2"] } },
     });
-    expect(m.userDelete).toHaveBeenCalledWith({ where: { id: "u1" } });
+    expect(m.userDeleteMany).toHaveBeenCalledWith({
+      where: { id: { in: ["u1"] } },
+    });
   });
 
   it("ลบไฟล์รูปไม่สำเร็จ ก็ยังลบบัญชีผู้ใช้ต่อได้", async () => {
@@ -68,7 +71,7 @@ describe("deleteUserLogic (ลบ 1 คน)", () => {
 
     await deleteUserLogic("u1", "a1");
 
-    expect(m.userDelete).toHaveBeenCalled();
+    expect(m.userDeleteMany).toHaveBeenCalled();
   });
 });
 
@@ -100,7 +103,7 @@ describe("deleteUsersLogic (ลบหลายคน)", () => {
 
     expect(m.analysisFindMany).toHaveBeenCalledWith({
       where: { userId: { in: ["u1", "u2"] } },
-      include: { image: true },
+      select: { image: true },
     });
     expect(m.deleteImage).toHaveBeenCalledTimes(3);
     expect(m.imageDeleteMany).toHaveBeenCalledWith({
