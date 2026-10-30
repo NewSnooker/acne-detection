@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
+/* dark: ต้องตามธีมที่ผู้ใช้เลือกในเว็บ (next-themes ใส่ class "dark" ที่ <html>)
+   ค่าเริ่มต้นของ Tailwind 4 ดูธีมของระบบปฏิบัติการ ทำให้ OS มืด + เว็บสว่าง ได้สีของโหมดมืด */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     --background: 221 30% 97%;
