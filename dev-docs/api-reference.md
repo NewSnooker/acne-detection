@@ -7,21 +7,23 @@
 | GET/POST | `/api/auth/[...nextauth]` | public | — | Auth.js handlers |
 | POST | `/api/account/register` | public | JSON `{name,email,password,confirmPassword}` | `registerUserLogic` |
 | POST | `/api/analyze` | login | multipart `image` | upload → FastAPI → severity → บันทึก |
-| DELETE | `/api/analyze/history` | ADMIN | JSON `{id}` หรือ `{ids:[]}` | `deleteHistoryLogic` / `deleteHistoriesLogic` |
+| DELETE | `/api/analyze/history` | ADMIN | JSON `{id}` หรือ `{ids:[]}` | `deleteHistories` (ไม่พบตอบ 404) |
 | GET | `/api/images/[...path]` | login + เป็นเจ้าของรูป (หรือ ADMIN) | — | อ่านไฟล์จากดิสก์ (รูปคนอื่นตอบ 404, cache แบบ private) |
-| GET | `/api/models/[id]` | header `X-API-Key` (= `AI_SERVICE_API_KEY`) หรือ ADMIN | — | ส่งไฟล์ `.pt` จาก MongoDB (FastAPI เรียก) |
-| PUT | `/api/models/[id]` | ADMIN | — | ตั้งเป็น active |
-| DELETE | `/api/models/[id]` | ADMIN | — | ลบโมเดล (ไม่กันตัว active) |
-| PUT | `/api/models/[id]/edit` | ADMIN | JSON `{name,version,description?}` | แก้ข้อมูล |
-| POST | `/api/models/create` | ADMIN | multipart `file,name,version,description` | อัปโหลด `.pt` |
-| DELETE | `/api/models` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม (ข้ามตัว active) |
+| GET | `/api/models/[id]` | header `X-API-Key` (= `AI_SERVICE_API_KEY`) หรือ ADMIN | — | ส่งไฟล์ `.pt` จาก MongoDB (FastAPI เรียก — ห้ามเปลี่ยน path) |
+| PATCH | `/api/models/[id]` | ADMIN | JSON `{name,version,description?,mAP50?,precision?,recall?,f1Score?,accuracy?}` | แก้ข้อมูลและค่าประเมิน |
+| DELETE | `/api/models/[id]` | ADMIN | — | ลบโมเดล (โมเดลหลักตอบ 409) |
+| POST | `/api/models/[id]/activate` | ADMIN | — | ตั้งเป็นโมเดลหลัก (ไม่พบตอบ 404) |
+| POST | `/api/models` | ADMIN | multipart `file,name,version,description` | อัปโหลด `.pt` ตอบ 201 |
+| DELETE | `/api/models` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม (ข้ามตัว active) คืน `count` |
 | DELETE | `/api/users/[id]` | ADMIN | — | ลบผู้ใช้ + รูป + ประวัติ (กันลบตัวเอง) |
-| DELETE | `/api/users` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม |
+| DELETE | `/api/users` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม คืน `count` |
 
 รูปแบบ response: สำเร็จ `{ success: true, ... }` / ผิดพลาด `{ error: "ข้อความไทย" }`
 ไม่ผ่านสิทธิ์: 401 เมื่อยังไม่ login, 403 เมื่อ role ไม่ถึง (ตรวจด้วย `lib/auth/guards.ts`)
+body ผิดรูปแบบ: 400 (ตรวจด้วย zod ผ่าน `parseBody` ใน `lib/http-error.ts`), ไม่พบ: 404, ขัดกับสถานะ (เช่นลบโมเดลหลัก, อีเมลซ้ำ): 409
+error ที่ไม่ได้ตั้งใจตอบ 500 พร้อมข้อความกลางๆ — รายละเอียดอยู่ใน log ของเซิร์ฟเวอร์เท่านั้น
 
-การอ่านข้อมูล (list ผู้ใช้/โมเดล/ประวัติ/สถิติ) **ไม่มี API** — server component เรียก Prisma ตรงผ่าน `lib/services/*-service.ts`
+การอ่านข้อมูล (list ผู้ใช้/โมเดล/ประวัติ/สถิติ) **ไม่มี API** — server component เรียก `src/server/<feature>.ts` ตรง
 
 ### Server Actions (`app/actions/auth-actions.ts`)
 
@@ -31,9 +33,9 @@
 | `loginWithGoogle()` | `login-form.tsx` (`<form action>`) — ถ้าไม่มี env ของ Google จะ redirect ไป `/login?error=GoogleNotConfigured` |
 | `registerUser(formData)` | ไม่ถูกใช้ (ซ้ำกับ `/api/account/register`) |
 
-### Client fetch wrappers (`src/services`)
+### Client fetch wrappers (`src/lib/api-client`)
 
-`AnalyzeService.analyzeImage / deleteHistory / deleteHistories`, `AuthService.register`,
+`AnalyzeService.analyzeImage / deleteHistories`, `AuthService.register`,
 `ModelService.uploadModel / toggleModelActive / deleteModel / deleteModels / editModel`, `UserService.deleteUser / deleteUsers`
 ทุกตัวคืน `{ success?, error?, ... }` ไม่ throw
 

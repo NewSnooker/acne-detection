@@ -26,7 +26,7 @@
 
 ```
 [Client] components/analyze/image-analyzer.tsx
-   │ FormData { image }  ผ่าน services/analyze-service.ts
+   │ FormData { image }  ผ่าน lib/api-client/analyze-api.ts
    ▼
 [Next] POST /api/analyze  (app/api/analyze/route.ts)
    1. auth() + เช็คว่า user ยังอยู่ใน DB
@@ -54,11 +54,11 @@
 ## Flow: จัดการโมเดล (Admin)
 
 ```
-upload-model-dialog.tsx → POST /api/models/create (multipart)
+upload-model-dialog.tsx → POST /api/models (multipart)
    → uploadModelLogic(): Buffer ทั้งไฟล์ → AiModel { modelData, provider:"mongodb", isActive = (ยังไม่มีตัว active) }
-ตั้ง active:  PUT /api/models/[id]        → setActiveModelLogic (ปิดตัวอื่น แล้วเปิดตัวนี้)
-แก้ข้อมูล:    PUT /api/models/[id]/edit   → name, version, description
-ลบ:          DELETE /api/models/[id] | DELETE /api/models { ids }  (batch ข้ามตัว active)
+ตั้ง active:  POST /api/models/[id]/activate → setActiveModelLogic (ปิดตัวอื่น แล้วเปิดตัวนี้ ใน $transaction)
+แก้ข้อมูล:    PATCH /api/models/[id]         → name, version, description, ค่าประเมิน
+ลบ:          DELETE /api/models/[id] (โมเดลหลักตอบ 409) | DELETE /api/models { ids }  (batch ข้ามตัว active)
 FastAPI ดึงไฟล์: GET /api/models/[id]     → stream binary
 ```
 
@@ -69,11 +69,11 @@ FastAPI ดึงไฟล์: GET /api/models/[id]     → stream binary
 | local | `STORAGE_PATH` หรือ `<repo>/apps/images` | `uuid.ext` | null | `GET /api/images/{fileName}` |
 | vercel-blob | Vercel Blob `acne-ai/uuid.ext` | blob pathname | public URL | ใช้ URL ตรง |
 
-ลบรูป: `deleteImage()` ถูกเรียกจาก history-service และ user-logic ก่อนลบ record
+ลบรูป: `deleteImage()` ถูกเรียกจาก `server/history.ts` และ `server/users.ts` ก่อนลบ record และจาก `POST /api/analyze` เมื่อวิเคราะห์หรือบันทึกผลไม่สำเร็จ (ไม่ให้รูปค้าง)
 
 ## Severity (ต้องตรงกับเล่ม 1.3.3.5)
 
-`apps/web/src/lib/services/analyze-logic.ts` → `calculateSeverity(counts)`
+`apps/web/src/server/analyze.ts` → `calculateSeverity(counts)`
 
 ```
 nonInfl = blackhead + whitehead
@@ -93,7 +93,7 @@ MILD     กรณีที่เหลือ
 - Provider: Google, Credentials (bcrypt)
 - `lib/auth.config.ts` = config ที่ edge-safe (callbacks ใส่ `id`, `role` ลง token/session) ใช้ใน `proxy.ts`
 - `lib/auth.ts` = config เต็ม (adapter + providers) ใช้ฝั่ง server
-- ผู้ใช้คนแรกที่สมัครผ่านฟอร์มได้ role `ADMIN` (`lib/services/auth-logic.ts`) ที่เหลือเป็น `USER` — ใน Docker `prisma/seed.mjs` สร้างแอดมินไว้ก่อนแล้ว คนที่สมัครทีหลังจึงเป็น `USER`
+- ผู้ใช้คนแรกที่สมัครผ่านฟอร์มได้ role `ADMIN` (`server/auth.ts`) ที่เหลือเป็น `USER` — ใน Docker `prisma/seed.mjs` สร้างแอดมินไว้ก่อนแล้ว คนที่สมัครทีหลังจึงเป็น `USER`
 - Google provider ถูกลงทะเบียนเฉพาะเมื่อมี `GOOGLE_CLIENT_ID` และ `GOOGLE_CLIENT_SECRET` (`lib/auth/google.ts`) ถ้าไม่มี ปุ่ม Google ในหน้า login จะแจ้งเตือนแทน
 - `role` ถูกฝังใน JWT ตอน login — เปลี่ยน role ใน DB แล้วต้อง login ใหม่ถึงจะมีผล
 

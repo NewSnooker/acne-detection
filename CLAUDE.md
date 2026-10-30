@@ -43,10 +43,10 @@ acne-ai-v1/
 │   │       ├── app/(dashboard)/      ← /analyze, /history, /statistics, /admin/*
 │   │       ├── app/api/              ← Route Handlers (backend)
 │   │       ├── app/actions/          ← Server Actions (เฉพาะ login)
-│   │       ├── lib/services/         ← business logic ฝั่ง server (Prisma)
+│   │       ├── server/               ← business logic ฝั่ง server (Prisma, import "server-only") แยกไฟล์ตาม feature
 │   │       ├── lib/storage/          ← image-provider (local/Vercel Blob), model-provider (MongoDB)
 │   │       ├── lib/auth*.ts          ← Auth.js config
-│   │       ├── services/             ← fetch wrapper ฝั่ง client (เรียก /api/*)
+│   │       ├── lib/api-client/       ← fetch wrapper ฝั่ง client (เรียก /api/*)
 │   │       ├── components/           ← admin, analyze, auth, history, layout, statistics, ui
 │   │       ├── schemas/              ← zod (auth)
 │   │       └── types/analyze.ts      ← type + ค่าคงที่ (สี, ชื่อไทย, คำแนะนำ)
@@ -107,7 +107,7 @@ CI (`.github/workflows/ci.yml`) รันทุก push เข้า `main` แ�
 ## กฎเหล็ก (ต้องรู้ก่อนแก้โค้ด)
 
 1. **Next.js 16** — middleware ชื่อ `src/proxy.ts`, `params`/`searchParams` เป็น Promise ต้อง `await` เสมอ อ่าน `node_modules/next/dist/docs/` ก่อนใช้ API ที่ไม่แน่ใจ
-2. **เกณฑ์ severity ต้องตรงกับเล่มข้อ 1.3.3.5** — อยู่ที่ `calculateSeverity()` ใน `lib/services/analyze-logic.ts` ห้ามแก้ตัวเลขโดยไม่แก้เล่ม
+2. **เกณฑ์ severity ต้องตรงกับเล่มข้อ 1.3.3.5** — อยู่ที่ `calculateSeverity()` ใน `server/analyze.ts` ห้ามแก้ตัวเลขโดยไม่แก้เล่ม
 3. **ชื่อคลาสสิว 6 ตัว** (`blackhead, whitehead, papule, pustule, nodule, cyst`) ใช้เป็น key ร่วมกันทั้ง Python, DB (`Analysis.counts`), และ UI ห้ามเปลี่ยนตัวสะกด
 4. **ลำดับ index คลาส** ถูก hard-code ใน `yolo_service.py` (`ACNE_CLASSES`) ต้องตรงกับโมเดลที่เทรน
 5. **Prisma `Bytes`** ต้องส่ง `Buffer` เท่านั้น (`Uint8Array` จะกลายเป็น null)
@@ -115,8 +115,9 @@ CI (`.github/workflows/ci.yml`) รันทุก push เข้า `main` แ�
 7. Login ต้องผ่าน Server Action (`app/actions/auth-actions.ts`) เพราะ Auth.js ต้อง set cookie — CRUD อื่นผ่าน API Routes
 8. สิทธิ์ admin ต้องเช็ค **ทั้ง** ใน `proxy.ts` (หน้า `/admin/*`) **และ** ในทุก route handler (`session.user.role === "ADMIN"`)
 9. ห้าม commit `.env`, ไฟล์ `.pt`, รูปใน `apps/images/`
-10. UI และข้อความ error เป็นภาษาไทย
+10. UI และข้อความ error เป็นภาษาไทย — error ที่ผู้ใช้ควรเห็นให้โยน `HttpError(status, ข้อความ)` (`lib/http-error.ts`) และตรวจ body ด้วย zod ผ่าน `parseBody`
 11. ห้ามฝัง key หรือ secret ในโค้ด — ค่าเริ่มต้นสำหรับ Docker อยู่ใน `docker-compose.yml` ที่เดียว และ `AI_SERVICE_API_KEY` ของ web กับ ai ต้องเป็นค่าเดียวกัน
+12. ห้ามใช้ `any` (lint เป็น error) — ใช้ type จาก `@prisma/client` หรือ `unknown` แล้ว narrow
 
 ## ศัพท์ในโปรเจค
 

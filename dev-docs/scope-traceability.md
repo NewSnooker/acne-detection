@@ -10,9 +10,9 @@
 |---|---|---|---|
 | 1.3.1.1 | เข้า/ออกจากระบบ | ✅ | `login-form.tsx`, `auth-actions.ts`, `header.tsx` (signOut) |
 | 1.3.1.2 | เข้าด้วย Google | ✅ | `lib/auth.ts` (Google provider) |
-| 1.3.1.3 | ลบข้อมูลผู้ใช้ | ✅ | `/admin/users`, `user-logic.ts`, `DELETE /api/users[/id]` |
-| 1.3.1.4 | เพิ่ม ลบ แก้ไข ค้นหา โมเดล AI | ✅ | `/admin/models`, `model-logic.ts`, ค้นหาด้วย quick filter ของ AG Grid |
-| 1.3.1.5 | ดูประวัติการใช้งานของผู้ใช้ | ✅ | `/admin/history`, `getAllHistory` |
+| 1.3.1.3 | ลบข้อมูลผู้ใช้ | ✅ | `/admin/users`, `server/users.ts`, `DELETE /api/users[/id]` |
+| 1.3.1.4 | เพิ่ม ลบ แก้ไข ค้นหา โมเดล AI | ✅ | `/admin/models`, `server/models.ts`, ค้นหาด้วย quick filter ของ AG Grid |
+| 1.3.1.5 | ดูประวัติการใช้งานของผู้ใช้ | ✅ | `/admin/history`, `getHistory` |
 | 1.3.1.6 | ภาพรวมระบบ (สถิติ, การเติบโต, สแกน, สัดส่วนชนิดสิว) | ✅ | `/admin/statistics`, `getAdminStatistics`, `admin-*-chart.tsx` |
 
 ## 1.3.2 ผู้ใช้ทั่วไป
@@ -23,7 +23,7 @@
 | 1.3.2.2 | เข้าด้วย Google | ✅ | |
 | 1.3.2.3 | อัปโหลดภาพ **JPEG และ PNG** | ✅ | `lib/validation/image-file.ts` ใช้ร่วมกันทั้งหน้าเว็บและ `/api/analyze`: รับเฉพาะ JPEG/PNG ไม่เกิน 10 MB และฝั่ง API ตรวจเนื้อไฟล์จริง (magic bytes) |
 | 1.3.2.4 | ดูระดับความรุนแรง + คำแนะนำ | ✅ | `analysis-result.tsx`, `ACNE_CARE_ADVICE` (คำแนะนำไม่แสดงเมื่อไม่พบสิว) |
-| 1.3.2.5 | ดูประวัติย้อนหลังของตนเอง | ✅ | `/history`, `getUserHistory` |
+| 1.3.2.5 | ดูประวัติย้อนหลังของตนเอง | ✅ | `/history`, `getHistory({ userId })` |
 | 1.3.2.6 | ภาพรวมของผู้ใช้ (สถิติ, กราฟจำนวนสิว, สัดส่วนประเภท) | ✅ | `/statistics`, `statistics-dashboard.tsx` |
 
 ## 1.3.3 ระบบ
