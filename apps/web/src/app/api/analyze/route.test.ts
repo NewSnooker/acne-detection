@@ -9,6 +9,7 @@ const m = vi.hoisted(() => ({
   modelFindFirst: vi.fn(),
   analysisCreate: vi.fn(),
   uploadImage: vi.fn(),
+  deleteImage: vi.fn(),
   callFastApiForPrediction: vi.fn(),
 }));
 vi.mock("@/lib/auth", () => ({ auth: m.auth }));
@@ -19,7 +20,10 @@ vi.mock("@/lib/prisma", () => ({
     analysis: { create: m.analysisCreate },
   },
 }));
-vi.mock("@/lib/storage/image-provider", () => ({ uploadImage: m.uploadImage }));
+vi.mock("@/lib/storage/image-provider", () => ({
+  uploadImage: m.uploadImage,
+  deleteImage: m.deleteImage,
+}));
 // ใช้ calculateSeverity ตัวจริง จำลองเฉพาะการเรียกบริการ AI
 vi.mock("@/server/analyze", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/server/analyze")>()),
@@ -68,6 +72,7 @@ beforeEach(() => {
   });
   m.callFastApiForPrediction.mockResolvedValue(aiResult({ papule: 2 }));
   m.analysisCreate.mockResolvedValue({ id: "analysis1" });
+  m.deleteImage.mockResolvedValue(undefined);
 });
 
 describe("POST /api/analyze", () => {
@@ -150,6 +155,7 @@ describe("POST /api/analyze", () => {
     // ใช้โมเดลหลักตัวที่เปิดใช้งานอยู่
     expect(m.modelFindFirst).toHaveBeenCalledWith({
       where: { isActive: true },
+      select: { id: true },
     });
     expect(m.callFastApiForPrediction).toHaveBeenCalledWith(
       expect.objectContaining({ originalImage: "abc.jpg" }),
@@ -206,5 +212,30 @@ describe("POST /api/analyze", () => {
       error: "การประมวลผลรูปภาพขัดข้องที่ระบบ AI",
     });
     expect(m.analysisCreate).not.toHaveBeenCalled();
+    // รูปที่อัปโหลดไปแล้วต้องถูกลบ ไม่ค้างอยู่โดยไม่มีผลวิเคราะห์
+    expect(m.deleteImage).toHaveBeenCalledWith("abc.jpg", "local", null);
+  });
+
+  it("บันทึกผลไม่สำเร็จ ลบรูปทิ้ง และถ้าลบรูปพลาดก็ยังตอบ error เดิม", async () => {
+    m.analysisCreate.mockRejectedValue(new Error("db down"));
+    m.deleteImage.mockRejectedValue(new Error("disk"));
+
+    const res = await POST(request(jpeg()));
+
+    expect(res.status).toBe(500);
+    expect(m.deleteImage).toHaveBeenCalledTimes(1);
+    expect((await res.json()).error).toBe("db down");
+  });
+
+  it("ดึงโมเดลหลักเฉพาะ id ไม่ดึงไฟล์โมเดล", async () => {
+    await POST(request(jpeg()));
+
+    expect(m.modelFindFirst.mock.calls[0][0].select).toEqual({ id: true });
+  });
+
+  it("วิเคราะห์สำเร็จ ไม่ลบรูป", async () => {
+    await POST(request(jpeg()));
+
+    expect(m.deleteImage).not.toHaveBeenCalled();
   });
 });
