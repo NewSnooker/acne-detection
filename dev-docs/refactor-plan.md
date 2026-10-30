@@ -19,6 +19,7 @@
 | 25 โค้ดที่ไม่ได้ใช้ | ลบแล้ว — ไฟล์ ฟังก์ชัน package และตัวแปร env ที่ไม่มีใครเรียก |
 | 27 test | ทำแล้วเฉพาะฟีเจอร์สำคัญ — เว็บ 164 กรณี (Vitest), AI 37 กรณี (pytest) ดู `testing.md` |
 | 28 `.gitattributes` | เพิ่มแล้ว |
+| 29 CI, prettier, typecheck | ทำแล้ว (2026-10-30) — `.github/workflows/ci.yml`, prettier + `prettier-plugin-tailwindcss`, commit จัดรูปแบบอยู่ใน `.git-blame-ignore-revs` |
 | 31 `.env.example` ไม่ตรงโค้ด | แก้แล้ว (`APP_ENV=hosted`) |
 | 32 แอดมินคนแรก | ใน Docker ใช้ seed แล้ว; โหมด dev ยังใช้กฎ "คนแรกที่สมัครเป็น ADMIN" |
 | 8, 9, 24 | แก้แล้ว (2026-10-19) — ค่าประเมินโมเดลให้แอดมินกรอก, การ์ดคำแนะนำองค์รวมในหน้า `/analyze`, เปิด `/` และ `/knowledge` เป็นหน้าสาธารณะ |

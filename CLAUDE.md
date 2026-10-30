@@ -85,6 +85,7 @@ npm run build               # prisma generate && next build
 npm run lint
 npm run typecheck           # tsc --noEmit
 npm test                    # ชุดทดสอบ (Vitest)
+npm run format              # จัดรูปแบบด้วย prettier (CI เช็คด้วย format:check)
 npx prisma generate         # หลังแก้ schema.prisma
 npx prisma db push          # sync schema ขึ้น MongoDB (ไม่มี migration สำหรับ MongoDB)
 
@@ -101,7 +102,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 npm run db:seed
 ```
 
-ยังไม่มี test และ CI ในโปรเจค
+CI (`.github/workflows/ci.yml`) รันทุก push เข้า `main` และทุก PR: เว็บ = format:check + lint + typecheck + test, AI = pytest (ไม่ติดตั้ง torch)
 
 ## กฎเหล็ก (ต้องรู้ก่อนแก้โค้ด)
 

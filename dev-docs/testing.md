@@ -15,7 +15,9 @@ venv\Scripts\python.exe -m pip install -r requirements-dev.txt   # ครั้�
 venv\Scripts\python.exe -m pytest
 ```
 
-ผลล่าสุด (2026-10-05): เว็บ 164 กรณีผ่าน, AI 37 กรณีผ่าน
+ผลล่าสุด (2026-10-30): เว็บ 170 กรณีผ่าน, AI 37 กรณีผ่าน
+
+GitHub Actions (`.github/workflows/ci.yml`) รันชุดเดียวกันนี้ทุก push เข้า `main` และทุก PR พร้อม `format:check`, `lint`, `typecheck` ฝั่งเว็บ
 
 ## วิธีที่ใช้
 
