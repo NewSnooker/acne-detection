@@ -1,5 +1,5 @@
 import { requireUserPage } from "@/lib/auth/guards";
-import { getUserHistory } from "@/lib/services/history-service";
+import { getHistory } from "@/lib/services/history-service";
 import { HistoryGallery } from "@/components/history/history-gallery";
 
 export const metadata = {
@@ -23,24 +23,18 @@ export default async function HistoryPage({
 
   const params = await searchParams;
 
-  // Always fetch a large limit (e.g. 10000) so HistoryGallery can handle client-side pagination
-  const fetchLimit = 10000;
-  const skip = 0;
-
   const sort = params.sort || "desc";
   const search = params.search;
   const date = params.date;
   const types = params.types ? params.types.split(",") : [];
 
-  const { items, total, typeCounts } = await getUserHistory(
-    session.user.id,
-    fetchLimit,
-    skip,
+  const { items, total, typeCounts } = await getHistory({
+    userId: session.user.id,
     sort,
     search,
     date,
     types,
-  );
+  });
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
