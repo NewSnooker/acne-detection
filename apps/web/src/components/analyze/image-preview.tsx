@@ -60,7 +60,7 @@ export function ImagePreview({
         ctx.strokeRect(x1, y1, w, h);
 
         // ป้ายชื่อชนิดสิวภาษาไทย ใช้ฟอนต์เดียวกับหน้าเว็บ (มีฟอนต์ไทย)
-        const fontSize = Math.max(12, image.naturalWidth / 40);
+        const fontSize = Math.max(11, image.naturalWidth / 70);
         const fontFamily = getComputedStyle(document.body).fontFamily;
         ctx.font = `600 ${fontSize}px ${fontFamily}`;
         ctx.textBaseline = "middle";
