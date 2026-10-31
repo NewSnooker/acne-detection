@@ -19,7 +19,6 @@ export function AcneTypeGrid({ detailed = false }: { detailed?: boolean }) {
             >
               <SampleImage
                 src={sample.src}
-                boxes={sample.boxes}
                 alt={`ตัวอย่างภาพ${ACNE_LABELS[type]}`}
               />
               <div className="flex flex-col gap-2 p-5">

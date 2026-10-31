@@ -7,7 +7,7 @@ import type { PrivacyBar } from "@/config/site";
 // ภาพตัวอย่างจากชุดข้อมูล พร้อมกรอบสีตามชนิดสิว (สีเดียวกับหน้าผลวิเคราะห์)
 export function SampleImage({
   src,
-  boxes,
+  boxes = [],
   alt,
   showLabels = false,
   priority = false,
@@ -15,7 +15,7 @@ export function SampleImage({
   className,
 }: {
   src: string;
-  boxes: SampleBox[];
+  boxes?: SampleBox[];
   alt: string;
   showLabels?: boolean;
   priority?: boolean;

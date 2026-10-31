@@ -31,7 +31,7 @@
 
 **ธีมสีและโหมดมืด:** ทุกหน้ามีปุ่มรูปจานสี (เลือกธีมสี 5 ชุด: ฟ้าเป็นค่าเริ่มต้น, ชมพูโรส, เขียวมิ้นต์, ม่วงลาเวนเดอร์, ส้มพีช) และปุ่มพระจันทร์/พระอาทิตย์ (สลับโหมดสว่าง/มืด) เบราว์เซอร์จะจำค่าที่เลือกไว้
 
-ภาพตัวอย่างมาจากชุดข้อมูลบน Roboflow Universe สัญญาอนุญาต CC BY 4.0: ภาพหลักจาก [acne](https://universe.roboflow.com/-mqoyk/acne-ygqhs-w99jc) และภาพสิว 6 ชนิดจาก [Acne14k](https://universe.roboflow.com/s-workspace-fmu4q/acne-dataset-6-classes-ubwa5) (ตีกรอบครบทุกจุดตาม label ของชุดข้อมูล)
+ภาพตัวอย่างมาจากชุดข้อมูลบน Roboflow Universe สัญญาอนุญาต CC BY 4.0: ภาพหลักจาก [acne](https://universe.roboflow.com/-mqoyk/acne-ygqhs-w99jc) และภาพสิว 6 ชนิดจาก [Acne14k](https://universe.roboflow.com/s-workspace-fmu4q/acne-dataset-6-classes-ubwa5)
 
 [↑ สารบัญ](#toc)
 

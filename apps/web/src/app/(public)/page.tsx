@@ -312,7 +312,7 @@ export default async function HomePage() {
           <SectionHeading
             eyebrow="ชนิดของสิว"
             title={`สิว 6 ชนิดที่ ${siteConfig.name} ตรวจจับได้`}
-            desc="แบ่งเป็น 3 กลุ่มตามความลึกของการอักเสบ ภาพทั้งหมดเป็นภาพจริงพร้อมกรอบสีแบบเดียวกับผลวิเคราะห์"
+            desc="แบ่งเป็น 3 กลุ่มตามความลึกของการอักเสบ ภาพทั้งหมดเป็นภาพจริงจากชุดข้อมูล"
           />
           <AcneTypeGrid detailed />
         </div>
