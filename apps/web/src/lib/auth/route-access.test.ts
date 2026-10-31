@@ -24,7 +24,6 @@ describe("resolveRedirect", () => {
     it.each([
       "/",
       "/knowledge",
-      "/acne-types",
       "/accuracy",
       "/login",
       "/register",

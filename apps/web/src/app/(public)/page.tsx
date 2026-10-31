@@ -40,7 +40,7 @@ const STEPS = [
 
 const EXPLORE = [
   {
-    href: "/acne-types",
+    href: "/knowledge#types",
     icon: ScanFace,
     title: "สิว 6 ชนิด",
     desc: "สิวหัวดำ หัวขาว ตุ่มแดง หัวหนอง ก้อนแข็ง และซีสต์ ดูภาพจริงและวิธีดูแล",
@@ -138,7 +138,7 @@ export default async function HomePage() {
               variant="outline"
               className="h-12 rounded-full px-7 text-base"
             >
-              <Link href="/acne-types">ดูสิว 6 ชนิด</Link>
+              <Link href="/knowledge#types">ดูสิว 6 ชนิด</Link>
             </Button>
           </div>
           <ul className="text-muted-foreground flex flex-wrap gap-x-6 gap-y-2 text-sm">

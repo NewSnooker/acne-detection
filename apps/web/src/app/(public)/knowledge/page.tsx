@@ -1,5 +1,7 @@
 import { CircleCheck, Stethoscope } from "lucide-react";
 import { StartCta } from "@/components/public/page-intro";
+import { AcneTypeGrid } from "@/components/knowledge/acne-type-grid";
+import { siteConfig } from "@/config/site";
 import { MedicalDisclaimer } from "@/components/analyze/medical-disclaimer";
 import { HolisticCare } from "@/components/knowledge/holistic-care";
 import {
@@ -9,15 +11,16 @@ import {
 } from "@/components/knowledge/content";
 
 export const metadata = {
-  title: "ความรู้ดูแลผิวแบบองค์รวม",
+  title: "ความรู้เรื่องสิวและการดูแลผิว",
   description:
-    "คำแนะนำดูแลผิวแบบองค์รวม การนอน ความเครียด อาหาร การดูแลผิวพื้นฐาน สาเหตุของสิว และเมื่อไรควรพบแพทย์",
+    "คำแนะนำดูแลผิวแบบองค์รวม การนอน ความเครียด อาหาร การดูแลผิวพื้นฐาน สาเหตุของสิว สิว 6 ชนิด และเมื่อไรควรพบแพทย์",
 };
 
 const TOC = [
   { href: "#holistic", label: "ดูแลผิวแบบองค์รวม" },
   { href: "#skincare", label: "ดูแลผิวพื้นฐาน" },
   { href: "#causes", label: "สาเหตุของสิว" },
+  { href: "#types", label: "สิว 6 ชนิด" },
   { href: "#doctor", label: "เมื่อไรควรพบแพทย์" },
 ];
 
@@ -46,11 +49,12 @@ export default function KnowledgePage() {
           ความรู้ก่อนเริ่มวิเคราะห์
         </span>
         <h1 className="text-4xl font-extrabold md:text-5xl">
-          ดูแลผิวแบบองค์รวม
+          ความรู้เรื่องสิวและการดูแลผิว
         </h1>
         <p className="text-muted-foreground max-w-2xl text-lg">
           สิวไม่ได้เกิดจากผิวอย่างเดียว การนอน ความเครียด และอาหารมีผลด้วย
-          อ่านคำแนะนำพื้นฐานก่อน แล้วค่อยอัปโหลดรูปเพื่อให้ AI ช่วยประเมิน
+          อ่านวิธีดูแลผิวและรู้จักสิว 6 ชนิดก่อน แล้วค่อยอัปโหลดรูปเพื่อให้ AI
+          ช่วยประเมิน
         </p>
         <nav aria-label="สารบัญ" className="flex flex-wrap gap-2">
           {TOC.map((item) => (
@@ -109,6 +113,15 @@ export default function KnowledgePage() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="flex flex-col gap-6">
+        <Heading
+          id="types"
+          title={`สิว 6 ชนิดที่ ${siteConfig.name} ตรวจจับได้`}
+          desc="แบ่งเป็น 3 กลุ่มตามความลึกของการอักเสบ ภาพทั้งหมดเป็นภาพจริงพร้อมกรอบสีแบบเดียวกับผลวิเคราะห์"
+        />
+        <AcneTypeGrid detailed />
       </section>
 
       <section className="flex flex-col gap-6">
