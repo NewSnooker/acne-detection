@@ -173,7 +173,7 @@ export function PersonalStatsChart({ data }: PersonalStatsChartProps) {
 
   if (data.length === 0) {
     return (
-      <EmptyState title="ยังไม่มีประวัติการวิเคราะห์" className="h-[400px]" />
+      <EmptyState title="ยังไม่มีประวัติการวิเคราะห์" className="h-[350px]" />
     );
   }
 

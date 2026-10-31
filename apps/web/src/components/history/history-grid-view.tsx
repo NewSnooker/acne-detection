@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Clock, ImageOff, Sparkles } from "lucide-react";
+import { Clock, Sparkles } from "lucide-react";
+import { MissingImage } from "@/components/ui/missing-image";
 import { cn } from "@/lib/utils";
 import { SEVERITY_LABELS, ACNE_COLORS, ACNE_LABELS } from "@/types/analyze";
 import { HistoryItem } from "./history-gallery";
@@ -33,14 +34,7 @@ function formatDate(date: Date) {
 function HistoryThumb({ src }: { src: string }) {
   const [broken, setBroken] = useState(false);
 
-  if (broken) {
-    return (
-      <div className="text-muted-foreground flex h-full w-full flex-col items-center justify-center gap-2">
-        <ImageOff className="h-7 w-7" aria-hidden="true" />
-        <span className="text-xs">ไม่พบไฟล์รูป</span>
-      </div>
-    );
-  }
+  if (broken) return <MissingImage />;
 
   return (
     <Image

@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { useState, useMemo } from "react";
 import {
   subDays,
@@ -186,6 +187,8 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
     dateSuffix = "ในเดือนนี้"; // default
   }
 
+  const hasData = filteredData.length > 0;
+
   return (
     <div className="space-y-6">
       {/* Header and Filter */}
@@ -287,14 +290,21 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
               </p>
             </div>
           </div>
-          <div className="min-h-[350px] flex-1">
-            <PersonalStatsChart data={paddedDailyData} />
+          <div className="flex min-h-[350px] flex-1 flex-col">
+            {hasData ? (
+              <PersonalStatsChart data={paddedDailyData} />
+            ) : (
+              <EmptyState
+                title="ยังไม่มีประวัติการวิเคราะห์"
+                className="flex-1"
+              />
+            )}
           </div>
         </div>
 
         {/* Combined Severity & Types Chart (Spans 1 column) */}
         <div className="bg-card flex flex-col rounded-2xl border p-6 shadow-sm lg:col-span-1">
-          <div className="mb-4 flex flex-col gap-3">
+          <div className="flex flex-col gap-3">
             <div>
               <h2 className="flex items-center gap-2 text-xl font-semibold">
                 ภาพรวมและประเภทสิว
@@ -304,32 +314,39 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
               </p>
             </div>
 
-            {/* Custom Tabs */}
-            <div className="bg-muted flex rounded-lg p-1">
-              <button
-                className={`flex-1 cursor-pointer rounded-md py-1.5 text-sm transition-all ${
-                  activeTab === "severity"
-                    ? "bg-background text-foreground font-medium shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-                onClick={() => setActiveTab("severity")}
-              >
-                ระดับความรุนแรง
-              </button>
-              <button
-                className={`flex-1 cursor-pointer rounded-md py-1.5 text-sm transition-all ${
-                  activeTab === "types"
-                    ? "bg-background text-foreground font-medium shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-                onClick={() => setActiveTab("types")}
-              >
-                ประเภทสิว
-              </button>
-            </div>
+            {/* Custom Tabs — ซ่อนตอนยังไม่มีข้อมูล ให้กล่องว่างอยู่ระดับเดียวกับฝั่งซ้าย */}
+            {hasData && (
+              <div className="bg-muted mb-4 flex rounded-lg p-1">
+                <button
+                  className={`flex-1 cursor-pointer rounded-md py-1.5 text-sm transition-all ${
+                    activeTab === "severity"
+                      ? "bg-background text-foreground font-medium shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  onClick={() => setActiveTab("severity")}
+                >
+                  ระดับความรุนแรง
+                </button>
+                <button
+                  className={`flex-1 cursor-pointer rounded-md py-1.5 text-sm transition-all ${
+                    activeTab === "types"
+                      ? "bg-background text-foreground font-medium shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  onClick={() => setActiveTab("types")}
+                >
+                  ประเภทสิว
+                </button>
+              </div>
+            )}
           </div>
-          <div className="flex min-h-[350px] flex-1 items-center justify-center">
-            {activeTab === "severity" ? (
+          <div className="flex min-h-[350px] flex-1 flex-col items-center justify-center">
+            {!hasData ? (
+              <EmptyState
+                title="ยังไม่มีประวัติการวิเคราะห์"
+                className="flex-1"
+              />
+            ) : activeTab === "severity" ? (
               <SeverityDonutChart data={filteredData} />
             ) : (
               <AcneTypesChart data={filteredData} />
