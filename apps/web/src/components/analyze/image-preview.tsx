@@ -82,8 +82,10 @@ export function ImagePreview({
   return (
     <div
       className={cn(
-        "bg-card group relative flex h-auto w-full items-center justify-center overflow-hidden rounded-3xl border shadow-sm",
-        !fit && "min-h-[250px] lg:min-h-[420px]",
+        "bg-card group relative flex h-auto items-center justify-center overflow-hidden rounded-3xl border shadow-sm",
+        fit
+          ? "mx-auto w-fit max-w-full"
+          : "min-h-[250px] w-full lg:min-h-[420px]",
       )}
     >
       {!result ? (
