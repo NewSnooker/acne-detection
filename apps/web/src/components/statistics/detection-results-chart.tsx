@@ -131,7 +131,7 @@ export function DetectionResultsChart({ data }: DetectionResultsChartProps) {
   const total = data.ACNE + data.CLEAR;
 
   if (total === 0) {
-    return <EmptyState title="ไม่มีข้อมูล" className="h-[300px]" />;
+    return <EmptyState title="ไม่มีข้อมูล" className="h-[350px]" />;
   }
 
   return (

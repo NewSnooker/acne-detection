@@ -185,14 +185,14 @@ export function SeverityDonutChart({
     (preAggregated && Object.values(preAggregated).every((v) => v === 0))
   ) {
     return (
-      <EmptyState title="ยังไม่มีประวัติการวิเคราะห์" className="h-[400px]" />
+      <EmptyState title="ยังไม่มีประวัติการวิเคราะห์" className="h-[350px]" />
     );
   }
 
   // If all zeros, show empty
   if (series.every((val) => val === 0)) {
     return (
-      <EmptyState title="ไม่พบข้อมูลระดับความรุนแรง" className="h-[400px]" />
+      <EmptyState title="ไม่พบข้อมูลระดับความรุนแรง" className="h-[350px]" />
     );
   }
 
