@@ -16,7 +16,16 @@ export const siteConfig = {
     alt: "ตัวอย่างภาพใบหน้าพร้อมกรอบแยกชนิดสิว",
     privacyBar: { x: 32, y: 37, w: 63, h: 15, rotate: -2 },
   },
+  // วิดีโอเดโมใต้ภาพหลัก (วางไฟล์ไว้ใน public/landing/) — ใส่ null เพื่อซ่อนส่วนนี้
+  // เช่น { mp4: "/landing/demo.mp4", webm: "/landing/demo.webm", poster: "/landing/demo-poster.jpg" }
+  demoVideo: null as DemoVideo | null,
 } as const;
+
+export type DemoVideo = {
+  mp4: string;
+  webm?: string;
+  poster: string;
+};
 
 export type PrivacyBar = {
   x: number;

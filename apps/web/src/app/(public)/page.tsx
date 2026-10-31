@@ -1,3 +1,4 @@
+import { DemoVideo } from "@/components/public/demo-video";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -229,6 +230,26 @@ export default async function HomePage() {
           </div>
         </figure>
       </section>
+
+      {/* วิดีโอเดโม — แสดงเมื่อตั้ง siteConfig.demoVideo */}
+      {siteConfig.demoVideo && (
+        <section
+          id="demo"
+          className="mx-auto flex max-w-6xl scroll-mt-28 flex-col gap-10 px-4 pb-16"
+        >
+          <SectionHeading
+            eyebrow="ดูการทำงาน"
+            title="วิเคราะห์จริงในไม่กี่วินาที"
+            desc="ตั้งแต่อัปโหลดรูป จนได้ผลแยกชนิดสิว ระดับความรุนแรง และคำแนะนำ"
+          />
+          <div className="bg-card rounded-3xl border p-2 shadow-sm md:p-3">
+            <DemoVideo
+              video={siteConfig.demoVideo}
+              label="วิดีโอสาธิตการวิเคราะห์สิวด้วย AcneAI"
+            />
+          </div>
+        </section>
+      )}
 
       {/* How it works */}
       <section id="how" className="bg-card scroll-mt-28 border-y">
