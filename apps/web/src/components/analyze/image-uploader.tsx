@@ -46,7 +46,7 @@ export function ImageUploader({
 
   if (!isModelAvailable) {
     return (
-      <div className="border-destructive/50 bg-card flex h-[500px] flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 text-center transition-colors">
+      <div className="border-destructive/50 bg-card flex min-h-[420px] flex-col items-center justify-center rounded-3xl border-2 border-dashed p-12 text-center transition-colors">
         <AlertTriangle className="text-destructive mb-4 h-16 w-16" />
         <h3 className="text-destructive text-xl font-bold">
           ระบบไม่พร้อมใช้งาน
@@ -60,7 +60,16 @@ export function ImageUploader({
 
   return (
     <motion.div
+      role="button"
+      tabIndex={0}
+      aria-label="อัปโหลดรูปภาพใบหน้า"
       onClick={() => fileInputRef.current?.click()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          fileInputRef.current?.click();
+        }
+      }}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -68,38 +77,40 @@ export function ImageUploader({
       initial="initial"
       animate={isDragging ? "hover" : "initial"}
       className={cn(
-        "flex h-[500px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 text-center transition-colors",
+        "bg-card focus-visible:ring-ring flex min-h-[420px] cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed p-8 text-center transition-colors outline-none focus-visible:ring-2 sm:p-12",
         isDragging
           ? "border-primary bg-primary/5"
-          : "border-muted-foreground/25 hover:bg-muted/50 hover:border-primary/50",
+          : "border-primary/25 hover:border-primary/60 hover:bg-primary/[0.03]",
       )}
     >
       <motion.div
         variants={{
           initial: { y: 0, scale: 1 },
-          hover: { y: -10, scale: 1.1 },
+          hover: { y: -6, scale: 1.05 },
         }}
         transition={{ type: "spring", stiffness: 300, damping: 15 }}
+        className="bg-primary/10 text-primary ring-primary/5 mb-6 flex h-20 w-20 items-center justify-center rounded-full ring-8"
       >
-        <UploadCloud
-          className={cn(
-            "mb-4 h-16 w-16 transition-colors",
-            isDragging ? "text-primary" : "text-muted-foreground",
-          )}
-        />
+        <UploadCloud className="h-9 w-9" aria-hidden="true" />
       </motion.div>
-      <h3 className="mb-2 text-xl font-medium">อัปโหลดรูปภาพใบหน้า</h3>
-      <p className="text-muted-foreground mb-6">
-        ลากและวางรูปภาพที่นี่ หรือคลิกเพื่อเลือกไฟล์ (รองรับ JPEG, PNG
-        ขนาดไม่เกิน {MAX_IMAGE_SIZE_MB} MB)
+      <h3 className="mb-2 text-xl font-semibold">อัปโหลดรูปภาพใบหน้า</h3>
+      <p className="text-muted-foreground mb-6 max-w-sm text-sm">
+        ลากและวางรูปภาพที่นี่ หรือคลิกเพื่อเลือกไฟล์
       </p>
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="bg-primary text-primary-foreground hover:bg-primary/80 cursor-pointer rounded-full px-6 py-2 font-medium shadow-sm transition-colors"
+      <motion.span
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
+        className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-7 py-2.5 text-sm font-semibold shadow-sm transition-colors"
       >
         เลือกไฟล์
-      </motion.button>
+      </motion.span>
+      <div className="text-muted-foreground mt-6 flex flex-wrap justify-center gap-2 text-xs">
+        {["JPEG", "PNG", `ไม่เกิน ${MAX_IMAGE_SIZE_MB} MB`].map((t) => (
+          <span key={t} className="bg-muted rounded-full px-2.5 py-1">
+            {t}
+          </span>
+        ))}
+      </div>
     </motion.div>
   );
 }

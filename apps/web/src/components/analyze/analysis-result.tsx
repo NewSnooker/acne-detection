@@ -1,4 +1,4 @@
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, CircleCheck, Loader2 } from "lucide-react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
   AnalysisResult,
@@ -22,6 +22,12 @@ interface AnalysisResultPanelProps {
   readOnly?: boolean;
   isModelAvailable?: boolean;
 }
+
+const PHOTO_TIPS = [
+  "ถ่ายหน้าตรงในที่แสงสว่างพอ",
+  "ไม่ใช้ฟิลเตอร์ และไม่แต่งหน้า",
+  "ให้ผิวอยู่ในโฟกัส เห็นชัด ไม่เบลอ",
+];
 
 const listContainerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -51,7 +57,7 @@ export function AnalysisResultPanel({
   isModelAvailable = true,
 }: AnalysisResultPanelProps) {
   return (
-    <div className="bg-card relative mt-2 mb-2 overflow-hidden rounded-2xl border p-6 shadow-sm">
+    <div className="bg-card relative overflow-hidden rounded-3xl border p-6 shadow-sm">
       <h2 className="mb-4 text-lg font-bold">สถานะการวิเคราะห์</h2>
 
       <AnimatePresence mode="wait">
@@ -76,8 +82,24 @@ export function AnalysisResultPanel({
             exit={{ opacity: 0 }}
           >
             {isModelAvailable ? (
-              <div className="text-muted-foreground py-8 text-center">
-                กรุณาอัปโหลดรูปภาพเพื่อเริ่มต้น
+              <div className="flex flex-col gap-4">
+                <p className="text-muted-foreground text-sm">
+                  อัปโหลดรูปภาพเพื่อเริ่มต้น ถ่ายตามนี้จะได้ผลแม่นขึ้น
+                </p>
+                <ul className="flex flex-col gap-2 text-sm">
+                  {PHOTO_TIPS.map((tip) => (
+                    <li
+                      key={tip}
+                      className="bg-muted/50 flex items-start gap-2 rounded-xl px-3 py-2.5"
+                    >
+                      <CircleCheck
+                        className="text-primary mt-0.5 h-4 w-4 shrink-0"
+                        aria-hidden="true"
+                      />
+                      {tip}
+                    </li>
+                  ))}
+                </ul>
               </div>
             ) : (
               <div className="bg-destructive/10 text-destructive flex gap-3 rounded-lg p-4">
@@ -116,7 +138,7 @@ export function AnalysisResultPanel({
                 {/* Gradient Progress Bar inside Button */}
                 {loading && (
                   <div
-                    className="absolute top-0 bottom-0 left-0 overflow-hidden bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 transition-all duration-300 ease-out"
+                    className="from-primary/60 to-primary absolute top-0 bottom-0 left-0 overflow-hidden bg-gradient-to-r transition-all duration-300 ease-out"
                     style={{ width: `${progress}%` }}
                   >
                     {/* Continuous Shimmer Animation */}

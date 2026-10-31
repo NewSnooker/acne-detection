@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { useTheme } from "next-themes";
 import { useMounted } from "@/hooks/use-mounted";
 import dynamic from "next/dynamic";
@@ -184,18 +185,14 @@ export function SeverityDonutChart({
     (preAggregated && Object.values(preAggregated).every((v) => v === 0))
   ) {
     return (
-      <div className="text-muted-foreground flex h-[400px] w-full items-center justify-center">
-        ยังไม่มีประวัติการวิเคราะห์
-      </div>
+      <EmptyState title="ยังไม่มีประวัติการวิเคราะห์" className="h-[400px]" />
     );
   }
 
   // If all zeros, show empty
   if (series.every((val) => val === 0)) {
     return (
-      <div className="text-muted-foreground flex h-[400px] w-full items-center justify-center">
-        ไม่พบข้อมูลระดับความรุนแรง
-      </div>
+      <EmptyState title="ไม่พบข้อมูลระดับความรุนแรง" className="h-[400px]" />
     );
   }
 

@@ -8,8 +8,7 @@ alias: `@/*` → `src/*`
 
 | Path | ไฟล์ | สิทธิ์ | ทำอะไร |
 |---|---|---|---|
-| `/` | `app/(public)/page.tsx` | public | Landing: hero, สิว 6 ชนิด (ภาพจริง), ค่าประเมินโมเดลหลัก, ความรุนแรง, FAQ, disclaimer |
-| `/knowledge` | `app/(public)/knowledge/page.tsx` | public | ความรู้ดูแลผิวแบบองค์รวม (ข้อ 1.3.3.4) สาเหตุ ชนิดสิว เมื่อไรควรพบแพทย์ |
+| `/` | `app/(public)/page.tsx` | public | หน้าเดียวรวมทุกอย่าง: hero (การ์ดตัวอย่างผล+คำแนะนำ), 3 ขั้นตอน (#how), ดูแลผิว (#care ข้อ 1.3.3.4), สิว 6 ชนิด (#types), ความแม่นยำโมเดล+เกณฑ์ (#accuracy ข้อ 1.3.3.3), พบแพทย์, FAQ (#faq), disclaimer — `/knowledge`, `/accuracy` redirect มาที่หัวข้อในหน้านี้ (`next.config.ts`) |
 | `/login` | `app/(auth)/login/page.tsx` → `components/auth/login-form.tsx` | public | Credentials + Google |
 | `/register` | `app/(auth)/register/page.tsx` → `register-form.tsx` | public | สมัครสมาชิก |
 | `/analyze` | `app/(dashboard)/analyze/page.tsx` → `components/analyze/*` | login | อัปโหลด + ดูผล |
@@ -22,7 +21,7 @@ alias: `@/*` → `src/*`
 
 Layout: `app/(dashboard)/layout.tsx` (Sidebar + Header, เช็ค session), `app/(auth)/layout.tsx`, `app/(public)/layout.tsx` (header/footer หน้าสาธารณะ + เครดิตชุดข้อมูล CC BY 4.0)
 หน้าสาธารณะกำหนดใน `PUBLIC_PAGES` (`lib/auth/route-access.ts`) แบบตรงทั้ง path — ห้ามใส่ `/` ใน `PUBLIC_ROUTES` เพราะเช็คด้วย `startsWith`
-เนื้อหาความรู้: `components/knowledge/` (`content.ts` ข้อความ, `acne-samples.ts` กรอบของภาพใน `public/landing/` ซึ่ง proxy ไม่กัน)
+เมนูหน้าแรก (anchor) อยู่ใน `components/public/nav-items.ts` หน้าสาธารณะใหม่ต้องเพิ่มใน `PUBLIC_PAGES` (`lib/auth/route-access.ts`) เนื้อหาความรู้: `components/knowledge/` (`content.ts` ข้อความ, `acne-samples.ts` กรอบของภาพใน `public/landing/` ซึ่ง proxy ไม่กัน)
 เมนู: `components/layout/sidebar.tsx` (`userNav`, `adminNav`)
 
 ## ชั้นของโค้ด (ปัจจุบัน)

@@ -6,26 +6,37 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
+  /* ธีมสี: เปลี่ยนแค่ --brand-* แล้วสีหลัก พื้นหลัง และเส้นขอบจะอมโทนเดียวกันทั้งเว็บ
+     ค่าเริ่มต้น = ฟ้า, ชุดอื่นอยู่ด้านล่าง ([data-palette]) รายชื่ออยู่ใน lib/theme/palettes.ts */
   :root {
-    --background: 221 30% 97%;
-    --foreground: 221 40% 10%;
+    --brand-h: 211;
+    --brand-s: 72%;
+    --brand-l: 44%;
+    --brand-l-dark: 56%;
+
+    --background: var(--brand-h) 30% 98%;
+    /* แสงไล่สีพื้นหลังทุกหน้า (ใช้ใน body) */
+    --glow-1: var(--brand-h) var(--brand-s) 62% / 0.24;
+    --glow-2: calc(var(--brand-h) + 35) var(--brand-s) 70% / 0.18;
+    --card-tint: var(--brand-h) var(--brand-s) 60% / 0.06;
+    --foreground: var(--brand-h) 35% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 221 40% 10%;
+    --card-foreground: var(--brand-h) 35% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 221 40% 10%;
-    --primary: 221 83% 53%;
+    --popover-foreground: var(--brand-h) 35% 11%;
+    --primary: var(--brand-h) var(--brand-s) var(--brand-l);
     --primary-foreground: 0 0% 100%;
-    --secondary: 221 20% 92%;
-    --secondary-foreground: 221 40% 15%;
-    --muted: 221 20% 92%;
-    --muted-foreground: 221 10% 45%;
-    --accent: 221 83% 95%;
-    --accent-foreground: 221 83% 30%;
-    --destructive: 0 84.2% 60.2%;
+    --secondary: var(--brand-h) 25% 94%;
+    --secondary-foreground: var(--brand-h) 35% 16%;
+    --muted: var(--brand-h) 22% 94%;
+    --muted-foreground: var(--brand-h) 10% 40%;
+    --accent: var(--brand-h) 60% 95%;
+    --accent-foreground: var(--brand-h) var(--brand-s) 28%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border: 221 20% 88%;
-    --input: 221 20% 88%;
-    --ring: 221 83% 53%;
+    --border: var(--brand-h) 22% 89%;
+    --input: var(--brand-h) 22% 86%;
+    --ring: var(--brand-h) var(--brand-s) var(--brand-l);
     --radius: 0.75rem;
 
     /* Acne severity colors */
@@ -43,25 +54,53 @@
   }
 
   .dark {
-    --background: 221 40% 6%;
-    --foreground: 221 10% 96%;
-    --card: 221 30% 9%;
-    --card-foreground: 221 10% 96%;
-    --popover: 221 30% 9%;
-    --popover-foreground: 221 10% 96%;
-    --primary: 221 83% 58%;
+    --background: var(--brand-h) 30% 6%;
+    --glow-1: var(--brand-h) var(--brand-s) 45% / 0.22;
+    --glow-2: calc(var(--brand-h) + 35) var(--brand-s) 45% / 0.14;
+    --card-tint: var(--brand-h) var(--brand-s) 60% / 0.07;
+    --foreground: var(--brand-h) 15% 95%;
+    --card: var(--brand-h) 25% 9%;
+    --card-foreground: var(--brand-h) 15% 95%;
+    --popover: var(--brand-h) 25% 9%;
+    --popover-foreground: var(--brand-h) 15% 95%;
+    --primary: var(--brand-h) var(--brand-s) var(--brand-l-dark);
     --primary-foreground: 0 0% 100%;
-    --secondary: 221 20% 15%;
-    --secondary-foreground: 221 10% 96%;
-    --muted: 221 20% 15%;
-    --muted-foreground: 221 10% 65%;
-    --accent: 221 50% 20%;
-    --accent-foreground: 221 83% 80%;
+    --secondary: var(--brand-h) 20% 15%;
+    --secondary-foreground: var(--brand-h) 15% 95%;
+    --muted: var(--brand-h) 20% 14%;
+    --muted-foreground: var(--brand-h) 12% 66%;
+    --accent: var(--brand-h) 35% 18%;
+    --accent-foreground: var(--brand-h) 70% 82%;
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 98%;
-    --border: 221 20% 15%;
-    --input: 221 20% 15%;
-    --ring: 221 83% 58%;
+    --border: var(--brand-h) 18% 17%;
+    --input: var(--brand-h) 18% 20%;
+    --ring: var(--brand-h) var(--brand-s) var(--brand-l-dark);
+  }
+
+  [data-palette="rose"] {
+    --brand-h: 346;
+    --brand-s: 58%;
+    --brand-l: 50%;
+    --brand-l-dark: 58%;
+  }
+  [data-palette="mint"] {
+    --brand-h: 172;
+    --brand-s: 62%;
+    --brand-l: 31%;
+    --brand-l-dark: 40%;
+  }
+  [data-palette="lavender"] {
+    --brand-h: 258;
+    --brand-s: 46%;
+    --brand-l: 54%;
+    --brand-l-dark: 60%;
+  }
+  [data-palette="peach"] {
+    --brand-h: 20;
+    --brand-s: 72%;
+    --brand-l: 44%;
+    --brand-l-dark: 52%;
   }
 }
 
@@ -100,6 +139,23 @@
 
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(
+        60rem 36rem at 0% -10%,
+        hsl(var(--glow-1)),
+        transparent 65%
+      ),
+      radial-gradient(
+        50rem 32rem at 100% 0%,
+        hsl(var(--glow-2)),
+        transparent 65%
+      ),
+      radial-gradient(
+        50rem 30rem at 50% 110%,
+        hsl(var(--glow-1)),
+        transparent 70%
+      );
+    background-attachment: fixed;
     font-family: var(--font-inter), var(--font-thai), system-ui, sans-serif;
   }
 
@@ -125,5 +181,16 @@
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background: hsl(var(--border));
     border-radius: 999px;
+  }
+}
+
+/* การ์ดทุกใบอมสีธีมจาง ๆ ที่มุมบน (utility bg-gradient-* ยังทับได้) */
+@layer components {
+  .bg-card {
+    background-image: linear-gradient(
+      160deg,
+      hsl(var(--card-tint)),
+      transparent 55%
+    );
   }
 }

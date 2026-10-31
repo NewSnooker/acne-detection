@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { useState, useEffect } from "react";
 import { Activity, Search } from "lucide-react";
 import { AnalysisResult } from "@/types/analyze";
@@ -150,21 +151,20 @@ export function HistoryGallery({
       </div>
 
       {items.length === 0 ? (
-        <div className="bg-card flex flex-col items-center justify-center rounded-2xl border py-20 text-center shadow-sm">
-          <div className="bg-muted mb-4 flex h-20 w-20 items-center justify-center rounded-full">
-            <Activity className="text-muted-foreground h-8 w-8" />
-          </div>
-          <h2 className="text-xl font-bold">
-            {currentSearch || currentDate || currentTypes.length > 0
+        <EmptyState
+          icon={Activity}
+          className="py-20"
+          title={
+            currentSearch || currentDate || currentTypes.length > 0
               ? "ไม่พบข้อมูลที่ตรงกับตัวกรอง"
-              : "ยังไม่มีประวัติการวิเคราะห์"}
-          </h2>
-          <p className="text-muted-foreground max-w-md px-4 text-sm">
-            {currentSearch || currentDate || currentTypes.length > 0
+              : "ยังไม่มีประวัติการวิเคราะห์"
+          }
+          description={
+            currentSearch || currentDate || currentTypes.length > 0
               ? "ลองเปลี่ยนเงื่อนไขการกรอง หรือกดปุ่ม 'ล้างค่าทั้งหมด' ในเมนูตัวกรอง"
-              : "คุณยังไม่เคยวิเคราะห์สิวเลย เริ่มต้นวิเคราะห์รูปภาพแรกของคุณเพื่อติดตามสุขภาพผิวหน้าได้ที่หน้าวิเคราะห์สิว"}
-          </p>
-        </div>
+              : "คุณยังไม่เคยวิเคราะห์สิวเลย เริ่มต้นวิเคราะห์รูปภาพแรกของคุณเพื่อติดตามสุขภาพผิวหน้าได้ที่หน้าวิเคราะห์สิว"
+          }
+        />
       ) : (
         <>
           {viewMode === "grid" && (
