@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { RefreshCw } from "lucide-react";
-import { AnalysisResult, ACNE_COLORS } from "@/types/analyze";
+import { AnalysisResult, ACNE_COLORS, ACNE_LABELS } from "@/types/analyze";
+
+const LIGHT_LABEL_TYPES = new Set(["whitehead", "pustule"]);
 
 interface ImagePreviewProps {
   previewUrl: string;
@@ -48,24 +50,27 @@ export function ImagePreview({
         ctx.lineWidth = Math.max(2, image.naturalWidth / 300); // scale line width
         ctx.strokeRect(x1, y1, w, h);
 
-        // Draw label background
-        ctx.fillStyle = color;
+        // ป้ายชื่อชนิดสิวภาษาไทย ใช้ฟอนต์เดียวกับหน้าเว็บ (มีฟอนต์ไทย)
         const fontSize = Math.max(12, image.naturalWidth / 40);
-        ctx.font = `${fontSize}px sans-serif`;
+        const fontFamily = getComputedStyle(document.body).fontFamily;
+        ctx.font = `600 ${fontSize}px ${fontFamily}`;
+        ctx.textBaseline = "middle";
 
-        // 📌 หากต้องการให้แสดงเปอร์เซ็นต์ความมั่นใจ (%) บนกรอบด้วย
-        // ให้คอมเมนต์บรรทัดข้างล่างนี้...
-        const text = det.type;
+        // ถ้าต้องการแสดงความมั่นใจ (%) ด้วย ใช้:
+        // const text = `${ACNE_LABELS[det.type] ?? det.type} ${(det.confidence * 100).toFixed(0)}%`;
+        const text = ACNE_LABELS[det.type] ?? det.type;
 
-        // ... แล้วเปิดใช้งานบรรทัดนี้แทนครับ:
-        // const text = `${det.type} ${(det.confidence * 100).toFixed(0)}%`;
-
+        const padX = fontSize * 0.4;
+        const labelH = fontSize * 1.5;
         const textWidth = ctx.measureText(text).width;
-        ctx.fillRect(x1, y1 - fontSize - 4, textWidth + 8, fontSize + 4);
+        // ป้ายอยู่เหนือกรอบ ถ้าชิดขอบบนให้ย้ายเข้าไปในกรอบแทน
+        const labelY = y1 - labelH >= 0 ? y1 - labelH : y1;
+        ctx.fillStyle = color;
+        ctx.fillRect(x1, labelY, textWidth + padX * 2, labelH);
 
-        // Draw label text
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText(text, x1 + 4, y1 - 4);
+        // สีอ่อน (สิวหัวขาว, หัวหนอง) ใช้ตัวอักษรเข้มจึงจะอ่านออก
+        ctx.fillStyle = LIGHT_LABEL_TYPES.has(det.type) ? "#0f172a" : "#ffffff";
+        ctx.fillText(text, x1 + padX, labelY + labelH / 2);
       });
     };
   }, [result, previewUrl]);
