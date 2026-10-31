@@ -13,6 +13,7 @@ from urllib.error import URLError
 from urllib.parse import urlparse
 
 from app.config import settings
+from app.services.model_metrics import read_model_metrics
 from app.services.yolo_service import YoloService
 
 # เวลารอสูงสุดตอนดาวน์โหลดรูป/โมเดล (วินาที)
@@ -208,3 +209,23 @@ async def predict(
                 os.remove(local_image_path)
             except OSError:
                 pass
+
+
+@app.post("/model-metrics", tags=["Model"])
+def model_metrics(
+    model_url_or_path: str = Form(..., description="URL หรือ Absolute path ของไฟล์ .pt (กติกาเดียวกับ /predict)"),
+    _: str = Security(verify_api_key),
+):
+    """
+    อ่าน mAP@0.5, Precision, Recall (และคำนวณ F1) เป็นร้อยละ จากผลเทรนที่ Ultralytics เก็บไว้ในไฟล์ .pt
+    ไฟล์ที่ไม่มีข้อมูลนี้ได้ metrics ว่าง — ดาวน์โหลดโมเดลลง cache ไว้ใช้ตอนวิเคราะห์ด้วย
+    """
+    local_model_path = resolve_model(model_url_or_path)
+    if not Path(local_model_path).exists():
+        raise HTTPException(status_code=404, detail="Model not found")
+    try:
+        metrics = read_model_metrics(local_model_path)
+    except Exception as e:  # ไฟล์เสีย / ไม่ใช่ checkpoint ของ PyTorch
+        raise HTTPException(status_code=422, detail=f"Cannot read model file: {e}")
+    return {"metrics": metrics}
+

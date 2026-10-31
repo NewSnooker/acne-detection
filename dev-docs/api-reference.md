@@ -13,6 +13,7 @@
 | PATCH | `/api/models/[id]` | ADMIN | JSON `{name,version,description?,mAP50?,precision?,recall?,f1Score?,accuracy?}` | แก้ข้อมูลและค่าประเมิน |
 | DELETE | `/api/models/[id]` | ADMIN | — | ลบโมเดล (โมเดลหลักตอบ 409) |
 | POST | `/api/models/[id]/activate` | ADMIN | — | ตั้งเป็นโมเดลหลัก (ไม่พบตอบ 404) |
+| POST | `/api/models/[id]/metrics` | ADMIN | — | ให้ FastAPI อ่าน mAP50/precision/recall/f1Score จากไฟล์ `.pt` แล้วบันทึก คืน `{metrics}` (ไม่มีผลเทรน 422, AI ล่ม 502) |
 | POST | `/api/models` | ADMIN | multipart `file,name,version,description` | อัปโหลด `.pt` ตอบ 201 |
 | DELETE | `/api/models` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม (ข้ามตัว active) คืน `count` |
 | DELETE | `/api/users/[id]` | ADMIN | — | ลบผู้ใช้ + รูป + ประวัติ (กันลบตัวเอง) |
@@ -46,6 +47,7 @@ error ที่ไม่ได้ตั้งใจตอบ 500 พร้อม
 | GET | `/` | — | ตัวตรวจสถานะของ Render / เปิด URL ตรง | `{status:"ok"}` |
 | GET | `/health` | — | ใช้ ping | `{status:"ok"}` |
 | POST | `/predict` | `X-API-Key` | **ใช่** | form: `image_url_or_path`, `model_url_or_path`, `confidence` (default 0.20) |
+| POST | `/model-metrics` | `X-API-Key` | ใช่ (หลังอัปโหลด/ปุ่มดึงค่า) | form: `model_url_or_path` → `{metrics:{mAP50,precision,recall,f1Score}}` เป็นร้อยละ จาก `checkpoint["train_metrics"]` (ไม่มีข้อมูล = `{}`) |
 | GET | `/docs` | — | เปิดเมื่อ `DEBUG=true` | Swagger |
 
 ### Response ของ `/predict`

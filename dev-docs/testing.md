@@ -15,7 +15,7 @@ venv\Scripts\python.exe -m pip install -r requirements-dev.txt   # ครั้�
 venv\Scripts\python.exe -m pytest
 ```
 
-ผลล่าสุด (2026-10-30): เว็บ 198 กรณีผ่าน, AI 37 กรณีผ่าน
+ผลล่าสุด (2026-10-31): เว็บ 209 กรณีผ่าน, AI 48 กรณีผ่าน
 
 GitHub Actions (`.github/workflows/ci.yml`) รันชุดเดียวกันนี้ทุก push เข้า `main` และทุก PR พร้อม `format:check`, `lint`, `typecheck` ฝั่งเว็บ
 
@@ -44,6 +44,7 @@ GitHub Actions (`.github/workflows/ci.yml`) รันชุดเดียวก
 | `app/api/images/[...path]/route.test.ts` | ดูรูปได้เฉพาะเจ้าของและผู้ดูแลระบบ, กัน `../` | 1.3.2.5 | 8 |
 | `app/api/models/[id]/route.test.ts` | โหลดไฟล์โมเดลได้เฉพาะบริการ AI หรือผู้ดูแลระบบ, ตั้งโมเดลหลัก/ลบ/แก้ได้เฉพาะผู้ดูแลระบบ, ตรวจ body, รหัส 409/500 | 1.3.1.4 | 18 |
 | `server/models.test.ts` | อัปโหลด ตั้งโมเดลหลัก (transaction) ลบ (กันโมเดลหลัก) แก้ไขโมเดล | 1.3.1.4 | 19 |
+| `server/models-metrics.test.ts` | ดึงค่าประเมินจากไฟล์ `.pt` ผ่านบริการ AI: 404/422/502, บันทึกเฉพาะค่าที่ถูกต้อง | 1.3.3.3 | 5 |
 | `server/users.test.ts` | ลบผู้ใช้พร้อมรูป, ลบตัวเองไม่ได้ | 1.3.1.3 | 7 |
 | `server/users-list.test.ts` | รายชื่อผู้ใช้ในหน้าแอดมินไม่มี hash รหัสผ่าน | 1.3.1.3 | 1 |
 | `server/history.test.ts` | ค้นหา/กรองวัน/กรองชนิดสิว, นับจำนวนรูปต่อชนิด, ผู้ใช้เห็นเฉพาะของตัวเอง, ลบประวัติ | 1.3.1.5, 1.3.2.5 | 15 |
@@ -54,6 +55,7 @@ GitHub Actions (`.github/workflows/ci.yml`) รันชุดเดียวก
 | ไฟล์ทดสอบ | ทดสอบอะไร | ขอบเขตในเล่ม | กรณี |
 |---|---|---|---|
 | `test_predict.py` | `/health`, API key, ขอบเขตไฟล์รูปและโมเดลที่ `/predict` ยอมอ่าน, การ cache โมเดล | — | 29 |
+| `test_model_metrics.py` | อ่าน mAP/Precision/Recall จาก `train_metrics` เป็นร้อยละ, คำนวณ F1, endpoint `/model-metrics` | 1.3.3.3 | 11 |
 | `test_yolo_service.py` | ลำดับคลาส 6 ชนิด, การนับสิวแต่ละชนิดจากผล YOLO, การปัดค่า | 1.3.3.1 | 8 |
 
 ## สิ่งที่ชุดทดสอบนี้ไม่ครอบคลุม

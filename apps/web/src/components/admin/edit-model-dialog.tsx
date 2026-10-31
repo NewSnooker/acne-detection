@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ModelService } from "@/lib/api-client/model-api";
 import { Button } from "@/components/ui/button";
-import { Edit, Loader2 } from "lucide-react";
+import { Edit, FileSearch, Loader2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -29,7 +29,32 @@ export function EditModelDialog({ model }: { model: AiModel }) {
   );
 
   const [loading, setLoading] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  // อ่าน mAP@0.5, Precision, Recall, F1 จากผลเทรนในไฟล์ .pt (บันทึกลงฐานข้อมูลทันที)
+  const handleImportMetrics = async () => {
+    setImporting(true);
+    setError("");
+    setNotice("");
+    const result = await ModelService.importMetrics(model.id);
+    setImporting(false);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    const imported = result.metrics ?? {};
+    setMetrics((current) => {
+      const next = { ...current };
+      for (const [key, value] of Object.entries(imported)) {
+        if (value !== undefined) next[key] = value.toString();
+      }
+      return next;
+    });
+    setNotice("ดึงค่าจากไฟล์โมเดลแล้ว (Accuracy ไม่มีในไฟล์ ต้องกรอกเอง)");
+    router.refresh();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,6 +108,11 @@ export function EditModelDialog({ model }: { model: AiModel }) {
 
                 <form onSubmit={handleSubmit} className="space-y-4 p-6">
                   {error && <p className="text-destructive text-sm">{error}</p>}
+                  {notice && (
+                    <p className="text-muted-foreground text-sm" role="status">
+                      {notice}
+                    </p>
+                  )}
 
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
@@ -122,8 +152,22 @@ export function EditModelDialog({ model }: { model: AiModel }) {
                       />
                     </div>
                     <fieldset>
-                      <legend className="mb-1 text-sm font-medium">
-                        ค่าประเมินโมเดล (%) — เว้นว่างได้
+                      <legend className="mb-1 flex w-full items-center justify-between gap-2 text-sm font-medium">
+                        <span>ค่าประเมินโมเดล (%) — เว้นว่างได้</span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleImportMetrics}
+                          disabled={importing || loading}
+                        >
+                          {importing ? (
+                            <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <FileSearch className="mr-1 h-3.5 w-3.5" />
+                          )}
+                          ดึงค่าจากไฟล์โมเดล
+                        </Button>
                       </legend>
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         {MODEL_METRICS.map(({ key, label }) => (

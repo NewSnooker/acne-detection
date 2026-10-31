@@ -5,6 +5,7 @@ import type { ReadableStream as WebReadableStream } from "stream/web";
 import { saveModel, deleteModelFile } from "@/lib/storage/model-provider";
 import { HttpError } from "@/lib/http-error";
 import { MODEL_METRICS, type ModelMetricKey } from "@/types/analyze";
+import { getAiServiceConfig, modelDownloadUrl } from "@/server/analyze";
 
 export type ModelUpload = {
   /** ชื่อไฟล์เดิมจากเครื่องผู้ใช้ */
@@ -195,4 +196,66 @@ export async function getAdminModels() {
     },
   });
   return models.map((model) => ({ ...model, modelData: null }));
+}
+
+// ค่าที่อ่านจากไฟล์ .pt ได้ — Accuracy ไม่มีในงานตรวจจับวัตถุ จึงต้องกรอกเอง
+const IMPORTABLE_METRICS = ["mAP50", "precision", "recall", "f1Score"] as const;
+type ImportedMetrics = Partial<
+  Record<(typeof IMPORTABLE_METRICS)[number], number>
+>;
+
+/** อ่านค่าที่ FastAPI ส่งมา เก็บเฉพาะตัวเลข 0–100 ของฟิลด์ที่รู้จัก */
+export function pickImportedMetrics(raw: unknown): ImportedMetrics {
+  const metrics =
+    raw && typeof raw === "object" && "metrics" in raw ? raw.metrics : null;
+  if (!metrics || typeof metrics !== "object") return {};
+  const result: ImportedMetrics = {};
+  for (const key of IMPORTABLE_METRICS) {
+    const value = (metrics as Record<string, unknown>)[key];
+    if (typeof value === "number" && value >= 0 && value <= 100) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
+/**
+ * ให้บริการ AI อ่าน mAP@0.5, Precision, Recall, F1 จากผลเทรนในไฟล์ .pt แล้วบันทึกทับค่าเดิม
+ * (Ultralytics เก็บไว้ใน checkpoint["train_metrics"]) — คืนค่าที่อ่านได้
+ */
+export async function importModelMetricsLogic(id: string) {
+  const exists = await prisma.aiModel.count({ where: { id } });
+  if (!exists) throw new HttpError(404, "ไม่พบข้อมูลโมเดล");
+
+  const { url, apiKey } = getAiServiceConfig();
+  const form = new FormData();
+  form.append("model_url_or_path", modelDownloadUrl(id));
+
+  let response: Response;
+  try {
+    response = await fetch(`${url}/model-metrics`, {
+      method: "POST",
+      headers: { "X-API-Key": apiKey },
+      body: form,
+      cache: "no-store",
+    });
+  } catch (error) {
+    console.error("model-metrics: cannot reach AI service", error);
+    throw new HttpError(502, "เชื่อมต่อระบบ AI ไม่ได้ กรุณาลองใหม่อีกครั้ง");
+  }
+  if (!response.ok) {
+    console.error("model-metrics:", response.status, await response.text());
+    throw new HttpError(502, "ระบบ AI อ่านไฟล์โมเดลนี้ไม่ได้");
+  }
+
+  const metrics = pickImportedMetrics(await response.json());
+  if (Object.keys(metrics).length === 0) {
+    throw new HttpError(
+      422,
+      "ไฟล์โมเดลนี้ไม่มีผลการเทรนของ Ultralytics ติดมา กรุณากรอกค่าประเมินเอง",
+    );
+  }
+
+  await prisma.aiModel.update({ where: { id }, data: metrics });
+  return metrics;
 }
