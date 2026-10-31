@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { AnalysisResult, ACNE_COLORS, ACNE_LABELS } from "@/types/analyze";
 
 const LIGHT_LABEL_TYPES = new Set(["whitehead", "pustule"]);
@@ -11,6 +12,8 @@ interface ImagePreviewProps {
   loading: boolean;
   onChangeImage?: () => void;
   readOnly?: boolean;
+  // true = กรอบพอดีกับรูป ไม่จองความสูงขั้นต่ำ (ใช้ใน popup ประวัติ)
+  fit?: boolean;
 }
 
 export function ImagePreview({
@@ -19,6 +22,7 @@ export function ImagePreview({
   loading,
   onChangeImage,
   readOnly = false,
+  fit = false,
 }: ImagePreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -76,7 +80,12 @@ export function ImagePreview({
   }, [result, previewUrl]);
 
   return (
-    <div className="bg-card group bg-muted/20 relative flex h-auto min-h-[250px] w-full items-center justify-center overflow-hidden rounded-3xl border shadow-sm lg:min-h-[420px]">
+    <div
+      className={cn(
+        "bg-card group relative flex h-auto w-full items-center justify-center overflow-hidden rounded-3xl border shadow-sm",
+        !fit && "min-h-[250px] lg:min-h-[420px]",
+      )}
+    >
       {!result ? (
         <div className="relative flex h-full w-full justify-center p-2">
           <Image
