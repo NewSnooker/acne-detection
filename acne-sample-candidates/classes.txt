@@ -1,0 +1,6 @@
+blackhead
+cyst
+nodule
+papule
+pustule
+whitehead
