@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import {
   ScanFace,
   History,
@@ -42,14 +43,8 @@ export function SidebarContent({
   return (
     <div className="flex h-full flex-col">
       {/* Logo */}
-      <div className="flex items-center gap-3 border-b px-6 py-5">
-        <div className="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-xl">
-          <span className="text-xl">🔬</span>
-        </div>
-        <div>
-          <p className="text-sm font-bold">AcneAI</p>
-          <p className="text-muted-foreground text-xs">วิเคราะห์สิวด้วย AI</p>
-        </div>
+      <div className="border-b px-6 py-5">
+        <BrandLogo size="sm" />
       </div>
 
       {/* Nav */}

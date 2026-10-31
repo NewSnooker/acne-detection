@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Thai } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { siteConfig } from "@/config/site";
+import { PALETTE_INIT_SCRIPT } from "@/lib/theme/palettes";
 import "./globals.css";
 
 const inter = Inter({
@@ -15,12 +17,21 @@ const notoSansThai = Noto_Sans_Thai({
 
 export const metadata: Metadata = {
   title: {
-    default: "AcneAI — วิเคราะห์สิวด้วย AI",
-    template: "%s | AcneAI",
+    default: `${siteConfig.name} — ${siteConfig.tagline}`,
+    template: `%s | ${siteConfig.name}`,
   },
-  description:
-    "ระบบวิเคราะห์และจำแนกสิว 6 ชนิดด้วย AI (YOLO) พร้อมให้คำแนะนำเบื้องต้น",
-  keywords: ["สิว", "AI", "วิเคราะห์สิว", "acne detection", "YOLO"],
+  description: siteConfig.description,
+  keywords: [...siteConfig.keywords],
+  applicationName: siteConfig.name,
+  icons: { icon: siteConfig.logo, apple: siteConfig.logo },
+  openGraph: {
+    title: `${siteConfig.name} — ${siteConfig.tagline}`,
+    description: siteConfig.description,
+    siteName: siteConfig.name,
+    images: [siteConfig.logo],
+    locale: "th_TH",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -35,6 +46,10 @@ export default function RootLayout({
       className={`${inter.variable} ${notoSansThai.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        {/* ใส่ธีมสีที่ผู้ใช้เลือกไว้ก่อนหน้าเว็บแสดง กันสีกะพริบ */}
+        <script dangerouslySetInnerHTML={{ __html: PALETTE_INIT_SCRIPT }} />
+      </head>
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}

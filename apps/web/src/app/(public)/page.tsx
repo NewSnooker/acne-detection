@@ -23,6 +23,7 @@ import { SeverityLevels } from "@/components/knowledge/severity-levels";
 import { SampleImage } from "@/components/knowledge/sample-image";
 import { ACNE_SAMPLES } from "@/components/knowledge/acne-samples";
 import { ACNE_GROUPS, SEVERITY_INFO } from "@/components/knowledge/content";
+import { siteConfig } from "@/config/site";
 
 const STEPS = [
   {
@@ -115,8 +116,8 @@ export default async function HomePage() {
             <span className="text-primary">ก่อนเลือกวิธีดูแล</span>
           </h1>
           <p className="text-muted-foreground max-w-xl text-lg">
-            ถ่ายรูปใบหน้าแล้วอัปโหลด AcneAI จะตรวจหาและแยกชนิดสิวทั้ง 6 แบบ
-            บอกระดับความรุนแรง พร้อมคำแนะนำการดูแลผิว
+            ถ่ายรูปใบหน้าแล้วอัปโหลด {siteConfig.name} จะตรวจหาและแยกชนิดสิวทั้ง
+            6 แบบ บอกระดับความรุนแรง พร้อมคำแนะนำการดูแลผิว
             และเก็บประวัติไว้ติดตามผลได้
           </p>
           <div className="flex flex-wrap gap-3">
@@ -157,9 +158,10 @@ export default async function HomePage() {
 
         <figure className="bg-card overflow-hidden rounded-3xl border shadow-xl">
           <SampleImage
-            src={hero.src}
+            src={siteConfig.hero.src}
             boxes={hero.boxes}
-            alt="ตัวอย่างภาพใบหน้าพร้อมกรอบแยกชนิดสิว"
+            alt={siteConfig.hero.alt}
+            privacyBar={siteConfig.hero.privacyBar}
             priority
             className="aspect-[4/3]"
           />
@@ -248,7 +250,7 @@ export default async function HomePage() {
       >
         <SectionHeading
           eyebrow="ความรู้เรื่องสิว"
-          title="สิว 6 ชนิดที่ AcneAI ตรวจจับได้"
+          title={`สิว 6 ชนิดที่ ${siteConfig.name} ตรวจจับได้`}
           desc="แบ่งเป็น 3 กลุ่มตามความลึกของการอักเสบ ซึ่งเป็นเกณฑ์ที่ระบบใช้ประเมินความรุนแรง ภาพทั้งหมดเป็นภาพจริงพร้อมกรอบสีแบบเดียวกับผลวิเคราะห์"
         />
         <AcneTypeGrid />

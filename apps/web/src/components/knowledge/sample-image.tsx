@@ -2,6 +2,7 @@ import Image from "next/image";
 import { ACNE_COLORS, ACNE_LABELS } from "@/types/analyze";
 import { cn } from "@/lib/utils";
 import type { SampleBox } from "./acne-samples";
+import type { PrivacyBar } from "@/config/site";
 
 // ภาพตัวอย่างจากชุดข้อมูล พร้อมกรอบสีตามชนิดสิว (สีเดียวกับหน้าผลวิเคราะห์)
 export function SampleImage({
@@ -10,6 +11,7 @@ export function SampleImage({
   alt,
   showLabels = false,
   priority = false,
+  privacyBar,
   className,
 }: {
   src: string;
@@ -17,6 +19,8 @@ export function SampleImage({
   alt: string;
   showLabels?: boolean;
   priority?: boolean;
+  // แถบดำปิดตาเพื่อปกปิดตัวตนของเจ้าของภาพ
+  privacyBar?: PrivacyBar;
   className?: string;
 }) {
   return (
@@ -34,6 +38,19 @@ export function SampleImage({
         sizes="(min-width: 1024px) 40vw, 100vw"
         className="object-cover"
       />
+      {privacyBar && (
+        <div
+          aria-hidden="true"
+          className="absolute rounded-sm bg-black"
+          style={{
+            left: `${privacyBar.x}%`,
+            top: `${privacyBar.y}%`,
+            width: `${privacyBar.w}%`,
+            height: `${privacyBar.h}%`,
+            transform: `rotate(${privacyBar.rotate ?? 0}deg)`,
+          }}
+        />
+      )}
       {boxes.map((b, i) => (
         <div
           key={i}

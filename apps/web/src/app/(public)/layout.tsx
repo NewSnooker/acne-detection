@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { ScanFace } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/brand/brand-logo";
+import { ThemeControls } from "@/components/theme/theme-controls";
+import { siteConfig } from "@/config/site";
 
 const NAV = [
   { href: "/#types", label: "ชนิดของสิว" },
@@ -23,16 +25,8 @@ export default async function PublicLayout({
     <div className="flex min-h-[100dvh] flex-col">
       <header className="bg-background/90 sticky top-0 z-50 border-b backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-xl font-bold tracking-tight"
-          >
-            <span className="bg-primary text-primary-foreground flex h-9 w-9 items-center justify-center rounded-lg">
-              <ScanFace className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <span>
-              Acne<span className="text-primary">AI</span>
-            </span>
+          <Link href="/" aria-label={`${siteConfig.name} หน้าแรก`}>
+            <BrandLogo size="md" showTagline={false} />
           </Link>
           <nav
             aria-label="เมนูหลัก"
@@ -49,6 +43,7 @@ export default async function PublicLayout({
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            <ThemeControls />
             {!session && (
               <Button
                 asChild
@@ -72,9 +67,7 @@ export default async function PublicLayout({
       <footer className="bg-card border-t">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm md:grid-cols-3">
           <div className="flex flex-col gap-2">
-            <span className="text-lg font-bold">
-              Acne<span className="text-primary">AI</span>
-            </span>
+            <BrandLogo size="sm" />
             <p className="text-muted-foreground">
               ระบบตรวจจับและจำแนกสิว 6 ชนิดจากภาพถ่ายใบหน้า
               พร้อมประเมินความรุนแรงและคำแนะนำดูแลผิว
@@ -105,7 +98,9 @@ export default async function PublicLayout({
               </a>{" "}
               สัญญาอนุญาต CC BY 4.0
             </p>
-            <p>© {new Date().getFullYear()} AcneAI · โครงงานนักศึกษา</p>
+            <p>
+              © {new Date().getFullYear()} {siteConfig.name} · โครงงานนักศึกษา
+            </p>
           </div>
         </div>
       </footer>
