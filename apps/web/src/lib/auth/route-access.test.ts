@@ -23,8 +23,6 @@ describe("resolveRedirect", () => {
 
     it.each([
       "/",
-      "/knowledge",
-      "/accuracy",
       "/login",
       "/register",
       "/api/auth/callback/google",

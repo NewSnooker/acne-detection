@@ -94,7 +94,7 @@ export function HolisticCarePromo({ trigger }: { trigger?: React.ReactNode }) {
 
           <div className="flex flex-col-reverse gap-2 px-6 pb-6 sm:flex-row">
             <Link
-              href="/knowledge#holistic"
+              href="/#care"
               onClick={() => handleOpenChange(false)}
               className="hover:bg-accent inline-flex h-11 flex-1 items-center justify-center gap-1 rounded-full border text-sm font-medium transition-colors"
             >

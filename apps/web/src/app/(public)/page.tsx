@@ -4,20 +4,34 @@ import {
   BookOpen,
   CircleCheck,
   ClipboardList,
-  Gauge,
-  HeartPulse,
   ScanFace,
+  Stethoscope,
   Upload,
 } from "lucide-react";
 import { calculateSeverity } from "@/server/analyze";
 import { getActiveModelMetrics } from "@/server/active-model";
-import { ACNE_COLORS, ACNE_LABELS, SEVERITY_LABELS } from "@/types/analyze";
+import {
+  ACNE_CARE_ADVICE,
+  ACNE_COLORS,
+  ACNE_LABELS,
+  SEVERITY_LABELS,
+} from "@/types/analyze";
 import { Button } from "@/components/ui/button";
 import { MedicalDisclaimer } from "@/components/analyze/medical-disclaimer";
 import { SampleImage } from "@/components/knowledge/sample-image";
 import { ACNE_SAMPLES } from "@/components/knowledge/acne-samples";
-import { ACNE_GROUPS, SEVERITY_INFO } from "@/components/knowledge/content";
-import { StartCta } from "@/components/public/page-intro";
+import {
+  ACNE_CAUSES,
+  ACNE_GROUPS,
+  SEE_DOCTOR_SIGNS,
+  SEVERITY_INFO,
+  SKINCARE_BASICS,
+} from "@/components/knowledge/content";
+import { AcneTypeGrid } from "@/components/knowledge/acne-type-grid";
+import { HolisticCare } from "@/components/knowledge/holistic-care";
+import { ModelMetrics } from "@/components/knowledge/model-metrics";
+import { SeverityLevels } from "@/components/knowledge/severity-levels";
+import { StartCta } from "@/components/public/start-cta";
 import { siteConfig } from "@/config/site";
 
 const STEPS = [
@@ -35,27 +49,6 @@ const STEPS = [
     icon: ClipboardList,
     title: "ดูผลและคำแนะนำ",
     desc: "เห็นกรอบสีแยกชนิดสิวบนรูป ระดับความรุนแรง คำแนะนำ และย้อนดูประวัติกับสถิติของตัวเองได้",
-  },
-];
-
-const EXPLORE = [
-  {
-    href: "/knowledge#types",
-    icon: ScanFace,
-    title: "สิว 6 ชนิด",
-    desc: "สิวหัวดำ หัวขาว ตุ่มแดง หัวหนอง ก้อนแข็ง และซีสต์ ดูภาพจริงและวิธีดูแล",
-  },
-  {
-    href: "/knowledge",
-    icon: HeartPulse,
-    title: "ดูแลผิวแบบองค์รวม",
-    desc: "การนอน ความเครียด อาหาร การดูแลผิวพื้นฐาน และเมื่อไรควรพบแพทย์",
-  },
-  {
-    href: "/accuracy",
-    icon: Gauge,
-    title: "ความแม่นยำและเกณฑ์ประเมิน",
-    desc: "ตัวเลขความแม่นยำของโมเดล และวิธีที่ระบบแบ่งความรุนแรง 3 ระดับ",
   },
 ];
 
@@ -138,7 +131,7 @@ export default async function HomePage() {
               variant="outline"
               className="h-12 rounded-full px-7 text-base"
             >
-              <Link href="/knowledge#types">ดูสิว 6 ชนิด</Link>
+              <Link href="/#types">ดูสิว 6 ชนิด</Link>
             </Button>
           </div>
           <ul className="text-muted-foreground flex flex-wrap gap-x-6 gap-y-2 text-sm">
@@ -228,13 +221,17 @@ export default async function HomePage() {
                   </div>
                 ))}
               </dl>
+              <p className="text-foreground/80 border-t pt-3 text-sm leading-relaxed">
+                <span className="text-foreground font-semibold">คำแนะนำ: </span>
+                {ACNE_CARE_ADVICE[severity]}
+              </p>
             </figcaption>
           </div>
         </figure>
       </section>
 
       {/* How it works */}
-      <section id="how" className="bg-card scroll-mt-20 border-y">
+      <section id="how" className="bg-card scroll-mt-28 border-y">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16">
           <SectionHeading
             eyebrow="ใช้งานง่าย 3 ขั้นตอน"
@@ -262,75 +259,108 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ตัวเลขความแม่นยำแบบย่อ */}
-      <section className="mx-auto flex max-w-6xl flex-col gap-6 px-4 pt-16">
-        <div className="bg-border grid gap-px overflow-hidden rounded-3xl border sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { value: "6", label: "ชนิดสิวที่ตรวจจับได้" },
-            { value: "3", label: "ระดับความรุนแรง" },
-            {
-              value:
-                activeModel?.mAP50 != null
-                  ? `${activeModel.mAP50.toFixed(1)}%`
-                  : "—",
-              label: "mAP@0.5 ของโมเดล",
-            },
-            {
-              value:
-                activeModel?.precision != null
-                  ? `${activeModel.precision.toFixed(1)}%`
-                  : "—",
-              label: "Precision",
-            },
-          ].map((stat) => (
-            <div key={stat.label} className="bg-card flex flex-col gap-1 p-6">
-              <span className="text-primary text-3xl font-bold tabular-nums">
-                {stat.value}
-              </span>
-              <span className="text-muted-foreground text-sm">
-                {stat.label}
-              </span>
+      {/* ดูแลผิว (ข้อ 1.3.3.4) */}
+      <section
+        id="care"
+        className="mx-auto flex max-w-6xl scroll-mt-28 flex-col gap-12 px-4 py-16 md:py-20"
+      >
+        <SectionHeading
+          eyebrow="ดูแลผิวแบบองค์รวม"
+          title="ผิวดีเริ่มจากชีวิตประจำวัน"
+          desc="สิวไม่ได้เกิดจากผิวอย่างเดียว การนอน ความเครียด และอาหารมีผลด้วย"
+        />
+        <HolisticCare />
+
+        <div className="grid gap-8 lg:grid-cols-2">
+          <div className="flex flex-col gap-4">
+            <h3 className="text-2xl">ดูแลผิวพื้นฐาน</h3>
+            <ul className="flex flex-col gap-2">
+              {SKINCARE_BASICS.map((t) => (
+                <li
+                  key={t}
+                  className="bg-card flex items-start gap-3 rounded-xl border p-4"
+                >
+                  <CircleCheck
+                    className="text-primary mt-0.5 h-5 w-5 shrink-0"
+                    aria-hidden="true"
+                  />
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex flex-col gap-4">
+            <h3 className="text-2xl">สาเหตุของสิว</h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {ACNE_CAUSES.map((c) => (
+                <div
+                  key={c.title}
+                  className="bg-card flex flex-col gap-1 rounded-xl border p-4"
+                >
+                  <p className="font-semibold">{c.title}</p>
+                  <p className="text-muted-foreground text-sm">{c.desc}</p>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       </section>
 
-      {/* ลิงก์ไปหน้าความรู้ */}
-      <section className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16">
+      {/* สิว 6 ชนิด */}
+      <section id="types" className="bg-card scroll-mt-28 border-y">
+        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 md:py-20">
+          <SectionHeading
+            eyebrow="ชนิดของสิว"
+            title={`สิว 6 ชนิดที่ ${siteConfig.name} ตรวจจับได้`}
+            desc="แบ่งเป็น 3 กลุ่มตามความลึกของการอักเสบ ภาพทั้งหมดเป็นภาพจริงพร้อมกรอบสีแบบเดียวกับผลวิเคราะห์"
+          />
+          <AcneTypeGrid detailed />
+        </div>
+      </section>
+
+      {/* ความแม่นยำ (ข้อ 1.3.3.3) + เกณฑ์ความรุนแรง */}
+      <section
+        id="accuracy"
+        className="mx-auto flex max-w-6xl scroll-mt-28 flex-col gap-12 px-4 py-16 md:py-20"
+      >
         <SectionHeading
-          eyebrow="เรียนรู้เพิ่มเติม"
-          title="รู้จักสิวและการดูแลผิว"
+          eyebrow="ความแม่นยำ"
+          title="ความแม่นยำของ AI ที่ใช้งานอยู่"
+          desc="โมเดล YOLO ที่ฝึกด้วยภาพสิว 6 ชนิด วัดผลด้วยตัวชี้วัดมาตรฐานของงานตรวจจับวัตถุ"
         />
-        <div className="grid gap-6 md:grid-cols-3">
-          {EXPLORE.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="group bg-card hover:border-primary/40 flex flex-col gap-4 rounded-3xl border p-6 shadow-sm transition-colors"
-            >
-              <span className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-2xl">
-                <item.icon className="h-6 w-6" aria-hidden="true" />
-              </span>
-              <div className="flex flex-col gap-1">
-                <h3 className="text-xl">{item.title}</h3>
-                <p className="text-muted-foreground">{item.desc}</p>
-              </div>
-              <span className="text-primary mt-auto inline-flex items-center gap-1 text-sm font-medium">
-                อ่านต่อ
-                <ArrowRight
-                  className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-                  aria-hidden="true"
-                />
-              </span>
-            </Link>
-          ))}
+        <ModelMetrics model={activeModel} />
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
+            <h3 className="text-2xl">เกณฑ์ประเมินความรุนแรง 3 ระดับ</h3>
+            <p className="text-muted-foreground">
+              ดูจากชนิดและจำนวนสิวที่ตรวจพบ แล้วให้คำแนะนำตามระดับ
+            </p>
+          </div>
+          <SeverityLevels showAdvice />
+        </div>
+      </section>
+
+      {/* เมื่อไรควรพบแพทย์ */}
+      <section className="bg-accent/40 border-y">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-14 md:flex-row md:items-start md:gap-10">
+          <span className="bg-primary text-primary-foreground flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl">
+            <Stethoscope className="h-7 w-7" aria-hidden="true" />
+          </span>
+          <div className="flex flex-col gap-3">
+            <h2 className="text-2xl md:text-3xl">เมื่อไรควรพบแพทย์ผิวหนัง</h2>
+            <ul className="text-foreground/85 flex list-disc flex-col gap-1.5 pl-5">
+              {SEE_DOCTOR_SIGNS.map((t) => (
+                <li key={t}>{t}</li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
       {/* FAQ */}
       <section
         id="faq"
-        className="mx-auto flex max-w-3xl scroll-mt-20 flex-col gap-8 px-4 py-16"
+        className="mx-auto flex max-w-3xl scroll-mt-28 flex-col gap-8 px-4 py-16"
       >
         <h2 className="text-center text-3xl md:text-4xl">คำถามที่พบบ่อย</h2>
         <div className="flex flex-col gap-3">

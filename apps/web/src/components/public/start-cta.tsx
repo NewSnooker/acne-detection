@@ -2,28 +2,6 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// หัวหน้าของหน้าสาธารณะ (ชนิดของสิว, ความแม่นยำ, ความรู้ดูแลผิว)
-export function PageIntro({
-  eyebrow,
-  title,
-  desc,
-  children,
-}: {
-  eyebrow: string;
-  title: string;
-  desc: string;
-  children?: React.ReactNode;
-}) {
-  return (
-    <header className="flex flex-col gap-4">
-      <span className="text-primary text-sm font-semibold">{eyebrow}</span>
-      <h1 className="text-4xl font-extrabold md:text-5xl">{title}</h1>
-      <p className="text-muted-foreground max-w-2xl text-lg">{desc}</p>
-      {children}
-    </header>
-  );
-}
-
 // แถบชวนเริ่มวิเคราะห์ท้ายหน้า
 export function StartCta({
   title = "พร้อมให้ AI ช่วยประเมินผิว",
