@@ -76,9 +76,18 @@ export default async function PublicLayout({
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"
               >
-                acne (Roboflow Universe)
+                acne
               </a>{" "}
-              สัญญาอนุญาต CC BY 4.0
+              และ{" "}
+              <a
+                href="https://universe.roboflow.com/s-workspace-fmu4q/acne-dataset-6-classes-ubwa5"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Acne14k
+              </a>{" "}
+              (Roboflow Universe) สัญญาอนุญาต CC BY 4.0
             </p>
             <p>
               © {new Date().getFullYear()} {siteConfig.name} · โครงงานนักศึกษา
