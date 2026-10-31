@@ -4,14 +4,8 @@ import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { ThemeControls } from "@/components/theme/theme-controls";
 import { siteConfig } from "@/config/site";
-
-const NAV = [
-  { href: "/#types", label: "ชนิดของสิว" },
-  { href: "/#model", label: "ความแม่นยำ" },
-  { href: "/#severity", label: "ระดับความรุนแรง" },
-  { href: "/knowledge", label: "ความรู้ดูแลผิว" },
-  { href: "/#faq", label: "คำถามที่พบบ่อย" },
-];
+import { PublicNav } from "@/components/public/public-nav";
+import { PUBLIC_NAV } from "@/components/public/nav-items";
 
 // หน้าสาธารณะ (หน้าแรก, หน้าความรู้) — คนที่ยังไม่เข้าสู่ระบบเปิดได้
 export default async function PublicLayout({
@@ -28,20 +22,7 @@ export default async function PublicLayout({
           <Link href="/" aria-label={`${siteConfig.name} หน้าแรก`}>
             <BrandLogo size="md" showTagline={false} />
           </Link>
-          <nav
-            aria-label="เมนูหลัก"
-            className="hidden items-center gap-6 text-sm lg:flex"
-          >
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <PublicNav />
           <div className="flex items-center gap-2">
             <ThemeControls />
             {!session && (
@@ -60,6 +41,7 @@ export default async function PublicLayout({
             </Button>
           </div>
         </div>
+        <PublicNav mobile />
       </header>
 
       <main className="flex-1">{children}</main>
@@ -74,7 +56,7 @@ export default async function PublicLayout({
             </p>
           </div>
           <nav aria-label="ลิงก์ท้ายเว็บ" className="flex flex-col gap-2">
-            {NAV.map((item) => (
+            {PUBLIC_NAV.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

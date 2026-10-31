@@ -9,7 +9,7 @@ export const PUBLIC_ROUTES = [
   "/api/models", // FastAPI ต้องดาวน์โหลดโมเดล (GET /api/models/[id]) — route ตรวจสิทธิ์เองด้วย X-API-Key
 ];
 // หน้าสาธารณะที่ต้องตรงทั้ง path (ใช้ startsWith กับ "/" ไม่ได้ เพราะจะเปิดทุกหน้า)
-export const PUBLIC_PAGES = ["/", "/knowledge"];
+export const PUBLIC_PAGES = ["/", "/knowledge", "/acne-types", "/accuracy"];
 export const ADMIN_ROUTES = ["/admin"];
 
 export type RouteVisitor = { role?: string | null } | null;

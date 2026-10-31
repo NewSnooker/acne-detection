@@ -1,10 +1,7 @@
-import Link from "next/link";
-import { ArrowRight, CircleCheck, Stethoscope } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CircleCheck, Stethoscope } from "lucide-react";
+import { StartCta } from "@/components/public/page-intro";
 import { MedicalDisclaimer } from "@/components/analyze/medical-disclaimer";
-import { AcneTypeGrid } from "@/components/knowledge/acne-type-grid";
 import { HolisticCare } from "@/components/knowledge/holistic-care";
-import { SeverityLevels } from "@/components/knowledge/severity-levels";
 import {
   ACNE_CAUSES,
   SEE_DOCTOR_SIGNS,
@@ -14,15 +11,13 @@ import {
 export const metadata = {
   title: "ความรู้ดูแลผิวแบบองค์รวม",
   description:
-    "คำแนะนำดูแลผิวแบบองค์รวม การนอน ความเครียด อาหาร ชนิดของสิว สาเหตุ และเมื่อไรควรพบแพทย์",
+    "คำแนะนำดูแลผิวแบบองค์รวม การนอน ความเครียด อาหาร การดูแลผิวพื้นฐาน สาเหตุของสิว และเมื่อไรควรพบแพทย์",
 };
 
 const TOC = [
   { href: "#holistic", label: "ดูแลผิวแบบองค์รวม" },
   { href: "#skincare", label: "ดูแลผิวพื้นฐาน" },
   { href: "#causes", label: "สาเหตุของสิว" },
-  { href: "#types", label: "สิว 6 ชนิด" },
-  { href: "#severity", label: "ระดับความรุนแรง" },
   { href: "#doctor", label: "เมื่อไรควรพบแพทย์" },
 ];
 
@@ -117,16 +112,6 @@ export default function KnowledgePage() {
       </section>
 
       <section className="flex flex-col gap-6">
-        <Heading id="types" title="สิว 6 ชนิด และวิธีดูแล" />
-        <AcneTypeGrid detailed />
-      </section>
-
-      <section className="flex flex-col gap-6">
-        <Heading id="severity" title="ระดับความรุนแรง และคำแนะนำของระบบ" />
-        <SeverityLevels showAdvice />
-      </section>
-
-      <section className="flex flex-col gap-6">
         <Heading id="doctor" title="เมื่อไรควรพบแพทย์ผิวหนัง" />
         <div className="bg-card flex flex-col gap-4 rounded-2xl border p-6 md:flex-row md:items-start">
           <Stethoscope
@@ -142,21 +127,7 @@ export default function KnowledgePage() {
         <MedicalDisclaimer className="text-sm" />
       </section>
 
-      <div className="bg-primary text-primary-foreground flex flex-wrap items-center justify-between gap-4 rounded-3xl px-8 py-10">
-        <p className="text-xl font-semibold">
-          อ่านครบแล้ว พร้อมให้ AI ช่วยประเมินผิว
-        </p>
-        <Button
-          asChild
-          size="lg"
-          variant="secondary"
-          className="h-12 rounded-full px-7 text-base"
-        >
-          <Link href="/analyze">
-            เริ่มวิเคราะห์ผิว <ArrowRight />
-          </Link>
-        </Button>
-      </div>
+      <StartCta title="อ่านครบแล้ว พร้อมให้ AI ช่วยประเมินผิว" />
     </div>
   );
 }
