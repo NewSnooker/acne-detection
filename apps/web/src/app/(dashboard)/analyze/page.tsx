@@ -1,4 +1,11 @@
-import { ClipboardList, Lightbulb, ScanSearch, Upload } from "lucide-react";
+import { Fragment } from "react";
+import {
+  ChevronRight,
+  ClipboardList,
+  Lightbulb,
+  ScanSearch,
+  Upload,
+} from "lucide-react";
 import { requireUserPage } from "@/lib/auth/guards";
 import { ImageAnalyzer } from "@/components/analyze/image-analyzer";
 import { MedicalDisclaimer } from "@/components/analyze/medical-disclaimer";
@@ -28,21 +35,21 @@ export default async function AnalyzePage() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 pb-8">
-      <section className="from-primary/10 via-card to-card relative overflow-hidden rounded-3xl border bg-gradient-to-br p-6 sm:p-8">
+      <section className="from-primary/10 via-card to-card relative overflow-hidden rounded-3xl border bg-gradient-to-br p-5 sm:p-6">
         <div
           aria-hidden="true"
           className="bg-primary/10 pointer-events-none absolute -top-16 -right-16 h-56 w-56 rounded-full blur-3xl"
         />
-        <div className="relative flex flex-col gap-8">
+        <div className="relative flex flex-col gap-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex max-w-2xl flex-col gap-2">
+            <div className="flex max-w-2xl flex-col gap-1">
               <span className="text-primary text-sm font-semibold">
                 AI Acne Analysis
               </span>
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
                 วิเคราะห์สิวด้วย AI
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 อัปโหลดภาพถ่ายใบหน้า ระบบจะตรวจหาสิว 6 ชนิด บอกระดับความรุนแรง
                 พร้อมคำแนะนำการดูแลผิว
               </p>
@@ -62,29 +69,27 @@ export default async function AnalyzePage() {
             />
           </div>
 
-          <ol className="grid gap-3 sm:grid-cols-3">
+          <ol className="flex flex-wrap items-center gap-2">
             {STEPS.map((step, i) => (
-              <li
-                key={step.label}
-                className="bg-background/70 relative flex items-center gap-3 rounded-2xl border p-3 backdrop-blur"
-              >
-                <span className="bg-primary text-primary-foreground flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-semibold">
-                  {i + 1}
-                </span>
-                <span className="flex min-w-0 flex-1 items-center gap-2 font-medium">
-                  <step.icon
-                    className="text-muted-foreground h-4 w-4 shrink-0"
-                    aria-hidden="true"
-                  />
-                  {step.label}
-                </span>
-                {i < STEPS.length - 1 && (
-                  <span
-                    aria-hidden="true"
-                    className="bg-border absolute top-1/2 -right-3 hidden h-px w-3 sm:block"
-                  />
+              <Fragment key={step.label}>
+                {i > 0 && (
+                  <li aria-hidden="true">
+                    <ChevronRight className="text-muted-foreground/60 h-4 w-4" />
+                  </li>
                 )}
-              </li>
+                <li className="bg-background/70 flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm backdrop-blur">
+                  <span className="bg-primary text-primary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
+                    {i + 1}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <step.icon
+                      className="text-muted-foreground h-4 w-4 shrink-0"
+                      aria-hidden="true"
+                    />
+                    {step.label}
+                  </span>
+                </li>
+              </Fragment>
             ))}
           </ol>
         </div>
