@@ -219,6 +219,22 @@ export function pickImportedMetrics(raw: unknown): ImportedMetrics {
   return result;
 }
 
+/** แปลรหัสที่ FastAPI ตอบเป็นสาเหตุที่แอดมินแก้ต่อได้ */
+export function aiErrorMessage(status: number) {
+  switch (status) {
+    case 400:
+      return "ระบบ AI ดาวน์โหลดไฟล์โมเดลไม่ได้ (ตรวจ INTERNAL_APP_URL และ ALLOWED_MODEL_HOSTS)";
+    case 403:
+      return "AI_SERVICE_API_KEY ของเว็บกับระบบ AI ไม่ตรงกัน";
+    case 404:
+      return "ระบบ AI ยังไม่รองรับการดึงค่า หรือหาไฟล์โมเดลไม่พบ (ลองอัปเดตและเริ่มบริการ AI ใหม่)";
+    case 422:
+      return "ระบบ AI เปิดไฟล์นี้ไม่ได้ ไฟล์อาจเสียหรือไม่ใช่ไฟล์ .pt ของ PyTorch";
+    default:
+      return `ระบบ AI ขัดข้อง (รหัส ${status}) กรุณาลองใหม่อีกครั้ง`;
+  }
+}
+
 /**
  * ให้บริการ AI อ่าน mAP@0.5, Precision, Recall, F1 จากผลเทรนในไฟล์ .pt แล้วบันทึกทับค่าเดิม
  * (Ultralytics เก็บไว้ใน checkpoint["train_metrics"]) — คืนค่าที่อ่านได้
@@ -241,11 +257,14 @@ export async function importModelMetricsLogic(id: string) {
     });
   } catch (error) {
     console.error("model-metrics: cannot reach AI service", error);
-    throw new HttpError(502, "เชื่อมต่อระบบ AI ไม่ได้ กรุณาลองใหม่อีกครั้ง");
+    throw new HttpError(
+      502,
+      "เชื่อมต่อระบบ AI ไม่ได้ (บริการอาจปิดอยู่หรือกำลังเริ่มใหม่) กรุณาลองใหม่อีกครั้ง",
+    );
   }
   if (!response.ok) {
     console.error("model-metrics:", response.status, await response.text());
-    throw new HttpError(502, "ระบบ AI อ่านไฟล์โมเดลนี้ไม่ได้");
+    throw new HttpError(502, aiErrorMessage(response.status));
   }
 
   const metrics = pickImportedMetrics(await response.json());

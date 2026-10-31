@@ -15,7 +15,7 @@ venv\Scripts\python.exe -m pip install -r requirements-dev.txt   # ครั้�
 venv\Scripts\python.exe -m pytest
 ```
 
-ผลล่าสุด (2026-10-31): เว็บ 209 กรณีผ่าน, AI 48 กรณีผ่าน
+ผลล่าสุด (2026-10-31): เว็บ 210 กรณีผ่าน, AI 48 กรณีผ่าน
 
 GitHub Actions (`.github/workflows/ci.yml`) รันชุดเดียวกันนี้ทุก push เข้า `main` และทุก PR พร้อม `format:check`, `lint`, `typecheck` ฝั่งเว็บ
 
@@ -44,7 +44,7 @@ GitHub Actions (`.github/workflows/ci.yml`) รันชุดเดียวก
 | `app/api/images/[...path]/route.test.ts` | ดูรูปได้เฉพาะเจ้าของและผู้ดูแลระบบ, กัน `../` | 1.3.2.5 | 8 |
 | `app/api/models/[id]/route.test.ts` | โหลดไฟล์โมเดลได้เฉพาะบริการ AI หรือผู้ดูแลระบบ, ตั้งโมเดลหลัก/ลบ/แก้ได้เฉพาะผู้ดูแลระบบ, ตรวจ body, รหัส 409/500 | 1.3.1.4 | 18 |
 | `server/models.test.ts` | อัปโหลด ตั้งโมเดลหลัก (transaction) ลบ (กันโมเดลหลัก) แก้ไขโมเดล | 1.3.1.4 | 19 |
-| `server/models-metrics.test.ts` | ดึงค่าประเมินจากไฟล์ `.pt` ผ่านบริการ AI: 404/422/502, บันทึกเฉพาะค่าที่ถูกต้อง | 1.3.3.3 | 5 |
+| `server/models-metrics.test.ts` | ดึงค่าประเมินจากไฟล์ `.pt` ผ่านบริการ AI: 404/422/502, บันทึกเฉพาะค่าที่ถูกต้อง, ข้อความ error ตามรหัส | 1.3.3.3 | 6 |
 | `server/users.test.ts` | ลบผู้ใช้พร้อมรูป, ลบตัวเองไม่ได้ | 1.3.1.3 | 7 |
 | `server/users-list.test.ts` | รายชื่อผู้ใช้ในหน้าแอดมินไม่มี hash รหัสผ่าน | 1.3.1.3 | 1 |
 | `server/history.test.ts` | ค้นหา/กรองวัน/กรองชนิดสิว, นับจำนวนรูปต่อชนิด, ผู้ใช้เห็นเฉพาะของตัวเอง, ลบประวัติ | 1.3.1.5, 1.3.2.5 | 15 |

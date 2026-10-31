@@ -66,8 +66,8 @@ export const MODEL_METRICS = [
   },
   {
     key: "accuracy",
-    label: "Accuracy",
-    desc: "สัดส่วนการทำนายที่ถูกต้องทั้งหมด",
+    label: "Type Accuracy",
+    desc: "เมื่อพบสิวแล้ว ระบบบอกชนิดถูกกี่เปอร์เซ็นต์",
   },
 ] as const;
 export type ModelMetricKey = (typeof MODEL_METRICS)[number]["key"];
