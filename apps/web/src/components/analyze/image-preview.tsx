@@ -94,7 +94,7 @@ export function ImagePreview({
       )}
     >
       {broken ? (
-        <MissingImage className="aspect-[4/3] w-80 max-w-full" />
+        <MissingImage className="aspect-[4/3] w-[40rem] max-w-full" />
       ) : !result ? (
         <div className="relative flex h-full w-full justify-center p-2">
           <Image

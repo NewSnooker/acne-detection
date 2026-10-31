@@ -19,10 +19,10 @@ export function MissingImage({
       aria-label="ไม่พบไฟล์รูป"
     >
       <ImageOff
-        className={compact ? "h-4 w-4" : "h-7 w-7"}
+        className={compact ? "h-4 w-4" : "h-10 w-10"}
         aria-hidden="true"
       />
-      {!compact && <span className="text-xs">ไม่พบไฟล์รูป</span>}
+      {!compact && <span className="text-sm">ไม่พบไฟล์รูป</span>}
     </div>
   );
 }
