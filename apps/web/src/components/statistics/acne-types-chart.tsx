@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { useTheme } from "next-themes";
 import { useMounted } from "@/hooks/use-mounted";
 import type { Prisma } from "@prisma/client";
@@ -181,17 +182,13 @@ export function AcneTypesChart({
     (preAggregated && preAggregated.length === 0)
   ) {
     return (
-      <div className="text-muted-foreground flex h-[350px] items-center justify-center">
-        ยังไม่มีประวัติการวิเคราะห์
-      </div>
+      <EmptyState title="ยังไม่มีประวัติการวิเคราะห์" className="h-[350px]" />
     );
   }
 
   if (series.length === 0) {
     return (
-      <div className="text-muted-foreground flex h-[350px] items-center justify-center">
-        ไม่พบข้อมูลสิวในช่วงเวลานี้
-      </div>
+      <EmptyState title="ไม่พบข้อมูลสิวในช่วงเวลานี้" className="h-[350px]" />
     );
   }
 

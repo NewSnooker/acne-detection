@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { useTheme } from "next-themes";
 import { useMounted } from "@/hooks/use-mounted";
 import dynamic from "next/dynamic";
@@ -168,9 +169,10 @@ export function AdminTrendChart({ data }: AdminTrendChartProps) {
 
   if (data.length === 0) {
     return (
-      <div className="bg-card text-muted-foreground flex h-[350px] items-center justify-center rounded-2xl border">
-        ไม่มีข้อมูลการใช้งานในช่วงเวลานี้
-      </div>
+      <EmptyState
+        title="ไม่มีข้อมูลการใช้งานในช่วงเวลานี้"
+        className="h-[350px]"
+      />
     );
   }
 
