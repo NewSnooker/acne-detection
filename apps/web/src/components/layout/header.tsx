@@ -1,10 +1,10 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { Moon, Sun, LogOut, User, Menu } from "lucide-react";
-import { useTheme } from "next-themes";
+import { LogOut, User, Menu } from "lucide-react";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { ThemeControls } from "@/components/theme/theme-controls";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,14 +16,7 @@ import { SidebarContent } from "./sidebar";
 import { AuthUser } from "@/types";
 
 export function Header({ user }: { user: AuthUser }) {
-  const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <header className="bg-card sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b px-6 backdrop-blur-md sm:h-19">
@@ -48,21 +41,7 @@ export function Header({ user }: { user: AuthUser }) {
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Theme toggle */}
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="text-muted-foreground hover:bg-accent hover:text-foreground cursor-pointer rounded-lg p-2 transition-colors"
-        >
-          {mounted ? (
-            theme === "dark" ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )
-          ) : (
-            <div className="h-4 w-4" />
-          )}
-        </button>
+        <ThemeControls />
 
         {/* User Dropdown */}
         <DropdownMenu>

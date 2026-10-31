@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { useTheme } from "next-themes";
 import { useMounted } from "@/hooks/use-mounted";
 import dynamic from "next/dynamic";
@@ -130,11 +131,7 @@ export function DetectionResultsChart({ data }: DetectionResultsChartProps) {
   const total = data.ACNE + data.CLEAR;
 
   if (total === 0) {
-    return (
-      <div className="bg-card text-muted-foreground flex h-[300px] w-full items-center justify-center rounded-2xl border">
-        ไม่มีข้อมูล
-      </div>
-    );
+    return <EmptyState title="ไม่มีข้อมูล" className="h-[350px]" />;
   }
 
   return (

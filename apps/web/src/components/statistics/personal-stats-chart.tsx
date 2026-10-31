@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { useTheme } from "next-themes";
 import { useMounted } from "@/hooks/use-mounted";
 import dynamic from "next/dynamic";
@@ -172,9 +173,7 @@ export function PersonalStatsChart({ data }: PersonalStatsChartProps) {
 
   if (data.length === 0) {
     return (
-      <div className="bg-card text-muted-foreground flex h-[400px] items-center justify-center rounded-2xl border">
-        ยังไม่มีประวัติการวิเคราะห์
-      </div>
+      <EmptyState title="ยังไม่มีประวัติการวิเคราะห์" className="h-[350px]" />
     );
   }
 

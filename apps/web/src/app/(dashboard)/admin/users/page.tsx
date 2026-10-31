@@ -3,7 +3,7 @@ import { getAllUsers } from "@/server/users";
 import { UserTable } from "./user-table";
 
 export const metadata = {
-  title: "จัดการผู้ใช้งาน (User Management) - AcneAI",
+  title: "จัดการผู้ใช้งาน (User Management)",
 };
 
 export default async function AdminUsersPage() {

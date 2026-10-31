@@ -138,10 +138,10 @@ export function HistoryModal({
           {/* Use key={selectedItem.id} to re-trigger animations when changing pages */}
           <div
             key={selectedItem.id}
-            className="animate-in fade-in slide-in-from-right-4 grid h-full grid-cols-1 gap-6 duration-500 lg:grid-cols-3 lg:gap-8"
+            className="animate-in fade-in slide-in-from-right-4 grid grid-cols-1 items-start gap-6 duration-500 lg:grid-cols-3 lg:gap-8"
           >
             {/* Left: Image Canvas */}
-            <div className="group animate-in fade-in fill-mode-backwards relative flex h-full min-h-[250px] items-center justify-center delay-100 duration-500 lg:col-span-2 lg:min-h-[400px]">
+            <div className="group animate-in fade-in fill-mode-backwards relative flex items-start justify-center delay-100 duration-500 lg:sticky lg:top-0 lg:col-span-2">
               {/* Mobile Navigation (Overlay on Image) */}
               <button
                 onClick={(e) => {
@@ -174,13 +174,14 @@ export function HistoryModal({
                     result={selectedItem as AnalysisResult}
                     loading={false}
                     readOnly={true}
+                    fit
                   />
                 );
               })()}
             </div>
 
             {/* Right: Results Panel */}
-            <div className="animate-in fade-in h-full duration-500">
+            <div className="animate-in fade-in duration-500">
               {(() => {
                 const imageUrl = selectedItem.imageUrl
                   ? selectedItem.imageUrl
