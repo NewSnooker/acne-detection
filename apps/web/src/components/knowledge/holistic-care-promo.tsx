@@ -92,17 +92,14 @@ export function HolisticCarePromo({ trigger }: { trigger?: React.ReactNode }) {
             })}
           </ul>
 
-          <div className="flex flex-col-reverse gap-2 px-6 pb-6 sm:flex-row">
+          <div className="px-6 pb-6">
             <Link
               href="/#care"
               onClick={() => handleOpenChange(false)}
-              className="hover:bg-accent inline-flex h-11 flex-1 items-center justify-center gap-1 rounded-full border text-sm font-medium transition-colors"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-11 w-full items-center justify-center gap-1 rounded-full text-sm font-semibold shadow-sm transition-colors"
             >
               อ่านเพิ่มเติม <ArrowRight className="h-4 w-4" />
             </Link>
-            <Dialog.Close className="bg-primary text-primary-foreground hover:bg-primary/90 h-11 flex-1 cursor-pointer rounded-full text-sm font-semibold shadow-sm transition-colors">
-              เริ่มวิเคราะห์เลย
-            </Dialog.Close>
           </div>
         </Dialog.Content>
       </Dialog.Portal>
