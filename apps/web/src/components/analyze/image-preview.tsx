@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { MissingImage } from "@/components/ui/missing-image";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AnalysisResult, ACNE_COLORS, ACNE_LABELS } from "@/types/analyze";
@@ -25,6 +26,8 @@ export function ImagePreview({
   fit = false,
 }: ImagePreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // รูปโหลดไม่ได้ (ไฟล์หาย) — แสดงภาพแทนแทนกรอบว่าง
+  const [broken, setBroken] = useState(false);
 
   useEffect(() => {
     if (!result || !previewUrl || !canvasRef.current) return;
@@ -34,8 +37,10 @@ export function ImagePreview({
     if (!ctx) return;
 
     const image = new window.Image();
+    image.onerror = () => setBroken(true);
     image.src = previewUrl;
     image.onload = () => {
+      setBroken(false);
       // Set canvas size to match image intrinsic size
       canvas.width = image.naturalWidth;
       canvas.height = image.naturalHeight;
@@ -88,7 +93,9 @@ export function ImagePreview({
           : "min-h-[250px] w-full lg:min-h-[420px]",
       )}
     >
-      {!result ? (
+      {broken ? (
+        <MissingImage className="aspect-[4/3] w-80 max-w-full" />
+      ) : !result ? (
         <div className="relative flex h-full w-full justify-center p-2">
           <Image
             src={previewUrl}

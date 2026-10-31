@@ -8,6 +8,7 @@ import React, {
   useEffect,
 } from "react";
 import Image from "next/image";
+import { MissingImage } from "@/components/ui/missing-image";
 import type { AgGridReact } from "ag-grid-react";
 import type {
   ColDef,
@@ -158,14 +159,7 @@ export function HistoryTableView({
         }}
       >
         <div className="bg-muted ring-primary/20 relative h-10 w-10 cursor-pointer overflow-hidden rounded-md shadow-sm transition-all group-hover:ring-2">
-          <Image
-            src={imageUrl}
-            alt="thumbnail"
-            fill
-            sizes="40px"
-            unoptimized={true}
-            className="object-cover"
-          />
+          <TableThumb src={imageUrl} />
         </div>
       </div>
     );
@@ -521,5 +515,22 @@ export function HistoryTableView({
         </>
       )}
     </div>
+  );
+}
+
+// รูปย่อในตาราง ถ้าโหลดไม่ได้แสดงไอคอนแทน
+function TableThumb({ src }: { src: string }) {
+  const [broken, setBroken] = useState(false);
+  if (broken) return <MissingImage compact />;
+  return (
+    <Image
+      src={src}
+      alt="รูปที่วิเคราะห์"
+      fill
+      sizes="40px"
+      unoptimized
+      onError={() => setBroken(true)}
+      className="object-cover"
+    />
   );
 }
