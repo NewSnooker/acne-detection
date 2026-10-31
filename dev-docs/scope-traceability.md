@@ -32,7 +32,7 @@
 |---|---|---|---|
 | 1.3.3.1 | จำแนกสิว 6 ประเภท | ✅ | `yolo_service.py` `ACNE_CLASSES` |
 | 1.3.3.2 | กรอบสีแยกชนิด + **ปรับการแสดง label อัตโนมัติ** | ⚠️ | `image-preview.tsx` วาดกรอบสีตาม `ACNE_COLORS` แต่ label เป็นชื่ออังกฤษ, ปรับแค่ขนาดฟอนต์ตามความกว้างรูป ไม่มี logic ซ่อน/ย้าย label เมื่อกรอบชิดขอบหรือซ้อนกัน |
-| 1.3.3.3 | แสดงค่า **Recall, F1-score, mAP** ของโมเดล | ✅ | field `mAP50/precision/recall/f1Score/accuracy` ใน `AiModel` แอดมินกรอกใน `edit-model-dialog.tsx` แสดงในตาราง `/admin/models` และหน้าแรก (`model-metrics.tsx`) — ค่ามาจากการกรอก ไม่ได้อ่านจาก `.pt` |
+| 1.3.3.3 | แสดงค่า **Recall, F1-score, mAP** ของโมเดล | ✅ | field `mAP50/precision/recall/f1Score/accuracy` ใน `AiModel` แอดมินกรอกใน `edit-model-dialog.tsx` แสดงในตาราง `/admin/models` และหน้า `/accuracy` (`model-metrics.tsx`) + ตัวเลขย่อในหน้าแรก — ค่ามาจากการกรอก ไม่ได้อ่านจาก `.pt` |
 | 1.3.3.4 | แสดงคำแนะนำดูแลผิวแบบองค์รวม (นอน, เครียด, อาหาร) **ก่อน** เข้าสู่การประมวลผล | ✅ | `components/knowledge/holistic-care-promo.tsx` ป๊อปอัปบนหน้า `/analyze` ก่อนอัปโหลด (ครั้งแรกเด้งเอง เปิดซ้ำได้จากปุ่ม "คำแนะนำก่อนเริ่ม") + `holistic-care.tsx` ในหน้า `/knowledge` และหน้าแรก |
 | 1.3.3.5 | ประเมิน 3 ระดับจากชนิด + จำนวน | ✅ | `calculateSeverity()` ตัวเลขตรงกับเล่มทุกเงื่อนไข (เช็คจากรุนแรง → เบา) |
 
