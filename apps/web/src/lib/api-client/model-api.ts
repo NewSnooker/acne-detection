@@ -6,7 +6,7 @@ export const ModelService = {
     file: File,
     info: { name: string; version: string; description: string },
   ) =>
-    apiRequest(
+    apiRequest<{ model: { id: string } }>(
       `/api/models?${new URLSearchParams({ fileName: file.name, ...info })}`,
       {
         method: "POST",
@@ -15,6 +15,16 @@ export const ModelService = {
         // ดู dev-docs/limitations.md
         tooLargeError:
           "ไฟล์ใหญ่เกินกว่าที่เซิร์ฟเวอร์นี้รับได้ (บน Vercel รับได้ไม่เกินประมาณ 4.5 MB ให้อัปโหลดผ่านระบบที่รันด้วย Docker แทน)",
+      },
+    ),
+
+  /** อ่านค่าประเมินจากผลเทรนในไฟล์ .pt แล้วบันทึก — POST /api/models/[id]/metrics */
+  importMetrics: (id: string) =>
+    apiRequest<{ metrics: Partial<Record<string, number>> }>(
+      `/api/models/${id}/metrics`,
+      {
+        method: "POST",
+        fallbackError: "อ่านค่าประเมินจากไฟล์โมเดลไม่สำเร็จ",
       },
     ),
 

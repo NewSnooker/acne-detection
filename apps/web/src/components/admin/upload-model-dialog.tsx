@@ -83,6 +83,14 @@ export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
       setIsOpen(false);
       router.refresh(); // อัปเดต UI หลังอัปโหลดโมเดลสำเร็จ
       if (onSuccess) onSuccess();
+
+      // อ่านค่าประเมินจากผลเทรนในไฟล์ต่อเบื้องหลัง — อ่านไม่ได้ก็ไม่เป็นไร แอดมินกรอกเอง/กดดึงในหน้าแก้ไขได้
+      const modelId = result.model?.id;
+      if (modelId) {
+        void ModelService.importMetrics(modelId).then((imported) => {
+          if (!imported.error) router.refresh();
+        });
+      }
     }
   };
 

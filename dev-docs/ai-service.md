@@ -6,8 +6,9 @@ FastAPI 0.115.5 · Ultralytics 8.3.40 · PyTorch · Python 3.12 (Docker) / venv 
 
 | ไฟล์ | หน้าที่ |
 |---|---|
-| `app/main.py` | สร้าง app, CORS, API key, endpoint ทั้งหมด (`/`, `/health`, `/predict`) และ `resolve_image()` / `resolve_model()` ที่จำกัดว่าอ่านไฟล์จากที่ไหนได้บ้าง |
+| `app/main.py` | สร้าง app, CORS, API key, endpoint ทั้งหมด (`/`, `/health`, `/predict`, `/model-metrics`) และ `resolve_image()` / `resolve_model()` ที่จำกัดว่าอ่านไฟล์จากที่ไหนได้บ้าง |
 | `app/services/yolo_service.py` | `ACNE_CLASSES`, cache โมเดลใน memory (`_cache` + lock), `YoloService.predict()` |
+| `app/services/model_metrics.py` | `extract_metrics()` อ่าน `train_metrics` ของ Ultralytics (`metrics/mAP50(B)`, `precision(B)`, `recall(B)`) เป็นร้อยละ + คำนวณ F1; `read_model_metrics()` โหลดด้วย `torch.load(weights_only=False)` — ไฟล์มาจากแอดมินเท่านั้น |
 | `app/config.py` | `Settings` (pydantic-settings): `AI_SERVICE_API_KEY`, `STORAGE_PATH`, `MODELS_PATH`, `ALLOWED_IMAGE_HOSTS`, `ALLOWED_MODEL_HOSTS`, `DEBUG` |
 | `inspect_pt.py` | สคริปต์ดูข้างในไฟล์ `.pt` (keys, results_dict, names) — ไม่ได้อยู่ใน flow |
 | `requirements.txt` | pin เวอร์ชัน (ไม่มี torch — ติดมากับ ultralytics) |

@@ -33,6 +33,27 @@ export function calculateSeverity(
 /**
  * ฟังก์ชันสำหรับส่งคำขอไปประมวลผลที่ FastAPI AI Service
  */
+/** ที่อยู่และ key ของบริการ AI (FastAPI) — key ต้องมาจาก env เท่านั้น */
+export function getAiServiceConfig() {
+  const url = process.env.AI_SERVICE_URL || "http://localhost:8000";
+  const apiKey = process.env.AI_SERVICE_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "ระบบยังไม่ได้ตั้งค่า AI_SERVICE_API_KEY กรุณาติดต่อผู้ดูแลระบบ",
+    );
+  }
+  return { url, apiKey };
+}
+
+/** URL ที่ FastAPI ใช้ดาวน์โหลดไฟล์โมเดล (GET /api/models/[id]) */
+export function modelDownloadUrl(modelId: string) {
+  const appUrl =
+    process.env.INTERNAL_APP_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "http://localhost:3000";
+  return `${appUrl}/api/models/${modelId}`;
+}
+
 export async function callFastApiForPrediction(
   imageResult: {
     originalImage: string;
@@ -41,14 +62,7 @@ export async function callFastApiForPrediction(
   },
   activeModelId: string,
 ): Promise<AnalysisResult> {
-  const fastApiUrl = process.env.AI_SERVICE_URL || "http://localhost:8000";
-  // key ต้องมาจาก env เท่านั้น (ใน Docker กำหนดไว้ที่ docker-compose.yml)
-  const apiKey = process.env.AI_SERVICE_API_KEY;
-  if (!apiKey) {
-    throw new Error(
-      "ระบบยังไม่ได้ตั้งค่า AI_SERVICE_API_KEY กรุณาติดต่อผู้ดูแลระบบ",
-    );
-  }
+  const { url: fastApiUrl, apiKey } = getAiServiceConfig();
   const ACCURACY_THRESHOLD = process.env.AI_CONFIDENCE_THRESHOLD
     ? parseFloat(process.env.AI_CONFIDENCE_THRESHOLD)
     : 0.25;
@@ -69,11 +83,7 @@ export async function callFastApiForPrediction(
   }
 
   // ส่ง URL ไปให้ FastAPI ดาวน์โหลดโมเดล
-  const appUrl =
-    process.env.INTERNAL_APP_URL ||
-    process.env.NEXT_PUBLIC_APP_URL ||
-    "http://localhost:3000";
-  const activeModelPath = `${appUrl}/api/models/${activeModelId}`;
+  const activeModelPath = modelDownloadUrl(activeModelId);
 
   apiFormData.append("model_url_or_path", activeModelPath);
   apiFormData.append("confidence", ACCURACY_THRESHOLD.toString());
