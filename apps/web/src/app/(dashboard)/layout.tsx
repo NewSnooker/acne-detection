@@ -10,7 +10,7 @@ export default async function DashboardLayout({
   const session = await requireUserPage();
 
   return (
-    <div className="bg-background flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar role={session.user?.role as string} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header
