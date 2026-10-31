@@ -102,7 +102,7 @@ export default async function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-14 md:py-20 lg:grid-cols-[1.05fr_0.95fr]">
+      <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-14 md:py-20 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="flex flex-col gap-6">
           <span className="bg-primary/10 text-primary self-start rounded-full px-3 py-1 text-sm font-medium">
             ประเมินผิวเบื้องต้นด้วย AI · จำแนกสิว 6 ชนิด
@@ -153,7 +153,7 @@ export default async function HomePage() {
         </div>
 
         {/* ตัวอย่างหน้าจอผลวิเคราะห์ */}
-        <figure className="relative">
+        <figure className="relative mx-auto w-full max-w-sm lg:mr-0">
           <div
             aria-hidden="true"
             className="bg-primary/15 absolute -inset-4 -z-10 rounded-[2.5rem] blur-2xl"
@@ -197,7 +197,7 @@ export default async function HomePage() {
                   {severityInfo.en}
                 </span>
               </div>
-              <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
                 {Object.entries(counts).map(([cls, n]) => (
                   <li key={cls} className="flex items-center gap-1.5">
                     <span
@@ -222,7 +222,7 @@ export default async function HomePage() {
                   </div>
                 ))}
               </dl>
-              <p className="text-foreground/80 border-t pt-3 text-sm leading-relaxed">
+              <p className="text-foreground/80 border-t pt-3 text-xs leading-relaxed">
                 <span className="text-foreground font-semibold">คำแนะนำ: </span>
                 {ACNE_CARE_ADVICE[severity]}
               </p>
