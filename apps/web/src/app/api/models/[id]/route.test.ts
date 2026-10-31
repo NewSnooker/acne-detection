@@ -1,3 +1,6 @@
+import { mkdtemp, rm, writeFile } from "fs/promises";
+import os from "os";
+import path from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // /api/models/<id> — ไฟล์โมเดลโหลดได้เฉพาะบริการ AI (ส่ง X-API-Key) หรือผู้ดูแลระบบ
@@ -99,6 +102,40 @@ describe("GET (ดาวน์โหลดไฟล์โมเดล)", () => {
     m.modelFindUnique.mockResolvedValue(null);
 
     expect((await GET(req({ "x-api-key": KEY }), ctx)).status).toBe(404);
+  });
+
+  it("โมเดลที่เก็บเป็นไฟล์ ส่งเนื้อไฟล์จาก MODEL_STORAGE_PATH", async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), "models-"));
+    try {
+      await writeFile(path.join(dir, "abc_best.pt"), "FILEBYTES");
+      vi.stubEnv("MODEL_STORAGE_PATH", dir);
+      m.modelFindUnique.mockResolvedValue({
+        fileName: "abc_best.pt",
+        provider: "file",
+        filePath: "abc_best.pt",
+      });
+
+      const res = await GET(req({ "x-api-key": KEY }), ctx);
+
+      expect(res.status).toBe(200);
+      expect(res.headers.get("Content-Length")).toBe("9");
+      expect(await res.text()).toBe("FILEBYTES");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("โมเดลที่เก็บเป็นไฟล์แต่ไฟล์หาย ตอบ 404", async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), "models-"));
+    vi.stubEnv("MODEL_STORAGE_PATH", dir);
+    m.modelFindUnique.mockResolvedValue({
+      fileName: "gone.pt",
+      provider: "file",
+      filePath: "gone.pt",
+    });
+
+    expect((await GET(req({ "x-api-key": KEY }), ctx)).status).toBe(404);
+    await rm(dir, { recursive: true, force: true });
   });
 });
 

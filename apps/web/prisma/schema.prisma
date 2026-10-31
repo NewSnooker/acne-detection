@@ -85,9 +85,9 @@ model AiModel {
   name        String
   version     String
   description String?
-  filePath    String   // path บนดิสก์ (ในระบบ FastAPI) (ถ้าเป็น hosted เก็บว่าง)
-  modelData   Bytes?   // เก็บไฟล์ .pt เป็น Binary (ใช้เฉพาะโหมด hosted)
-  provider    String   @default("local") // "local" หรือ "mongodb"
+  filePath    String   // provider "file" = ชื่อไฟล์ในโฟลเดอร์ MODEL_STORAGE_PATH, "mongodb" = ""
+  modelData   Bytes?   // ไฟล์ .pt ทั้งไฟล์ (เฉพาะ provider "mongodb" ไม่เกิน 15 MB)
+  provider    String   @default("local") // "file" หรือ "mongodb" ("local" เป็นค่าเก่า ไม่ได้ใช้แล้ว)
   fileName    String
   sizeMb      Float
   isActive    Boolean  @default(true)

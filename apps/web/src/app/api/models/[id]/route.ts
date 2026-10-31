@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminApi } from "@/lib/auth/guards";
 import { errorResponse, parseBody, readJson } from "@/lib/http-error";
 import { deleteModelLogic, editModelLogic } from "@/server/models";
+import { openModelFile } from "@/lib/storage/model-provider";
 import { editModelSchema } from "@/lib/validation/api-input";
 
 export async function GET(
@@ -22,28 +23,39 @@ export async function GET(
     const { id } = await params;
     const model = await prisma.aiModel.findUnique({
       where: { id },
-      select: { modelData: true, fileName: true, provider: true },
+      select: { fileName: true, provider: true, filePath: true },
     });
-
     if (!model) {
       return new NextResponse("Model not found", { status: 404 });
     }
 
-    if (model.provider !== "mongodb" || !model.modelData) {
-      return new NextResponse("Model is not stored in MongoDB", {
-        status: 400,
+    const headers = {
+      "Content-Disposition": `attachment; filename="${model.fileName}"`,
+      "Content-Type": "application/octet-stream",
+    };
+
+    // เก็บเป็นไฟล์: ส่งแบบ stream ไม่โหลดทั้งไฟล์เข้าหน่วยความจำ
+    if (model.provider === "file") {
+      const stored = await openModelFile(model.filePath);
+      if (!stored) {
+        return new NextResponse("Model file is missing", { status: 404 });
+      }
+      return new NextResponse(stored.stream, {
+        headers: { ...headers, "Content-Length": stored.size.toString() },
       });
     }
 
-    // Convert Prisma Bytes to Buffer for response
-    const buffer = Buffer.from(model.modelData);
-
+    // เก็บใน MongoDB: ดึง modelData เฉพาะตอนต้องส่งจริง
+    const data = await prisma.aiModel.findUnique({
+      where: { id },
+      select: { modelData: true },
+    });
+    if (!data?.modelData) {
+      return new NextResponse("Model file is missing", { status: 404 });
+    }
+    const buffer = Buffer.from(data.modelData);
     return new NextResponse(buffer, {
-      headers: {
-        "Content-Disposition": `attachment; filename="${model.fileName}"`,
-        "Content-Type": "application/octet-stream",
-        "Content-Length": buffer.length.toString(),
-      },
+      headers: { ...headers, "Content-Length": buffer.length.toString() },
     });
   } catch (error) {
     console.error("Error serving model:", error);

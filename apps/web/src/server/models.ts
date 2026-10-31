@@ -1,52 +1,70 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
+import type { ReadableStream as WebReadableStream } from "stream/web";
 import { saveModel, deleteModelFile } from "@/lib/storage/model-provider";
 import { HttpError } from "@/lib/http-error";
 import { MODEL_METRICS, type ModelMetricKey } from "@/types/analyze";
 
+export type ModelUpload = {
+  /** ชื่อไฟล์เดิมจากเครื่องผู้ใช้ */
+  originalName: string;
+  /** เนื้อไฟล์แบบ stream — ไม่อ่านทั้งไฟล์เข้าหน่วยความจำ */
+  body: ReadableStream<Uint8Array> | null;
+};
+
 export async function uploadModelLogic(
-  file: File,
+  upload: ModelUpload,
   name: string,
   version: string,
   description: string,
   userId: string,
 ) {
-  if (!file || !file.name.endsWith(".pt")) {
+  if (!upload.body || !upload.originalName.toLowerCase().endsWith(".pt")) {
     throw new HttpError(400, "กรุณาอัปโหลดไฟล์นามสกุล .pt เท่านั้น");
   }
 
-  // 1. Save model using Provider
+  // 1. เก็บไฟล์ (โฟลเดอร์ MODEL_STORAGE_PATH หรือ MongoDB) — ชื่อไฟล์สุ่มนำหน้า กันชนและกัน path แปลก ๆ
   const uniqueId = crypto.randomBytes(8).toString("hex");
-  const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+  const safeName = upload.originalName.replace(/[^a-zA-Z0-9.-]/g, "_");
   const fileName = `${uniqueId}_${safeName}`;
 
-  const saveResult = await saveModel(file, fileName);
-  const sizeMb = parseFloat((file.size / (1024 * 1024)).toFixed(2));
+  const saved = await saveModel(
+    upload.body as WebReadableStream<Uint8Array>,
+    fileName,
+  );
+  if (saved.sizeBytes === 0) {
+    await deleteModelFile(saved.provider, saved.filePath);
+    throw new HttpError(400, "ไฟล์โมเดลว่างเปล่า");
+  }
+  const sizeMb = parseFloat((saved.sizeBytes / (1024 * 1024)).toFixed(2));
 
-  // 2. ตรวจสอบว่ามีโมเดลที่ Active อยู่แล้วหรือไม่
-  const activeCount = await prisma.aiModel.count({
-    where: { isActive: true },
-  });
-  const shouldBeActive = activeCount === 0;
+  try {
+    // 2. ยังไม่มีโมเดลหลัก → ตัวที่อัปโหลดเป็นโมเดลหลักทันที
+    const activeCount = await prisma.aiModel.count({
+      where: { isActive: true },
+    });
 
-  // 3. บันทึกข้อมูลโมเดลใหม่ลงฐานข้อมูล
-  const newModel = await prisma.aiModel.create({
-    data: {
-      name,
-      version,
-      description,
-      filePath: saveResult.filePath,
-      modelData: saveResult.modelData,
-      provider: saveResult.provider,
-      fileName,
-      sizeMb,
-      isActive: shouldBeActive,
-      uploadedBy: userId,
-    },
-  });
-
-  return newModel;
+    // 3. บันทึกข้อมูลโมเดลใหม่ลงฐานข้อมูล
+    return await prisma.aiModel.create({
+      data: {
+        name,
+        version,
+        description,
+        filePath: saved.filePath,
+        modelData: saved.modelData,
+        provider: saved.provider,
+        fileName,
+        sizeMb,
+        isActive: activeCount === 0,
+        uploadedBy: userId,
+      },
+    });
+  } catch (error) {
+    // บันทึกลงฐานข้อมูลไม่สำเร็จ → ไม่ทิ้งไฟล์ค้างในโฟลเดอร์
+    await deleteModelFile(saved.provider, saved.filePath).catch(() => {});
+    throw error;
+  }
 }
 
 const ACTIVE_MODEL_ERROR =

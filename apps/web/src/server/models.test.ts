@@ -1,4 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mkdtemp, readdir, readFile, rm } from "fs/promises";
+import os from "os";
+import path from "path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // จัดการโมเดล AI ของผู้ดูแลระบบ (ขอบเขตข้อ 1.3.1.4) — จำลองฐานข้อมูล
 const db = vi.hoisted(() => ({
@@ -26,8 +29,10 @@ import {
   uploadModelLogic,
 } from "./models";
 
-const ptFile = (name = "best.pt", bytes = 1024 * 1024) =>
-  new File([new Uint8Array(bytes)], name);
+const ptFile = (name = "best.pt", bytes = 1024 * 1024) => ({
+  originalName: name,
+  body: new Blob([new Uint8Array(bytes)]).stream(),
+});
 
 beforeEach(() => {
   [...Object.values(db.aiModel), ...Object.values(db.analysis)].forEach((fn) =>
@@ -61,7 +66,13 @@ describe("uploadModelLogic", () => {
 
   it("ไม่ส่งไฟล์มา ตอบ error เดียวกัน", async () => {
     await expect(
-      uploadModelLogic(undefined as unknown as File, "n", "v1", "", "a1"),
+      uploadModelLogic(
+        { originalName: "best.pt", body: null },
+        "n",
+        "v1",
+        "",
+        "a1",
+      ),
     ).rejects.toThrow(".pt");
   });
 
@@ -120,6 +131,63 @@ describe("uploadModelLogic", () => {
     expect(first).toMatch(/^[0-9a-f]{16}_[a-zA-Z0-9._-]+\.pt$/);
     expect(first).not.toContain("/");
     expect(first).not.toBe(second);
+  });
+});
+
+describe("uploadModelLogic: เก็บเป็นไฟล์ (MODEL_STORAGE_PATH)", () => {
+  let dir: string;
+  beforeEach(async () => {
+    dir = await mkdtemp(path.join(os.tmpdir(), "models-"));
+    vi.stubEnv("MODEL_STORAGE_PATH", dir);
+  });
+  afterEach(async () => {
+    vi.unstubAllEnvs();
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it("ไฟล์ใหญ่เกิน 16 MB เขียนลงโฟลเดอร์ได้ครบ ไม่เก็บใน MongoDB", async () => {
+    const bytes = 20 * 1024 * 1024;
+    await uploadModelLogic(ptFile("big.pt", bytes), "L", "v1", "", "a1");
+
+    const { data } = db.aiModel.create.mock.calls[0][0];
+    expect(data).toMatchObject({
+      provider: "file",
+      modelData: null,
+      sizeMb: 20,
+    });
+    expect(data.filePath).toBe(data.fileName);
+    const saved = await readFile(path.join(dir, data.filePath));
+    expect(saved.length).toBe(bytes);
+  });
+
+  it("บันทึกลงฐานข้อมูลไม่สำเร็จ ลบไฟล์ที่เขียนไปแล้วทิ้ง", async () => {
+    db.aiModel.create.mockRejectedValueOnce(new Error("db down"));
+
+    await expect(
+      uploadModelLogic(ptFile(), "n", "v", "", "a1"),
+    ).rejects.toThrow("db down");
+    expect(await readdir(dir)).toEqual([]);
+  });
+
+  it("ลบโมเดลแล้วไฟล์ในโฟลเดอร์หายไปด้วย", async () => {
+    await uploadModelLogic(ptFile(), "n", "v", "", "a1");
+    const { data } = db.aiModel.create.mock.calls[0][0];
+    db.aiModel.findMany.mockResolvedValue([
+      { id: "m1", provider: "file", filePath: data.filePath },
+    ]);
+
+    await deleteModelLogic("m1");
+
+    expect(await readdir(dir)).toEqual([]);
+  });
+});
+
+describe("uploadModelLogic: เก็บใน MongoDB (ไม่ได้ตั้ง MODEL_STORAGE_PATH)", () => {
+  it("ไฟล์เกิน 15 MB ตอบ 413 พร้อมบอกวิธีแก้ และไม่บันทึกอะไร", async () => {
+    await expect(
+      uploadModelLogic(ptFile("big.pt", 16 * 1024 * 1024), "n", "v", "", "a1"),
+    ).rejects.toMatchObject({ status: 413 });
+    expect(db.aiModel.create).not.toHaveBeenCalled();
   });
 });
 
