@@ -16,7 +16,7 @@
 | รัน | `npm run dev` + uvicorn | `docker-compose up` | Vercel (web) + Render (ai) |
 | DB | MongoDB Atlas | container `mongodb` | Atlas |
 | รูป | ดิสก์ `apps/images/` | volume `./apps/images` (mount ทั้ง web และ ai) | Vercel Blob |
-| โมเดล | MongoDB `modelData` | เหมือนกัน | เหมือนกัน |
+| โมเดล | `MODEL_STORAGE_PATH` ถ้าตั้งไว้ ไม่งั้น MongoDB `modelData` | volume `model_files` (`MODEL_STORAGE_PATH=/app/model-files`) | MongoDB `modelData` (ไม่เกิน 15 MB) |
 | `AI_SERVICE_URL` | `http://localhost:8000` | `http://ai:8000` | URL ของ Render |
 | URL ที่ ai ใช้โหลดโมเดล | `NEXT_PUBLIC_APP_URL` | `INTERNAL_APP_URL=http://web:3000` | `NEXT_PUBLIC_APP_URL` |
 
@@ -54,12 +54,16 @@
 ## Flow: จัดการโมเดล (Admin)
 
 ```
-upload-model-dialog.tsx → POST /api/models (multipart)
-   → uploadModelLogic(): Buffer ทั้งไฟล์ → AiModel { modelData, provider:"mongodb", isActive = (ยังไม่มีตัว active) }
+upload-model-dialog.tsx → POST /api/models?fileName&name&version&description  (body = ไฟล์ .pt ตรง ๆ ไม่ใช่ multipart)
+   → uploadModelLogic() → saveModel() (lib/storage/model-provider.ts)
+        ตั้ง MODEL_STORAGE_PATH: stream ลงดิสก์ → AiModel { provider:"file", filePath:<fileName>, modelData:null }
+        ไม่ตั้ง:                อ่านเข้า Buffer (เกิน 15 MB ตอบ 413) → AiModel { provider:"mongodb", modelData }
+     isActive = (ยังไม่มีตัว active) | บันทึก DB ไม่สำเร็จ → ลบไฟล์ทิ้ง
+   หมายเหตุ: /api/models ถูกยกเว้นจาก proxy.ts เพราะ proxy เก็บ body ไว้ในหน่วยความจำและตัดทิ้งเงียบ ๆ ที่ 10 MB
 ตั้ง active:  POST /api/models/[id]/activate → setActiveModelLogic (ปิดตัวอื่น แล้วเปิดตัวนี้ ใน $transaction)
 แก้ข้อมูล:    PATCH /api/models/[id]         → name, version, description, ค่าประเมิน
 ลบ:          DELETE /api/models/[id] (โมเดลหลักตอบ 409) | DELETE /api/models { ids }  (batch ข้ามตัว active)
-FastAPI ดึงไฟล์: GET /api/models/[id]     → stream binary
+FastAPI ดึงไฟล์: GET /api/models/[id]     → provider "file" stream จากดิสก์ | "mongodb" ส่ง modelData
 ```
 
 ## การเก็บรูป

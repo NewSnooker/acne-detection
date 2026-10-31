@@ -47,14 +47,6 @@ export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
       return;
     }
 
-    // ตรวจสอบขนาด (จำกัด 100MB)
-    if (selected.size > 100 * 1024 * 1024) {
-      setError("ไฟล์มีขนาดใหญ่เกิน 100MB");
-      setFile(null);
-      e.target.value = "";
-      return;
-    }
-
     setFile(selected);
 
     // Auto-fill ชื่อถ้ายังไม่ได้กรอก
@@ -76,13 +68,11 @@ export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
     setLoading(true);
     setError("");
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("name", name);
-    formData.append("version", version);
-    formData.append("description", description);
-
-    const result = await ModelService.uploadModel(formData);
+    const result = await ModelService.uploadModel(file, {
+      name,
+      version,
+      description,
+    });
 
     if (result.error) {
       setError(result.error);
@@ -148,7 +138,7 @@ export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
                       คลิกเพื่อเลือกไฟล์ .pt
                     </p>
                     <p className="text-muted-foreground mt-1 text-xs">
-                      ขนาดสูงสุด 100MB
+                      ไม่จำกัดขนาดเมื่อรันด้วย Docker (บน Vercel ไม่เกิน 4.5 MB)
                     </p>
                   </div>
                 )}

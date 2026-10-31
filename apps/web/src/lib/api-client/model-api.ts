@@ -1,16 +1,22 @@
 import { apiRequest } from "./request";
 
 export const ModelService = {
-  /** อัปโหลดไฟล์โมเดล (.pt) — POST /api/models */
-  uploadModel: (formData: FormData) =>
-    apiRequest("/api/models", {
-      method: "POST",
-      body: formData,
-      fallbackError: "เกิดข้อผิดพลาดในการอัปโหลดโมเดล",
-      // ดู dev-docs/limitations.md
-      tooLargeError:
-        "ไฟล์ใหญ่เกินกว่าที่เซิร์ฟเวอร์นี้รับได้ (บน Vercel รับได้ไม่เกินประมาณ 4.5 MB)",
-    }),
+  /** อัปโหลดไฟล์โมเดล (.pt) — POST /api/models (body = ไฟล์, ข้อมูลโมเดลอยู่ใน query) */
+  uploadModel: (
+    file: File,
+    info: { name: string; version: string; description: string },
+  ) =>
+    apiRequest(
+      `/api/models?${new URLSearchParams({ fileName: file.name, ...info })}`,
+      {
+        method: "POST",
+        body: file,
+        fallbackError: "เกิดข้อผิดพลาดในการอัปโหลดโมเดล",
+        // ดู dev-docs/limitations.md
+        tooLargeError:
+          "ไฟล์ใหญ่เกินกว่าที่เซิร์ฟเวอร์นี้รับได้ (บน Vercel รับได้ไม่เกินประมาณ 4.5 MB ให้อัปโหลดผ่านระบบที่รันด้วย Docker แทน)",
+      },
+    ),
 
   /** ตั้งเป็นโมเดลหลัก — POST /api/models/[id]/activate */
   toggleModelActive: (id: string) =>

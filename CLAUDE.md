@@ -21,7 +21,7 @@ Browser ──► Next.js 16 (apps/web)  ──X-API-Key──►  FastAPI + YOL
 
 - Next.js เป็นทั้ง Frontend และ Backend หลัก (auth, CRUD, คำนวณ severity, บันทึกผล)
 - FastAPI ทำ inference อย่างเดียว ไม่แตะฐานข้อมูล
-- ไฟล์โมเดล `.pt` เก็บใน MongoDB (`AiModel.modelData`) — โฟลเดอร์ `apps/ai/models/` เป็นแค่ cache
+- ไฟล์โมเดล `.pt` เก็บเป็นไฟล์ในโฟลเดอร์ `MODEL_STORAGE_PATH` ของ web (Docker ตั้งให้แล้ว ไม่จำกัดขนาด) ถ้าไม่ตั้งจะเก็บใน MongoDB (`AiModel.modelData` ไม่เกิน 15 MB) — ai โหลดผ่าน `GET /api/models/[id]` เสมอ โฟลเดอร์ `apps/ai/models/` เป็นแค่ cache
 
 ## โครงสร้างโฟลเดอร์
 

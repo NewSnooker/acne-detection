@@ -6,8 +6,8 @@ export type ApiResult<T extends object = object> = Partial<T> & {
 
 type RequestOptions = {
   method: "GET" | "POST" | "PATCH" | "DELETE";
-  /** FormData ส่งตรง อย่างอื่นแปลงเป็น JSON */
-  body?: FormData | object;
+  /** FormData และ Blob/File ส่งตรง อย่างอื่นแปลงเป็น JSON */
+  body?: FormData | Blob | object;
   /** ข้อความเมื่อเชื่อมต่อไม่ได้หรือเซิร์ฟเวอร์ไม่บอกเหตุผล */
   fallbackError: string;
   /** ข้อความเมื่อไฟล์ใหญ่เกินกว่าที่ผู้ให้บริการรับ (413 ถูกตอบก่อนถึงโค้ดของระบบ) */
@@ -22,19 +22,25 @@ export async function apiRequest<T extends object = object>(
   url: string,
   { method, body, fallbackError, tooLargeError }: RequestOptions,
 ): Promise<ApiResult<T>> {
-  const isForm = body instanceof FormData;
+  const isRaw = body instanceof FormData || body instanceof Blob;
+  const headers: HeadersInit | undefined =
+    body instanceof Blob
+      ? { "Content-Type": "application/octet-stream" }
+      : body && !isRaw
+        ? { "Content-Type": "application/json" }
+        : undefined;
   try {
     const response = await fetch(url, {
       method,
-      headers:
-        body && !isForm ? { "Content-Type": "application/json" } : undefined,
+      headers,
       body:
-        body === undefined ? undefined : isForm ? body : JSON.stringify(body),
+        body === undefined ? undefined : isRaw ? body : JSON.stringify(body),
     });
-    if (response.status === 413 && tooLargeError)
-      return failure<T>(tooLargeError);
 
     const result: ApiResult<T> = await response.json().catch(() => ({}));
+    // 413 ที่ไม่มีข้อความ = ผู้ให้บริการปฏิเสธก่อนถึงโค้ดของระบบ
+    if (response.status === 413 && !result.error && tooLargeError)
+      return failure<T>(tooLargeError);
     if (!response.ok) return failure<T>(result.error || fallbackError);
     return result;
   } catch (error) {
