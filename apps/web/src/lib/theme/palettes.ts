@@ -1,7 +1,7 @@
 // ธีมสีของเว็บ — ค่าสีจริงอยู่ใน globals.css ([data-palette="..."])
 // ชุดแรกคือค่าเริ่มต้น
 export const PALETTES = [
-  { key: "clinic", label: "ฟ้าคลินิก", swatch: "hsl(211 72% 44%)" },
+  { key: "clinic", label: "ฟ้า", swatch: "hsl(211 72% 44%)" },
   { key: "rose", label: "ชมพูโรส", swatch: "hsl(346 58% 50%)" },
   { key: "mint", label: "เขียวมิ้นต์", swatch: "hsl(172 62% 31%)" },
   { key: "lavender", label: "ม่วงลาเวนเดอร์", swatch: "hsl(258 46% 54%)" },
