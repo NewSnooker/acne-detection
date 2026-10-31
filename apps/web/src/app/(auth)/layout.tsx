@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { ThemeControls } from "@/components/theme/theme-controls";
@@ -16,7 +17,13 @@ export default function AuthLayout({
       <ThemeControls className="absolute top-4 right-4" />
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
-          <BrandLogo size="lg" stacked />
+          <Link
+            href="/"
+            aria-label="กลับหน้าแรก"
+            className="rounded-lg transition-opacity hover:opacity-80"
+          >
+            <BrandLogo size="lg" stacked />
+          </Link>
         </div>
         {children}
       </div>

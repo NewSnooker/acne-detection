@@ -44,7 +44,14 @@ export function SidebarContent({
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="border-b px-6 py-5">
-        <BrandLogo size="sm" />
+        <Link
+          href="/"
+          onClick={onNavigate}
+          aria-label="กลับหน้าแรก"
+          className="inline-flex rounded-lg transition-opacity hover:opacity-80"
+        >
+          <BrandLogo size="sm" />
+        </Link>
       </div>
 
       {/* Nav */}
