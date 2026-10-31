@@ -71,7 +71,7 @@ export function ImagePreview({
   }, [result, previewUrl]);
 
   return (
-    <div className="bg-card group bg-muted/20 relative flex h-auto min-h-[250px] w-full items-center justify-center overflow-hidden rounded-2xl border shadow-sm lg:min-h-[400px]">
+    <div className="bg-card group bg-muted/20 relative flex h-auto min-h-[250px] w-full items-center justify-center overflow-hidden rounded-3xl border shadow-sm lg:min-h-[420px]">
       {!result ? (
         <div className="relative flex h-full w-full justify-center p-2">
           <Image
