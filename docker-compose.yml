@@ -67,6 +67,7 @@ services:
       - "${WEB_PORT:-3000}:3000"
     volumes:
       - ./apps/images:/app/images            # รูปที่ผู้ใช้อัปโหลด (ใช้ร่วมกับ ai)
+      - model_files:/app/model-files         # ไฟล์โมเดล .pt ที่แอดมินอัปโหลด (ไม่จำกัดขนาด)
     env_file:
       # ไม่บังคับ — มีไว้ใส่ค่าเสริม เช่น GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
       - path: ./apps/web/.env
@@ -80,6 +81,7 @@ services:
       AI_SERVICE_API_KEY: *ai-key
       INTERNAL_APP_URL: http://web:3000     # ai ใช้ URL นี้โหลดไฟล์โมเดลจาก web
       STORAGE_PATH: /app/images
+      MODEL_STORAGE_PATH: /app/model-files  # ไม่ตั้ง = เก็บโมเดลใน MongoDB (ไม่เกิน 15 MB)
       APP_ENV: docker
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@acne.local}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin1234}
@@ -94,6 +96,7 @@ services:
 volumes:
   mongodb_data:
   mongodb_config:
+  model_files:
 
 networks:
   acne_network:
