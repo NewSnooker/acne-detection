@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { RefreshCw } from "lucide-react";
-import { AnalysisResult, ACNE_COLORS } from "@/types/analyze";
+import { AnalysisResult, ACNE_COLORS, ACNE_LABELS } from "@/types/analyze";
 
 interface ImagePreviewProps {
   previewUrl: string;
@@ -55,16 +55,16 @@ export function ImagePreview({
 
         // 📌 หากต้องการให้แสดงเปอร์เซ็นต์ความมั่นใจ (%) บนกรอบด้วย
         // ให้คอมเมนต์บรรทัดข้างล่างนี้...
-        const text = det.type;
+        const text = ACNE_LABELS[det.type] || det.type;
 
         // ... แล้วเปิดใช้งานบรรทัดนี้แทนครับ:
-        // const text = `${det.type} ${(det.confidence * 100).toFixed(0)}%`;
+        // const text = `${ACNE_LABELS[det.type] || det.type} ${(det.confidence * 100).toFixed(0)}%`;
 
         const textWidth = ctx.measureText(text).width;
         ctx.fillRect(x1, y1 - fontSize - 4, textWidth + 8, fontSize + 4);
 
-        // Draw label text
-        ctx.fillStyle = "#ffffff";
+        // Draw label text — สีพื้นอ่อน (หัวขาว/หัวหนอง) ต้องใช้ตัวอักษรเข้มจึงจะอ่านออก
+        ctx.fillStyle = det.type === "whitehead" || det.type === "pustule" ? "#0f172a" : "#ffffff";
         ctx.fillText(text, x1 + 4, y1 - 4);
       });
     };
