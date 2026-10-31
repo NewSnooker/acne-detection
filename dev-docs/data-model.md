@@ -23,9 +23,9 @@ VerificationToken                (Auth.js)
 | field | type | หมายเหตุ |
 |---|---|---|
 | name, version, description? | String | |
-| modelData | Bytes? | ไฟล์ `.pt` ทั้งไฟล์ |
-| provider | String | ปัจจุบันเป็น `"mongodb"` เสมอ (default ใน schema ยังเป็น `"local"`) |
-| filePath | String | เหลือจากดีไซน์เก่า ปัจจุบันเก็บ `""` |
+| modelData | Bytes? | ไฟล์ `.pt` ทั้งไฟล์ (เฉพาะ provider `"mongodb"`) |
+| provider | String | `"file"` = อยู่ในโฟลเดอร์ `MODEL_STORAGE_PATH`, `"mongodb"` = อยู่ใน `modelData` (default ใน schema ยังเป็น `"local"` ที่ไม่ได้ใช้แล้ว) |
+| filePath | String | provider `"file"` = ชื่อไฟล์ในโฟลเดอร์, `"mongodb"` = `""` |
 | fileName | String | `<hex>_<ชื่อไฟล์>` |
 | sizeMb | Float | |
 | isActive | Boolean | ควรมี true ได้ตัวเดียว (บังคับด้วยโค้ด ไม่ใช่ DB) |
@@ -56,6 +56,6 @@ VerificationToken                (Auth.js)
 
 ## ข้อจำกัดที่ต้องรู้
 
-- เอกสาร BSON ใหญ่สุด 16 MB → โมเดลที่ใหญ่กว่านี้เก็บใน `modelData` ไม่ได้ (UI อนุญาตถึง 100 MB)
+- เอกสาร BSON ใหญ่สุด 16 MB → `modelData` รับได้ไม่เกิน 15 MB ถ้าไฟล์ใหญ่กว่านี้ต้องตั้ง `MODEL_STORAGE_PATH`
 - ไม่มี index เพิ่มเติมบน `Analysis.userId`, `Analysis.createdAt`
 - `counts`/`detections` เป็น Json จึง query/aggregate ใน DB ไม่ได้ตรง ๆ ปัจจุบันคำนวณใน JS
