@@ -20,6 +20,7 @@
 | 27 test | ทำแล้วเฉพาะฟีเจอร์สำคัญ — เว็บ 164 กรณี (Vitest), AI 37 กรณี (pytest) ดู `testing.md` |
 | 28 `.gitattributes` | เพิ่มแล้ว |
 | 29 CI, prettier, typecheck | ทำแล้ว (2026-10-30) — `.github/workflows/ci.yml`, prettier + `prettier-plugin-tailwindcss`, commit จัดรูปแบบอยู่ใน `.git-blame-ignore-revs` |
+| 30 UI | แก้แล้ว (2026-11-01) — toast (sonner) แทน `alert()`, หน้า error/404/loading ภาษาไทย, ถอด `react-icons`, ลบ `console.log` (progress หน้าวิเคราะห์ยังจำลองอยู่) |
 | 22, 23 FastAPI | แก้แล้ว (2026-11-01) — แยก routers/schemas/security/services, `logging`, response model, confidence ค่าเดียว (`AI_CONFIDENCE_THRESHOLD`), เทียบ `model.names` กับ `ACNE_CLASSES` ตอนโหลด (ลำดับยัง hard-code) |
 | 19 โมเดลใน Bytes ติด 16 MB | แก้แล้ว (2026-11-01) — หั่นชิ้น 4 MB ใน `AiModelChunk` ไม่จำกัดขนาด |
 | 14 ชั้นโค้ดชื่อสับสน | แก้แล้ว (2026-10-30) — server logic อยู่ `src/server/<feature>.ts` (มี `server-only`), client fetch อยู่ `src/lib/api-client/` |
