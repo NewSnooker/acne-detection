@@ -31,9 +31,9 @@ class FakeWeb:
 
 @pytest.fixture()
 def main_module(dirs):
-    from app import main
+    from app.services import model_files
 
-    return main
+    return model_files
 
 
 def test_parts_from_manifest(main_module, monkeypatch):

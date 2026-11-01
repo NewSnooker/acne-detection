@@ -47,10 +47,10 @@ def test_endpoint_requires_key(client):
 
 
 def test_endpoint_reads_cached_model(client, dirs, monkeypatch):
-    from app import main
+    from app.routers import models as models_router
 
     seen = []
-    monkeypatch.setattr(main, "read_model_metrics", lambda path: seen.append(path) or {"mAP50": 80.0})
+    monkeypatch.setattr(models_router, "read_model_metrics", lambda path: seen.append(path) or {"mAP50": 80.0})
 
     res = client.post("/model-metrics", data={"model_url_or_path": MODEL_URL}, headers=HEADERS)
 
@@ -67,11 +67,11 @@ def test_endpoint_rejects_model_outside_models_dir(client, dirs):
 
 
 def test_endpoint_unreadable_file_returns_422(client, monkeypatch):
-    from app import main
+    from app.routers import models as models_router
 
     def broken(path):
         raise ValueError("not a zip")
 
-    monkeypatch.setattr(main, "read_model_metrics", broken)
+    monkeypatch.setattr(models_router, "read_model_metrics", broken)
     res = client.post("/model-metrics", data={"model_url_or_path": MODEL_URL}, headers=HEADERS)
     assert res.status_code == 422

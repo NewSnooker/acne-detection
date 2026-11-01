@@ -63,6 +63,7 @@ def client(dirs, monkeypatch):
     from fastapi.testclient import TestClient
 
     from app import main
+    from app.routers import predict as predict_router
 
     calls = []
 
@@ -71,7 +72,7 @@ def client(dirs, monkeypatch):
             calls.append({"image": image_path, "model": model_path, "confidence": confidence})
             return {"detections": [], "counts": {"papule": 0}, "total": 0}
 
-    monkeypatch.setattr(main, "YoloService", FakeYoloService)
+    monkeypatch.setattr(predict_router, "YoloService", FakeYoloService)
     monkeypatch.setattr(main.settings, "ALLOWED_MODEL_HOSTS", "")
 
     with TestClient(main.app) as test_client:

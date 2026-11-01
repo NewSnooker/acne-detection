@@ -144,7 +144,7 @@ def test_image_url_from_disallowed_host_rejected(client, url):
 
 def test_image_url_from_vercel_blob_is_downloaded_then_removed(client, dirs, monkeypatch):
     """โหมด hosted: รูปมาจาก Vercel Blob → ดาวน์โหลดเป็นไฟล์ชั่วคราว → ลบทิ้งหลังวิเคราะห์"""
-    from app import main
+    from app.services import model_files
 
     downloaded = []
 
@@ -153,7 +153,7 @@ def test_image_url_from_vercel_blob_is_downloaded_then_removed(client, dirs, mon
         with open(local_path, "wb") as f:
             f.write(b"img")
 
-    monkeypatch.setattr(main, "_download", fake_download)
+    monkeypatch.setattr(model_files, "_download", fake_download)
     url = "https://store123.public.blob.vercel-storage.com/acne-ai/abc.png"
 
     res = predict(client, url, MODEL_URL)
@@ -200,7 +200,7 @@ def test_model_url_must_be_web_model_endpoint(client, dirs, url):
 
 def test_model_download_sends_api_key_and_caches(client, dirs, monkeypatch):
     """โมเดลที่ยังไม่มีในเครื่อง: ดาวน์โหลดจากเว็บพร้อม API key แล้วเก็บเป็น <id>.pt ครั้งถัดไปไม่โหลดซ้ำ"""
-    from app import main
+    from app.services import model_files
 
     downloaded = []
 
@@ -209,8 +209,8 @@ def test_model_download_sends_api_key_and_caches(client, dirs, monkeypatch):
         with open(local_path, "wb") as f:
             f.write(b"model")
 
-    monkeypatch.setattr(main, "_download", fake_download)
-    monkeypatch.setattr(main, "model_parts", lambda url, model_id, headers: [url])
+    monkeypatch.setattr(model_files, "_download", fake_download)
+    monkeypatch.setattr(model_files, "model_parts", lambda url, model_id, headers: [url])
     new_id = "b" * 24
     url = f"http://web:3000/api/models/{new_id}"
     image = str(dirs / "images" / "face.jpg")
