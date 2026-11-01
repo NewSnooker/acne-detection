@@ -169,6 +169,12 @@ acne_web  |  ✓ Ready in ...
 
 3. กู้คืนใช้คำสั่งเดียวกันแต่เปลี่ยน `tar czf /backup/<ชื่อ volume>.tgz -C /v .` เป็น `tar xzf /backup/<ชื่อ volume>.tgz -C /v`
 
+**เคยใช้รุ่นก่อนที่เก็บรูปในโฟลเดอร์ `apps/images/`** — รุ่นนี้เก็บรูปใน volume แทน รูปเก่าจะไม่แสดงจนกว่าจะคัดลอกเข้า volume (ทำครั้งเดียว ขณะระบบเปิดอยู่):
+
+```bash
+docker compose cp apps/images/. web:/app/images
+```
+
 **ล้างข้อมูลทั้งหมดแล้วเริ่มใหม่:** `docker compose down -v` แล้ว `docker compose up` ระบบจะสร้างแอดมินและโมเดลเริ่มต้นให้ใหม่
 
 [↑ สารบัญ](#toc)
