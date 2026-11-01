@@ -23,10 +23,8 @@ VerificationToken                (Auth.js)
 | field | type | หมายเหตุ |
 |---|---|---|
 | name, version, description? | String | |
-| modelData | Bytes? | ไฟล์ `.pt` ทั้งไฟล์ (เฉพาะ provider `"mongodb"` แบบเก่า/seed) |
-| provider | String | `"chunks"` = หั่นชิ้นใน `AiModelChunk` (แบบปัจจุบัน), `"mongodb"` = `modelData`, `"file"` = โฟลเดอร์ `MODEL_STORAGE_PATH` (สองแบบหลังเป็นของเก่า; default ใน schema ยังเป็น `"local"` ที่ไม่ได้ใช้แล้ว) |
-| sizeBytes, chunkCount | Int? | ขนาดจริงและจำนวนชิ้น (provider `"chunks"`) |
-| uploadComplete | Boolean? | `false` = ยังส่งชิ้นไม่ครบ ตั้งเป็นโมเดลหลักไม่ได้, `null` = โมเดลแบบเก่า ถือว่าครบ |
+| modelData | Bytes? | ไฟล์ `.pt` ทั้งไฟล์ (provider `"mongodb"` ≤ 15 MB) |
+| provider | String | `"file"` = โฟลเดอร์ `MODEL_STORAGE_PATH` ของเครื่องที่อัปโหลด, `"mongodb"` = `modelData` (เลือกด้วย `MODEL_STORAGE` ดู `environments.md`; default ใน schema ยังเป็น `"local"` ที่ไม่ได้ใช้แล้ว; `"chunks"` เป็นแบบที่เลิกใช้ ล้างด้วย `npm run db:cleanup`) |
 | filePath | String | provider `"file"` = ชื่อไฟล์ในโฟลเดอร์, `"mongodb"` = `""` |
 | fileName | String | `<hex>_<ชื่อไฟล์>` |
 | sizeMb | Float | |
@@ -54,20 +52,13 @@ VerificationToken                (Auth.js)
 
 - ลบประวัติ: ลบไฟล์รูป → ลบ `Image` → `Analysis` หายตาม cascade
 - ลบผู้ใช้: ลบไฟล์รูปทั้งหมด → ลบ `Image` ทั้งหมด → ลบ `User`
-- ลบโมเดล: set `Analysis.modelId = null` → ลบ `AiModelChunk` ของโมเดล → ลบ `AiModel` (ใน transaction เดียว)
+- ลบโมเดล: set `Analysis.modelId = null` → ลบ `AiModel` (ใน transaction เดียว) แล้วลบไฟล์ (`file`) ถ้าเครื่องนี้มีโฟลเดอร์
 
-### AiModelChunk
-| field | type | หมายเหตุ |
-|---|---|---|
-| modelId | ObjectId → AiModel | onDelete Cascade |
-| index | Int | 0..chunkCount-1, unique คู่กับ modelId |
-| data | Bytes | ไม่เกิน 4 MB ต่อชิ้น (ต้องส่ง `Buffer`) |
-
-> **หลังแก้ schema ต้องรัน `npx prisma db push` กับฐานข้อมูลจริง (Atlas) เอง** — Docker รันให้ตอน container เริ่ม แต่ Vercel build รันแค่ `prisma generate` ถ้าไม่ push จะไม่มี unique index `(modelId, index)` และการส่งชิ้นซ้ำ (ลองใหม่) อาจได้ชิ้นซ้อนกัน
+> **หลังแก้ schema ต้องรัน `npx prisma db push` กับฐานข้อมูลของทุก environment** — Docker ทำให้ตอน container เริ่ม แต่ Atlas ต้องรันเอง (Vercel build รันแค่ `prisma generate`)
 
 ## ข้อจำกัดที่ต้องรู้
 
-- เอกสาร BSON ใหญ่สุด 16 MB → ไฟล์โมเดลจึงหั่นเป็นชิ้น 4 MB ใน `AiModelChunk` (`modelData` แบบเก่ารับได้ไม่เกิน 15 MB)
-- Atlas ฟรีมีพื้นที่รวม 512 MB — โมเดลใหญ่กินพื้นที่เร็ว
+- เอกสาร BSON ใหญ่สุด 16 MB → `modelData` รับได้ไม่เกิน 15 MB โมเดลใหญ่ต้องใช้ `MODEL_STORAGE=file` (Docker) หรือที่เก็บบนคลาวด์ (Azure Blob — กำลังทำ)
+- Atlas ฟรีมีพื้นที่รวม 512 MB
 - ไม่มี index เพิ่มเติมบน `Analysis.userId`, `Analysis.createdAt`
 - `counts`/`detections` เป็น Json จึง query/aggregate ใน DB ไม่ได้ตรง ๆ ปัจจุบันคำนวณใน JS

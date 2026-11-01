@@ -12,7 +12,7 @@ FastAPI 0.115.5 · Ultralytics 8.4.180 · PyTorch · Python 3.12 (Docker) / venv
 | `app/routers/models.py` | `/model-metrics` |
 | `app/schemas.py` | Pydantic response model (`PredictResponse`, `Detection`, `ModelMetricsResponse`, `HealthResponse`) — ดูได้ที่ `/docs` เมื่อ `DEBUG=true` |
 | `app/security.py` | `verify_api_key` (header `X-API-Key`) |
-| `app/services/model_files.py` | `resolve_image()` / `resolve_model()` จำกัดว่าอ่านไฟล์จากที่ไหนได้, `model_parts()` อ่าน manifest ของโมเดลแบบหั่นชิ้น, `_download()` |
+| `app/services/model_files.py` | `resolve_image()` / `resolve_model()` จำกัดว่าอ่านไฟล์จากที่ไหนได้, `_download()` |
 | `app/services/yolo_service.py` | `ACNE_CLASSES`, cache โมเดลใน memory (`_cache` + lock), `YoloService.predict()`, `class_names_mismatch()` เตือนใน log ถ้าลำดับคลาสของโมเดลไม่ตรง |
 | `app/services/model_metrics.py` | `extract_metrics()` อ่าน `train_metrics` ของ Ultralytics (`metrics/mAP50(B)`, `precision(B)`, `recall(B)`) เป็นร้อยละ + คำนวณ F1; `read_model_metrics()` โหลดด้วย `torch.load(weights_only=False)` — ไฟล์มาจากแอดมินเท่านั้น |
 | `app/config.py` | `Settings` (pydantic-settings): `AI_SERVICE_API_KEY`, `STORAGE_PATH`, `MODELS_PATH`, `ALLOWED_IMAGE_HOSTS`, `ALLOWED_MODEL_HOSTS`, `AI_CONFIDENCE_THRESHOLD`, `DEBUG` |
@@ -29,7 +29,7 @@ FastAPI 0.115.5 · Ultralytics 8.4.180 · PyTorch · Python 3.12 (Docker) / venv
    - URL: ต้องเป็น `https` และ host อยู่ใน `ALLOWED_IMAGE_HOSTS` (ค่าเริ่มต้นคือ Vercel Blob) → ดาวน์โหลดเป็น `STORAGE_PATH/tmp_<uuid>.<ext>` แล้วลบใน `finally`
    - path: ต้องเป็นไฟล์ `.jpg/.jpeg/.png/.webp` ที่อยู่ใต้ `STORAGE_PATH` หรือ `<repo>/apps/images` เท่านั้น
 3. `resolve_model()` — โมเดล (ไม่ผ่านเงื่อนไขตอบ 400)
-   - URL: path ต้องเป็น `/api/models/<id 24 หลัก>` (และ host อยู่ใน `ALLOWED_MODEL_HOSTS` ถ้าตั้งไว้) → ถาม `<url>/manifest` ได้รายการ path (ชิ้นละ ≤ 4 MB หรือทั้งไฟล์) ดาวน์โหลดทีละ path พร้อม header `X-API-Key` แล้วต่อกันเก็บที่ `MODELS_PATH/<id>.pt` ถ้ามีไฟล์แล้วข้าม (cache hit) — เว็บรุ่นเก่าที่ไม่มี manifest (404) โหลดทั้งไฟล์
+   - URL: path ต้องเป็น `/api/models/<id 24 หลัก>` (และ host อยู่ใน `ALLOWED_MODEL_HOSTS` ถ้าตั้งไว้) → ดาวน์โหลดพร้อม header `X-API-Key` เก็บที่ `MODELS_PATH/<id>.pt` ถ้ามีไฟล์แล้วข้าม (cache hit)
    - path: ต้องเป็นไฟล์ `.pt` ที่อยู่ใต้ `MODELS_PATH` เท่านั้น
    - การดาวน์โหลดใช้ `urllib` timeout 120 วินาที โหลดลงไฟล์ `.tmp` แล้วค่อยย้าย
 4. `YoloService().predict(image_path, model_path, confidence)`

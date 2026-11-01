@@ -9,18 +9,14 @@
 | MongoDB | mongo:7 (replica set `rs0`) / Atlas | เก็บผู้ใช้, session ของ Auth.js, โมเดล (รวมไฟล์ `.pt`), รูป (metadata), ผลวิเคราะห์ |
 | Image storage | ดิสก์ `apps/images/` หรือ Vercel Blob | ไฟล์รูปจริง |
 
-## Environment 3 แบบ
+## Environment
 
-| | Dev | Docker | Hosted |
+ระบบแต่ละชุด ตัวแปรที่เลือกที่เก็บ และการกันพลาด → **`environments.md`**
+
+| | Docker | Vercel + Render | `npm run dev` |
 |---|---|---|---|
-| รัน | `npm run dev` + uvicorn | `docker-compose up` | Vercel (web) + Render (ai) |
-| DB | MongoDB Atlas | container `mongodb` | Atlas |
-| รูป | ดิสก์ `apps/images/` | volume `./apps/images` (mount ทั้ง web และ ai) | Vercel Blob |
-| โมเดล | MongoDB `AiModelChunk` (หั่นชิ้น ไม่จำกัดขนาด) | เหมือนกัน (volume `model_files` เหลือไว้อ่านโมเดลแบบเก่า) | เหมือนกัน |
-| `AI_SERVICE_URL` | `http://localhost:8000` | `http://ai:8000` | URL ของ Render |
-| URL ที่ ai ใช้โหลดโมเดล | `NEXT_PUBLIC_APP_URL` | `INTERNAL_APP_URL=http://web:3000` | `NEXT_PUBLIC_APP_URL` |
-
-สวิตช์เดียวที่โค้ดเช็คคือ `process.env.APP_ENV === "hosted"` ใน `lib/storage/image-provider.ts`
+| `AI_SERVICE_URL` | `http://ai:8000` | URL ของ Render | `http://localhost:8000` |
+| URL ที่ ai ใช้โหลดโมเดล | `INTERNAL_APP_URL=http://web:3000` | `NEXT_PUBLIC_APP_URL` | `NEXT_PUBLIC_APP_URL` |
 
 ## Flow หลัก: วิเคราะห์สิว
 
@@ -54,25 +50,26 @@
 ## Flow: จัดการโมเดล (Admin)
 
 ```
-upload-model-dialog.tsx (ModelService.uploadModel)
-   1. POST /api/models { fileName, sizeBytes, name, version, description }
-        → startChunkedUpload(): AiModel { provider:"chunks", chunkCount, uploadComplete:false, isActive:false }
-   2. PUT /api/models/[id]/chunks/[i]  (body = ไฟล์ช่วงนั้น ≤ 4 MB, ลองใหม่ได้ 3 ครั้ง) → AiModelChunk { modelId, index, data }
-   3. POST /api/models/[id]/complete → ชิ้นครบ → uploadComplete:true, isActive = (ยังไม่มีตัว active)
-      ล้มกลางทาง → client ลบโมเดลที่ค้าง (DELETE /api/models/[id])
-   ทำไมหั่น: Vercel รับคำขอไม่เกิน 4.5 MB และเอกสาร MongoDB ใหญ่ได้ไม่เกิน 16 MB
+upload-model-dialog.tsx (ModelService.uploadModel — XMLHttpRequest มีแถบความคืบหน้าจริง)
+   หน้าเว็บรู้เพดานจาก maxModelUploadBytes() ตั้งแต่เลือกไฟล์ (file ไม่จำกัด, mongodb 15 MB, Vercel 4.5 MB)
+   → POST /api/models?fileName&name&version&description  (body = ไฟล์ .pt ตรง ๆ)
+   → uploadModelLogic() → saveModel() (lib/storage/model-provider.ts) ตาม MODEL_STORAGE
+        file:    stream ลง MODEL_STORAGE_PATH → AiModel { provider:"file", filePath:<fileName>, modelData:null }
+        mongodb: อ่านเข้า Buffer (เกิน 15 MB ตอบ 413) → AiModel { provider:"mongodb", modelData }
+     isActive = (ยังไม่มีตัว active) | บันทึก DB ไม่สำเร็จ → ลบไฟล์ทิ้ง
+   หมายเหตุ: /api/models ถูกยกเว้นจาก proxy.ts เพราะ proxy เก็บ body ไว้ในหน่วยความจำและตัดทิ้งเงียบ ๆ ที่ 10 MB
 ตั้ง active:  POST /api/models/[id]/activate → setActiveModelLogic (ปิดตัวอื่น แล้วเปิดตัวนี้ ใน $transaction)
 แก้ข้อมูล:    PATCH /api/models/[id]         → name, version, description, ค่าประเมิน
 ลบ:          DELETE /api/models/[id] (โมเดลหลักตอบ 409) | DELETE /api/models { ids }  (batch ข้ามตัว active)
-FastAPI ดึงไฟล์: GET /api/models/[id]/manifest → { parts } แล้วโหลดทีละ path มาต่อกันเป็น cache <id>.pt
-             "chunks" = /api/models/[id]/chunks/0..n-1 | แบบเก่า ("mongodb" / "file") = /api/models/[id] ทั้งไฟล์
+FastAPI ดึงไฟล์: GET /api/models/[id] (X-API-Key) → "file" stream จากโฟลเดอร์ | "mongodb" ส่ง modelData
+             → cache ที่ MODELS_PATH/<id>.pt (ไฟล์ "file" ที่เครื่องนี้ไม่มี → 409 ข้อความไทย)
 ```
 
 ## การเก็บรูป
 
 | โหมด | เก็บที่ | `Image.fileName` | `Image.url` | แสดงผล |
 |---|---|---|---|---|
-| local | `STORAGE_PATH` หรือ `<repo>/apps/images` | `uuid.ext` | null | `GET /api/images/{fileName}` |
+| local | `STORAGE_PATH` (Docker: volume `image_files`) หรือ `<repo>/apps/images` | `uuid.ext` | null | `GET /api/images/{fileName}` |
 | vercel-blob | Vercel Blob `acne-ai/uuid.ext` | blob pathname | public URL | ใช้ URL ตรง |
 
 ลบรูป: `deleteImage()` ถูกเรียกจาก `server/history.ts` และ `server/users.ts` ก่อนลบ record และจาก `POST /api/analyze` เมื่อวิเคราะห์หรือบันทึกผลไม่สำเร็จ (ไม่ให้รูปค้าง)
@@ -110,8 +107,8 @@ MILD     กรณีที่เหลือ
 | service | สาระสำคัญ |
 |---|---|
 | `mongodb` | replica set `rs0` — healthcheck เรียก `rs.initiate` เองถ้ายังไม่ได้ตั้ง เปิด port 27017 ให้เฉพาะเครื่องนี้ (`127.0.0.1`) เปลี่ยนได้ด้วย `MONGO_PORT` |
-| `ai` | ไม่เปิด port ออก host, mount `apps/images` และ `apps/ai/models` (cache), PyTorch รุ่น CPU |
-| `web` | port 3000, รอ `mongodb` healthy, ตอนเริ่มรัน `prisma db push` → `node prisma/seed.mjs` → `npm start` |
+| `ai` | ไม่เปิด port ออก host, volume `image_files` (รูป ใช้ร่วมกับ web), PyTorch รุ่น CPU |
+| `web` | port 3000, volume `image_files` + `model_files`, `IMAGE_STORAGE=local` `MODEL_STORAGE=file`, รอ `mongodb` healthy, ตอนเริ่มรัน `prisma db push` → `node prisma/seed.mjs` → `npm start` |
 
 - ค่า default ทั้งหมดอยู่ใน `environment:` ของ compose — `AI_SERVICE_API_KEY` ประกาศครั้งเดียว (`x-ai-key`) ใช้ทั้ง web และ ai
 - ค่าใน `environment:` ชนะค่าใน `apps/web/.env` (ซึ่งเป็นไฟล์ไม่บังคับ ใช้ใส่ `GOOGLE_CLIENT_ID/SECRET`)

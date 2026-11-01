@@ -9,16 +9,12 @@
 | POST | `/api/analyze` | login | multipart `image` | upload → FastAPI → severity → บันทึก |
 | DELETE | `/api/analyze/history` | ADMIN | JSON `{id}` หรือ `{ids:[]}` | `deleteHistories` (ไม่พบตอบ 404) |
 | GET | `/api/images/[...path]` | login + เป็นเจ้าของรูป (หรือ ADMIN) | — | อ่านไฟล์จากดิสก์ (รูปคนอื่นตอบ 404, cache แบบ private) |
-| GET | `/api/models/[id]` | header `X-API-Key` (= `AI_SERVICE_API_KEY`) หรือ ADMIN | — | ส่งไฟล์ `.pt` ทั้งไฟล์ (แบบหั่นชิ้นส่งต่อกันเป็น stream — บน Vercel ใช้ไม่ได้ถ้าเกิน 4.5 MB) |
-| GET | `/api/models/[id]/manifest` | `X-API-Key` หรือ ADMIN | — | `{parts:[...]}` path ที่ FastAPI ต้องโหลดมาต่อกัน (ยังส่งชิ้นไม่ครบ 409) |
-| GET | `/api/models/[id]/chunks/[index]` | `X-API-Key` หรือ ADMIN | — | เนื้อชิ้นที่ index (≤ 4 MB) |
-| PUT | `/api/models/[id]/chunks/[index]` | ADMIN | เนื้อไฟล์ช่วงนั้นตรง ๆ (≤ 4 MB) | บันทึกชิ้น (ส่งซ้ำได้) ขนาดผิด 400 |
-| POST | `/api/models/[id]/complete` | ADMIN | — | ตรวจว่าชิ้นครบแล้วเปิดใช้ (ไม่ครบ 409) |
+| GET | `/api/models/[id]` | header `X-API-Key` (= `AI_SERVICE_API_KEY`) หรือ ADMIN | — | ส่งไฟล์ `.pt` (FastAPI เรียก — ห้ามเปลี่ยน path) โมเดลแบบ `file` ที่เครื่องนี้ไม่มีไฟล์ตอบ 409 |
 | PATCH | `/api/models/[id]` | ADMIN | JSON `{name,version,description?,mAP50?,precision?,recall?,f1Score?,accuracy?}` | แก้ข้อมูลและค่าประเมิน |
 | DELETE | `/api/models/[id]` | ADMIN | — | ลบโมเดล (โมเดลหลักตอบ 409) |
 | POST | `/api/models/[id]/activate` | ADMIN | — | ตั้งเป็นโมเดลหลัก (ไม่พบตอบ 404) |
 | POST | `/api/models/[id]/metrics` | ADMIN | — | ให้ FastAPI อ่าน mAP50/precision/recall/f1Score จากไฟล์ `.pt` แล้วบันทึก คืน `{metrics}` (ไม่มีผลเทรน 422, AI ล่ม 502) |
-| POST | `/api/models` | ADMIN | JSON `{fileName,sizeBytes,name,version,description?}` | เริ่มอัปโหลด: สร้างโมเดล (ยังไม่ครบ) ตอบ 201 `{model:{id,chunkCount},chunkSize}` |
+| POST | `/api/models?fileName&name&version&description` | ADMIN | เนื้อไฟล์ `.pt` ตรง ๆ (ไม่ใช่ multipart) | อัปโหลดตาม `MODEL_STORAGE` ตอบ 201 (เกินเพดาน `mongodb` ตอบ 413) |
 | DELETE | `/api/models` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม (ข้ามตัว active) คืน `count` |
 | DELETE | `/api/users/[id]` | ADMIN | — | ลบผู้ใช้ + รูป + ประวัติ (ลบตัวเอง 400, ลบแอดมิน 403, ไม่พบ 404) |
 | DELETE | `/api/users` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม ข้ามตัวเองและแอดมิน คืน `count` |

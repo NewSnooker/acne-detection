@@ -22,7 +22,7 @@
 | 29 CI, prettier, typecheck | ทำแล้ว (2026-10-30) — `.github/workflows/ci.yml`, prettier + `prettier-plugin-tailwindcss`, commit จัดรูปแบบอยู่ใน `.git-blame-ignore-revs` |
 | 30 UI | แก้แล้ว (2026-11-01) — toast (sonner) แทน `alert()`, หน้า error/404/loading ภาษาไทย, ถอด `react-icons`, ลบ `console.log` (progress หน้าวิเคราะห์ยังจำลองอยู่) |
 | 22, 23 FastAPI | แก้แล้ว (2026-11-01) — แยก routers/schemas/security/services, `logging`, response model, confidence ค่าเดียว (`AI_CONFIDENCE_THRESHOLD`), เทียบ `model.names` กับ `ACNE_CLASSES` ตอนโหลด (ลำดับยัง hard-code) |
-| 19 โมเดลใน Bytes ติด 16 MB | แก้แล้ว (2026-11-01) — หั่นชิ้น 4 MB ใน `AiModelChunk` ไม่จำกัดขนาด |
+| 19 โมเดลใน Bytes ติด 16 MB | แก้แล้ว (2026-11-01) — Docker เก็บใน volume (`MODEL_STORAGE=file` ไม่จำกัด), Vercel ใช้ `modelData` (≤ 4.5 MB เพดาน Vercel), Azure จะใช้ Azure Blob — แยกฐานข้อมูลต่อ environment (`environments.md`) |
 | 14 ชั้นโค้ดชื่อสับสน | แก้แล้ว (2026-10-30) — server logic อยู่ `src/server/<feature>.ts` (มี `server-only`), client fetch อยู่ `src/lib/api-client/` |
 | 16 โค้ดซ้ำ | แก้แล้ว — ประวัติเหลือ `getHistory` / `deleteHistories`, ลบโมเดลเดี่ยว/กลุ่มใช้ `removeInactiveModels` ร่วมกัน, ลบผู้ใช้และลบประวัติใช้ `deleteAnalysesWhere` ร่วมกัน |
 | 17 ดึงข้อมูลมากรองใน memory | แก้บางส่วน — ไม่ดึง `modelData` ตอนวิเคราะห์; ประวัติยังกรองใน memory เพราะตาราง ag-grid แบ่งหน้าฝั่ง client (ต้องเปลี่ยน UI เป็นแบ่งหน้าฝั่ง server ก่อน) |
