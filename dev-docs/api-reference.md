@@ -16,8 +16,8 @@
 | POST | `/api/models/[id]/metrics` | ADMIN | — | ให้ FastAPI อ่าน mAP50/precision/recall/f1Score จากไฟล์ `.pt` แล้วบันทึก คืน `{metrics}` (ไม่มีผลเทรน 422, AI ล่ม 502) |
 | POST | `/api/models` | ADMIN | multipart `file,name,version,description` | อัปโหลด `.pt` ตอบ 201 |
 | DELETE | `/api/models` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม (ข้ามตัว active) คืน `count` |
-| DELETE | `/api/users/[id]` | ADMIN | — | ลบผู้ใช้ + รูป + ประวัติ (กันลบตัวเอง) |
-| DELETE | `/api/users` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม คืน `count` |
+| DELETE | `/api/users/[id]` | ADMIN | — | ลบผู้ใช้ + รูป + ประวัติ (ลบตัวเอง 400, ลบแอดมิน 403, ไม่พบ 404) |
+| DELETE | `/api/users` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม ข้ามตัวเองและแอดมิน คืน `count` |
 
 รูปแบบ response: สำเร็จ `{ success: true, ... }` / ผิดพลาด `{ error: "ข้อความไทย" }`
 ไม่ผ่านสิทธิ์: 401 เมื่อยังไม่ login, 403 เมื่อ role ไม่ถึง (ตรวจด้วย `lib/auth/guards.ts`)
