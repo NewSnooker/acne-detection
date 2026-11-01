@@ -1,6 +1,7 @@
 import { requireUserPage } from "@/lib/auth/guards";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { environmentName } from "@/lib/storage/config";
 
 export default async function DashboardLayout({
   children,
@@ -20,6 +21,9 @@ export default async function DashboardLayout({
             image: session.user?.image,
             role: session.user?.role as string,
           }}
+          environmentName={
+            session.user?.role === "ADMIN" ? environmentName() : undefined
+          }
         />
         <main className="flex-1 scrollbar-thin overflow-y-auto p-8">
           {children}

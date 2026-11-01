@@ -48,7 +48,7 @@ services:
     container_name: acne_ai
     restart: unless-stopped
     volumes:
-      - ./apps/images:/app/images            # รูปที่ผู้ใช้อัปโหลด (ใช้ร่วมกับ web)
+      - image_files:/app/images              # รูปที่ผู้ใช้อัปโหลด (volume เดียวกับ web)
       - ./apps/ai/models:/app/models         # cache ไฟล์โมเดลที่โหลดมาจาก web
     environment:
       AI_SERVICE_API_KEY: *ai-key
@@ -69,8 +69,8 @@ services:
     ports:
       - "${WEB_PORT:-3000}:3000"
     volumes:
-      - ./apps/images:/app/images            # รูปที่ผู้ใช้อัปโหลด (ใช้ร่วมกับ ai)
-      - model_files:/app/model-files         # โมเดลแบบเก่าที่เคยเก็บเป็นไฟล์
+      - image_files:/app/images              # รูปที่ผู้ใช้อัปโหลด (volume เดียวกับ ai)
+      - model_files:/app/model-files         # ไฟล์โมเดล .pt (ไม่จำกัดขนาด)
     env_file:
       # ไม่บังคับ — มีไว้ใส่ค่าเสริม เช่น GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
       - path: ./apps/web/.env
@@ -85,8 +85,12 @@ services:
       AI_CONFIDENCE_THRESHOLD: *ai-confidence
       INTERNAL_APP_URL: http://web:3000     # ai ใช้ URL นี้โหลดไฟล์โมเดลจาก web
       STORAGE_PATH: /app/images
-      MODEL_STORAGE_PATH: /app/model-files  # อ่านโมเดลแบบเก่าที่เคยเก็บเป็นไฟล์ (โมเดลใหม่เก็บใน MongoDB แบบหั่นชิ้น)
+      # ที่เก็บไฟล์ของระบบนี้ (ดู dev-docs/environments.md) — ทุกอย่างอยู่ใน Docker volume ของเครื่องนี้
+      IMAGE_STORAGE: local
+      MODEL_STORAGE: file
+      MODEL_STORAGE_PATH: /app/model-files
       APP_ENV: docker
+      ENV_NAME: docker
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@acne.local}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin1234}
     depends_on:
@@ -101,6 +105,7 @@ volumes:
   mongodb_data:
   mongodb_config:
   model_files:
+  image_files:
 
 networks:
   acne_network:

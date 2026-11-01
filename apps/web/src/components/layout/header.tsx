@@ -15,7 +15,14 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { SidebarContent } from "./sidebar";
 import { AuthUser } from "@/types";
 
-export function Header({ user }: { user: AuthUser }) {
+export function Header({
+  user,
+  environmentName,
+}: {
+  user: AuthUser;
+  /** ชื่อ environment ที่แสดงเฉพาะแอดมิน — ดูแวบเดียวรู้ว่ากำลังแก้ข้อมูลของระบบไหน */
+  environmentName?: string;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -38,6 +45,14 @@ export function Header({ user }: { user: AuthUser }) {
         <h2 className="hidden text-lg font-semibold tracking-tight md:block">
           แดชบอร์ด
         </h2>
+        {environmentName && (
+          <span
+            title="ระบบ (environment) ที่กำลังใช้ — แต่ละระบบมีฐานข้อมูลของตัวเอง"
+            className="bg-muted text-muted-foreground rounded-md border px-2 py-0.5 font-mono text-xs font-semibold tracking-wide"
+          >
+            {environmentName}
+          </span>
+        )}
       </div>
 
       <div className="flex items-center gap-3">

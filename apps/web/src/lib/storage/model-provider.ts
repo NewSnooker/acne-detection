@@ -5,12 +5,16 @@ import { Readable, Transform } from "stream";
 import { pipeline } from "stream/promises";
 import type { ReadableStream as WebReadableStream } from "stream/web";
 import { HttpError } from "@/lib/http-error";
+import {
+  MONGODB_MODEL_LIMIT,
+  modelStorage,
+  type ModelStorage,
+} from "@/lib/storage/config";
 
-// ที่เก็บไฟล์โมเดล .pt มี 2 แบบ
-// - "file": เขียนลงโฟลเดอร์ MODEL_STORAGE_PATH แบบ stream ไม่จำกัดขนาด (Docker / Azure / รันในเครื่อง)
-// - "mongodb": เก็บในฟิลด์ AiModel.modelData ใช้เมื่อไม่ได้ตั้ง MODEL_STORAGE_PATH (เช่น Vercel)
-//   เอกสาร MongoDB ใหญ่ได้ไม่เกิน 16 MB จึงรับไฟล์ได้ไม่เกิน MONGODB_MODEL_LIMIT
-export type ModelProvider = "file" | "mongodb";
+// ที่เก็บไฟล์โมเดล .pt (เลือกด้วย MODEL_STORAGE ใน lib/storage/config.ts)
+// - "file": เขียนลงโฟลเดอร์ MODEL_STORAGE_PATH แบบ stream ไม่จำกัดขนาด (Docker volume)
+// - "mongodb": เก็บในฟิลด์ AiModel.modelData (เช่น Vercel) ไม่เกิน MONGODB_MODEL_LIMIT
+export type ModelProvider = ModelStorage;
 
 export type ModelUploadResult = {
   filePath: string;
@@ -19,10 +23,8 @@ export type ModelUploadResult = {
   sizeBytes: number;
 };
 
-export const MONGODB_MODEL_LIMIT = 15 * 1024 * 1024;
-
 const MONGODB_TOO_LARGE =
-  "ไฟล์โมเดลใหญ่เกิน 15 MB เก็บในฐานข้อมูลไม่ได้ ต้องตั้งค่า MODEL_STORAGE_PATH ให้เก็บเป็นไฟล์ (ดูคู่มือการตั้งค่า)";
+  "ระบบนี้เก็บโมเดลในฐานข้อมูล อัปโหลดได้ไม่เกิน 15 MB — อัปโหลดโมเดลใหญ่ผ่านระบบที่รันด้วย Docker หรือ Azure";
 
 function storageDir(): string | null {
   const dir = process.env.MODEL_STORAGE_PATH?.trim();
@@ -57,7 +59,10 @@ export async function saveModel(
 ): Promise<ModelUploadResult> {
   const source = Readable.fromWeb(body);
 
-  if (storageDir()) {
+  if (modelStorage() === "file") {
+    if (!storageDir()) {
+      throw new Error("MODEL_STORAGE=file ต้องตั้ง MODEL_STORAGE_PATH");
+    }
     const target = resolveStoredFile(fileName);
     await mkdir(path.dirname(target), { recursive: true });
     const { counter, size } = byteCounter(Number.POSITIVE_INFINITY);
@@ -107,5 +112,7 @@ export async function deleteModelFile(
 ): Promise<void> {
   // แบบ mongodb: ลบ record = ลบข้อมูลไปด้วยแล้ว
   if (provider !== "file" || !filePath) return;
+  // ไฟล์อยู่ในเครื่องอื่น (เครื่องนี้ไม่ได้ตั้งโฟลเดอร์) — ลบจากที่นี่ไม่ได้ ข้ามไป
+  if (!storageDir()) return;
   await rm(resolveStoredFile(filePath), { force: true });
 }
