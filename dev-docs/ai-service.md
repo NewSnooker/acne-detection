@@ -1,6 +1,6 @@
 # AI Service (apps/ai)
 
-FastAPI 0.115.5 · Ultralytics 8.3.40 · PyTorch · Python 3.12 (Docker) / venv (Windows)
+FastAPI 0.115.5 · Ultralytics 8.4.180 · PyTorch · Python 3.12 (Docker) / venv (Windows)
 
 ## ไฟล์
 

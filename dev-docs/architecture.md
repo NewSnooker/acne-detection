@@ -5,7 +5,7 @@
 | ส่วน | เทคโนโลยี | หน้าที่ |
 |---|---|---|
 | `apps/web` | Next.js 16.2 (App Router), React 19, TypeScript, Tailwind 4, Prisma 6, Auth.js v5 (beta) | UI + Backend หลัก: auth, CRUD, อัปโหลดรูป, คำนวณ severity, บันทึกผล, สถิติ |
-| `apps/ai` | FastAPI 0.115, Ultralytics 8.3.40, PyTorch | รับ path/URL ของรูปและโมเดล → รัน YOLO → คืน JSON ไม่แตะ DB |
+| `apps/ai` | FastAPI 0.115, Ultralytics 8.4.180, PyTorch | รับ path/URL ของรูปและโมเดล → รัน YOLO → คืน JSON ไม่แตะ DB |
 | MongoDB | mongo:7 (replica set `rs0`) / Atlas | เก็บผู้ใช้, session ของ Auth.js, โมเดล (รวมไฟล์ `.pt`), รูป (metadata), ผลวิเคราะห์ |
 | Image storage | ดิสก์ `apps/images/` หรือ Vercel Blob | ไฟล์รูปจริง |
 
