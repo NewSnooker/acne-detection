@@ -210,6 +210,7 @@ def test_model_download_sends_api_key_and_caches(client, dirs, monkeypatch):
             f.write(b"model")
 
     monkeypatch.setattr(main, "_download", fake_download)
+    monkeypatch.setattr(main, "model_parts", lambda url, model_id, headers: [url])
     new_id = "b" * 24
     url = f"http://web:3000/api/models/{new_id}"
     image = str(dirs / "images" / "face.jpg")

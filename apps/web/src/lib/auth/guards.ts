@@ -61,3 +61,15 @@ export async function requireAdminApi(): Promise<ApiGuard> {
   }
   return guard;
 }
+
+/** บริการ AI (header X-API-Key = AI_SERVICE_API_KEY) หรือผู้ดูแลระบบ — ใช้กับ route ที่ส่งไฟล์โมเดล */
+export async function requireAiKeyOrAdminApi(
+  request: Request,
+): Promise<{ ok: true } | { ok: false; response: NextResponse }> {
+  const apiKey = process.env.AI_SERVICE_API_KEY;
+  if (apiKey && request.headers.get("x-api-key") === apiKey) {
+    return { ok: true };
+  }
+  const guard = await requireAdminApi();
+  return guard.ok ? { ok: true } : guard;
+}

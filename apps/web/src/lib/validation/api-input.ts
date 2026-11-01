@@ -29,6 +29,15 @@ export const modelInfoSchema = z.object({
     .nullable(),
 });
 
+export const startUploadSchema = modelInfoSchema.extend({
+  fileName: z.string().trim().min(1, "ไม่พบชื่อไฟล์"),
+  sizeBytes: z
+    .number()
+    .int()
+    .positive("ไฟล์โมเดลว่างเปล่า")
+    .max(Number.MAX_SAFE_INTEGER),
+});
+
 export const editModelSchema = modelInfoSchema.extend(metricShape);
 
 export const idListSchema = z.object({

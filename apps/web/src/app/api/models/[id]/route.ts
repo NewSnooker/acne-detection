@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdminApi } from "@/lib/auth/guards";
+import { requireAdminApi, requireAiKeyOrAdminApi } from "@/lib/auth/guards";
+import { readModelChunk } from "@/server/model-chunks";
 import { errorResponse, parseBody, readJson } from "@/lib/http-error";
 import { deleteModelLogic, editModelLogic } from "@/server/models";
 import { openModelFile } from "@/lib/storage/model-provider";
@@ -12,18 +13,20 @@ export async function GET(
 ) {
   try {
     // ไฟล์โมเดลโหลดได้เฉพาะ AI service (ส่ง header X-API-Key) หรือผู้ดูแลระบบที่เข้าสู่ระบบอยู่
-    const apiKey = process.env.AI_SERVICE_API_KEY;
-    const hasValidKey =
-      Boolean(apiKey) && request.headers.get("x-api-key") === apiKey;
-    if (!hasValidKey) {
-      const guard = await requireAdminApi();
-      if (!guard.ok) return guard.response;
-    }
+    const guard = await requireAiKeyOrAdminApi(request);
+    if (!guard.ok) return guard.response;
 
     const { id } = await params;
     const model = await prisma.aiModel.findUnique({
       where: { id },
-      select: { fileName: true, provider: true, filePath: true },
+      select: {
+        fileName: true,
+        provider: true,
+        filePath: true,
+        sizeBytes: true,
+        chunkCount: true,
+        uploadComplete: true,
+      },
     });
     if (!model) {
       return new NextResponse("Model not found", { status: 404 });
@@ -33,6 +36,34 @@ export async function GET(
       "Content-Disposition": `attachment; filename="${model.fileName}"`,
       "Content-Type": "application/octet-stream",
     };
+
+    // หั่นชิ้นใน MongoDB: ส่งต่อกันทีละชิ้นแบบ stream (บริการ AI ใช้ /manifest + /chunks แทน
+    // เพราะบน Vercel ส่งคำตอบได้ไม่เกิน 4.5 MB — ทางนี้ไว้ให้แอดมินดาวน์โหลดจาก Docker/เครื่องตัวเอง)
+    if (model.provider === "chunks") {
+      if (model.uploadComplete === false || !model.chunkCount) {
+        return new NextResponse("Model upload is not complete", {
+          status: 409,
+        });
+      }
+      const chunkCount = model.chunkCount;
+      let next = 0;
+      const stream = new ReadableStream<Uint8Array>({
+        async pull(controller) {
+          if (next >= chunkCount) return controller.close();
+          const data = await readModelChunk(id, next++);
+          if (!data) return controller.error(new Error("Missing model chunk"));
+          controller.enqueue(new Uint8Array(data));
+        },
+      });
+      return new NextResponse(stream, {
+        headers: {
+          ...headers,
+          ...(model.sizeBytes && {
+            "Content-Length": model.sizeBytes.toString(),
+          }),
+        },
+      });
+    }
 
     // เก็บเป็นไฟล์: ส่งแบบ stream ไม่โหลดทั้งไฟล์เข้าหน่วยความจำ
     if (model.provider === "file") {

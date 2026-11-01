@@ -11,7 +11,14 @@ import { AiModel } from "@prisma/client";
 import { ModelActions } from "@/components/admin/model-actions";
 import { ModelService } from "@/lib/api-client/model-api";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
-import { CheckCircle2, Circle, Cpu, Trash2, Loader2 } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Circle,
+  Cpu,
+  Trash2,
+  Loader2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { MODEL_METRICS } from "@/types/analyze";
@@ -139,6 +146,16 @@ export function ModelTable({ models }: ModelTableProps) {
     props: CustomCellRendererProps<ModelWithCount>,
   ) => {
     const isActive = props.value;
+    if (props.data?.uploadComplete === false) {
+      return (
+        <div className="flex h-full items-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
+            <AlertCircle className="h-3.5 w-3.5" />
+            อัปโหลดไม่ครบ
+          </span>
+        </div>
+      );
+    }
     return isActive ? (
       <div className="flex h-full items-center">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
