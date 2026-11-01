@@ -24,7 +24,11 @@ export async function PUT(req: Request, { params }: Params) {
     if (!guard.ok) return guard.response;
 
     const { id, index } = await params;
+    // ต้องบอกขนาดมาก่อน ไม่งั้น arrayBuffer() จะอ่านทั้งก้อนเข้าหน่วยความจำก่อนตรวจได้
     const declared = Number(req.headers.get("content-length"));
+    if (!Number.isFinite(declared) || declared <= 0) {
+      throw new HttpError(411, "ไม่ทราบขนาดชิ้นไฟล์ กรุณาอัปโหลดใหม่");
+    }
     if (declared > MODEL_CHUNK_SIZE) {
       throw new HttpError(413, "ชิ้นไฟล์ใหญ่เกิน 4 MB");
     }

@@ -11,6 +11,12 @@ import { HttpError } from "@/lib/http-error";
  */
 export const MODEL_CHUNK_SIZE = 4 * 1024 * 1024;
 
+/** อัปโหลดที่ค้างเกินนี้ (ปิดหน้ากลางทาง) ถูกลบตอนมีการอัปโหลดใหม่ — กันชิ้นค้างกินพื้นที่ Atlas */
+export const STALE_UPLOAD_MS = 60 * 60 * 1000;
+
+/** transaction ที่ลบ/นับชิ้นของโมเดลใหญ่ใช้เวลานานกว่าค่าเริ่มต้น 5 วินาทีของ Prisma ได้ */
+export const CHUNK_TRANSACTION_OPTIONS = { timeout: 60_000, maxWait: 10_000 };
+
 const NOT_FOUND = "ไม่พบข้อมูลโมเดล";
 
 export type StartUploadInput = {
@@ -22,6 +28,26 @@ export type StartUploadInput = {
   userId: string;
 };
 
+/** ลบโมเดลที่อัปโหลดค้าง (uploadComplete:false) นานเกิน STALE_UPLOAD_MS — คืนจำนวนที่ลบ */
+export async function removeStaleUploads(now = Date.now()) {
+  const stale = await prisma.aiModel.findMany({
+    where: {
+      uploadComplete: false,
+      createdAt: { lt: new Date(now - STALE_UPLOAD_MS) },
+    },
+    select: { id: true },
+  });
+  const ids = stale.map((m) => m.id);
+  if (ids.length === 0) return 0;
+  await prisma.$transaction(async (tx) => {
+    await tx.aiModelChunk.deleteMany({ where: { modelId: { in: ids } } });
+    await tx.aiModel.deleteMany({
+      where: { id: { in: ids }, uploadComplete: false },
+    });
+  }, CHUNK_TRANSACTION_OPTIONS);
+  return ids.length;
+}
+
 export async function startChunkedUpload(input: StartUploadInput) {
   if (!input.originalName.toLowerCase().endsWith(".pt")) {
     throw new HttpError(400, "กรุณาอัปโหลดไฟล์นามสกุล .pt เท่านั้น");
@@ -29,6 +55,10 @@ export async function startChunkedUpload(input: StartUploadInput) {
   if (!Number.isSafeInteger(input.sizeBytes) || input.sizeBytes <= 0) {
     throw new HttpError(400, "ไฟล์โมเดลว่างเปล่า");
   }
+
+  await removeStaleUploads().catch((error) =>
+    console.error("Failed to remove stale model uploads:", error),
+  );
 
   // ชื่อไฟล์สุ่มนำหน้า กันชื่อชนกันและอักขระแปลก ๆ
   const uniqueId = crypto.randomBytes(8).toString("hex");
@@ -123,12 +153,15 @@ export async function completeChunkedUpload(modelId: string) {
     );
   }
 
-  const activeCount = await prisma.aiModel.count({ where: { isActive: true } });
-  return prisma.aiModel.update({
-    where: { id: modelId },
-    data: { uploadComplete: true, isActive: activeCount === 0 },
-    omit: { modelData: true },
-  });
+  // นับโมเดลหลักและเปิดใช้ใน transaction เดียว — อัปโหลดเสร็จพร้อมกันสองตัวจะไม่ได้โมเดลหลักสองตัว
+  return prisma.$transaction(async (tx) => {
+    const activeCount = await tx.aiModel.count({ where: { isActive: true } });
+    return tx.aiModel.update({
+      where: { id: modelId },
+      data: { uploadComplete: true, isActive: activeCount === 0 },
+      omit: { modelData: true },
+    });
+  }, CHUNK_TRANSACTION_OPTIONS);
 }
 
 /** เนื้อชิ้นที่ index สำหรับส่งให้บริการ AI — null ถ้าไม่มี */

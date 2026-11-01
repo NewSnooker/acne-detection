@@ -100,9 +100,6 @@ export function ModelTable({ models }: ModelTableProps) {
           gridRef.current.api.deselectAll();
         }
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("เกิดข้อผิดพลาดในการลบโมเดลแบบกลุ่ม");
     } finally {
       setIsBatchDeleting(false);
     }

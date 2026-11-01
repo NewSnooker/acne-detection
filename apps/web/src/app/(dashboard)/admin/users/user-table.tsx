@@ -114,9 +114,6 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
         setRowData((prev) => prev.filter((u) => u.id !== userToDelete.id));
         toast.success("ลบบัญชีผู้ใช้แล้ว");
       }
-    } catch (error) {
-      console.error("Delete user error:", error);
-      toast.error("เกิดข้อผิดพลาดในการลบบัญชีผู้ใช้");
     } finally {
       setIsDeleting(null);
       setUserToDelete(null);
@@ -136,9 +133,6 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
           `ลบผู้ใช้ ${result.count ?? usersToDelete.length} คนแล้ว`,
         );
       }
-    } catch (error) {
-      console.error("Batch delete error:", error);
-      toast.error("เกิดข้อผิดพลาดในการลบผู้ใช้งานหลายคน");
     } finally {
       setIsBatchDeleting(false);
       setShowBatchDeleteDialog(false);

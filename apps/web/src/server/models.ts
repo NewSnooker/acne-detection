@@ -2,6 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { deleteModelFile } from "@/lib/storage/model-provider";
 import { HttpError } from "@/lib/http-error";
+import { CHUNK_TRANSACTION_OPTIONS } from "@/server/model-chunks";
 import { MODEL_METRICS, type ModelMetricKey } from "@/types/analyze";
 import { getAiServiceConfig, modelDownloadUrl } from "@/server/analyze";
 
@@ -35,7 +36,8 @@ async function removeInactiveModels(ids: string[]) {
     if (count !== removableIds.length)
       throw new HttpError(409, ACTIVE_MODEL_ERROR);
     return models;
-  });
+    // โมเดลใหญ่มีชิ้นหลายสิบชิ้น บน Atlas ฟรีอาจลบนานกว่าค่าเริ่มต้น 5 วินาที
+  }, CHUNK_TRANSACTION_OPTIONS);
 
   await Promise.all(
     removed.map((model) =>

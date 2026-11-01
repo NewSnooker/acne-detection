@@ -63,6 +63,8 @@ VerificationToken                (Auth.js)
 | index | Int | 0..chunkCount-1, unique คู่กับ modelId |
 | data | Bytes | ไม่เกิน 4 MB ต่อชิ้น (ต้องส่ง `Buffer`) |
 
+> **หลังแก้ schema ต้องรัน `npx prisma db push` กับฐานข้อมูลจริง (Atlas) เอง** — Docker รันให้ตอน container เริ่ม แต่ Vercel build รันแค่ `prisma generate` ถ้าไม่ push จะไม่มี unique index `(modelId, index)` และการส่งชิ้นซ้ำ (ลองใหม่) อาจได้ชิ้นซ้อนกัน
+
 ## ข้อจำกัดที่ต้องรู้
 
 - เอกสาร BSON ใหญ่สุด 16 MB → ไฟล์โมเดลจึงหั่นเป็นชิ้น 4 MB ใน `AiModelChunk` (`modelData` แบบเก่ารับได้ไม่เกิน 15 MB)

@@ -7,15 +7,25 @@ const db = vi.hoisted(() => ({
     findUnique: vi.fn(),
     count: vi.fn(),
     update: vi.fn(),
+    findMany: vi.fn(),
+    deleteMany: vi.fn(),
   },
-  aiModelChunk: { upsert: vi.fn(), count: vi.fn(), findUnique: vi.fn() },
+  aiModelChunk: {
+    upsert: vi.fn(),
+    count: vi.fn(),
+    findUnique: vi.fn(),
+    deleteMany: vi.fn(),
+  },
+  $transaction: vi.fn(),
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: db }));
 
 import {
   MODEL_CHUNK_SIZE,
+  STALE_UPLOAD_MS,
   completeChunkedUpload,
   expectedChunkSize,
+  removeStaleUploads,
   modelDownloadParts,
   saveModelChunk,
   startChunkedUpload,
@@ -33,6 +43,11 @@ const bytes = (n: number) => Buffer.alloc(n);
 beforeEach(() => {
   Object.values(db.aiModel).forEach((fn) => fn.mockReset());
   Object.values(db.aiModelChunk).forEach((fn) => fn.mockReset());
+  db.$transaction.mockReset();
+  db.$transaction.mockImplementation((arg: unknown) =>
+    typeof arg === "function" ? arg(db) : Promise.all(arg as unknown[]),
+  );
+  db.aiModel.findMany.mockResolvedValue([]);
   db.aiModel.create.mockImplementation(
     async ({ data }: { data: Record<string, unknown> }) => ({
       id: "m1",
@@ -191,5 +206,30 @@ describe("modelDownloadParts", () => {
     await expect(modelDownloadParts("x")).rejects.toMatchObject({
       status: 404,
     });
+  });
+});
+
+describe("removeStaleUploads", () => {
+  it("ลบเฉพาะอัปโหลดที่ค้างเกิน 1 ชั่วโมง พร้อมชิ้นของมัน", async () => {
+    const now = Date.UTC(2026, 10, 1, 12);
+    db.aiModel.findMany.mockResolvedValue([{ id: "old" }]);
+
+    await expect(removeStaleUploads(now)).resolves.toBe(1);
+
+    expect(db.aiModel.findMany.mock.calls[0][0].where).toEqual({
+      uploadComplete: false,
+      createdAt: { lt: new Date(now - STALE_UPLOAD_MS) },
+    });
+    expect(db.aiModelChunk.deleteMany).toHaveBeenCalledWith({
+      where: { modelId: { in: ["old"] } },
+    });
+    expect(db.aiModel.deleteMany).toHaveBeenCalledWith({
+      where: { id: { in: ["old"] }, uploadComplete: false },
+    });
+  });
+
+  it("ไม่มีอัปโหลดค้าง ไม่ลบอะไร", async () => {
+    await expect(removeStaleUploads()).resolves.toBe(0);
+    expect(db.$transaction).not.toHaveBeenCalled();
   });
 });

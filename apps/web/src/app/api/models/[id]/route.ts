@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminApi, requireAiKeyOrAdminApi } from "@/lib/auth/guards";
 import { readModelChunk } from "@/server/model-chunks";
-import { errorResponse, parseBody, readJson } from "@/lib/http-error";
+import {
+  errorResponse,
+  HttpError,
+  parseBody,
+  readJson,
+} from "@/lib/http-error";
 import { deleteModelLogic, editModelLogic } from "@/server/models";
 import { openModelFile } from "@/lib/storage/model-provider";
 import { editModelSchema } from "@/lib/validation/api-input";
@@ -29,7 +34,7 @@ export async function GET(
       },
     });
     if (!model) {
-      return new NextResponse("Model not found", { status: 404 });
+      throw new HttpError(404, "ไม่พบข้อมูลโมเดล");
     }
 
     const headers = {
@@ -41,9 +46,7 @@ export async function GET(
     // เพราะบน Vercel ส่งคำตอบได้ไม่เกิน 4.5 MB — ทางนี้ไว้ให้แอดมินดาวน์โหลดจาก Docker/เครื่องตัวเอง)
     if (model.provider === "chunks") {
       if (model.uploadComplete === false || !model.chunkCount) {
-        return new NextResponse("Model upload is not complete", {
-          status: 409,
-        });
+        throw new HttpError(409, "โมเดลนี้ยังอัปโหลดไม่ครบ");
       }
       const chunkCount = model.chunkCount;
       let next = 0;
@@ -67,9 +70,13 @@ export async function GET(
 
     // เก็บเป็นไฟล์: ส่งแบบ stream ไม่โหลดทั้งไฟล์เข้าหน่วยความจำ
     if (model.provider === "file") {
-      const stored = await openModelFile(model.filePath);
+      const stored = await openModelFile(model.filePath).catch(() => null);
       if (!stored) {
-        return new NextResponse("Model file is missing", { status: 404 });
+        // ไฟล์อยู่บนดิสก์ของเครื่องที่อัปโหลด (แบบเก่า) — เซิร์ฟเวอร์นี้ไม่มีไฟล์
+        throw new HttpError(
+          409,
+          "ไฟล์โมเดลนี้อยู่บนเครื่องที่อัปโหลด เซิร์ฟเวอร์นี้เปิดไม่ได้ กรุณาอัปโหลดไฟล์ใหม่",
+        );
       }
       return new NextResponse(stored.stream, {
         headers: { ...headers, "Content-Length": stored.size.toString() },
@@ -82,15 +89,18 @@ export async function GET(
       select: { modelData: true },
     });
     if (!data?.modelData) {
-      return new NextResponse("Model file is missing", { status: 404 });
+      throw new HttpError(404, "ไม่พบไฟล์โมเดลในฐานข้อมูล");
     }
     const buffer = Buffer.from(data.modelData);
     return new NextResponse(buffer, {
       headers: { ...headers, "Content-Length": buffer.length.toString() },
     });
   } catch (error) {
-    console.error("Error serving model:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return errorResponse(
+      error,
+      "ส่งไฟล์โมเดลไม่สำเร็จ",
+      "GET /api/models/[id]",
+    );
   }
 }
 

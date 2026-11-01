@@ -110,9 +110,6 @@ export function HistoryTableView({
         toast.success(`ลบประวัติ ${historiesToDelete.length} รายการแล้ว`);
         router.refresh(); // Use router.refresh() to avoid full page reload which resets view state
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("เกิดข้อผิดพลาดในการลบประวัติการวิเคราะห์");
     } finally {
       setIsBatchDeleting(false);
       setShowBatchDeleteDialog(false);
@@ -130,9 +127,6 @@ export function HistoryTableView({
         toast.success("ลบประวัติแล้ว");
         router.refresh();
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("เกิดข้อผิดพลาดในการลบประวัติการวิเคราะห์");
     } finally {
       setIsDeleting(null);
       setHistoryToDelete(null);
