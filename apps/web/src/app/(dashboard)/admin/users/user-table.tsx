@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import React, {
   useMemo,
   useState,
@@ -108,13 +109,14 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
     try {
       const result = await UserService.deleteUser(userToDelete.id);
       if (result.error) {
-        alert("เกิดข้อผิดพลาดในการลบบัญชีผู้ใช้");
+        toast.error(result.error || "เกิดข้อผิดพลาดในการลบบัญชีผู้ใช้");
       } else {
         setRowData((prev) => prev.filter((u) => u.id !== userToDelete.id));
+        toast.success("ลบบัญชีผู้ใช้แล้ว");
       }
     } catch (error) {
       console.error("Delete user error:", error);
-      alert("เกิดข้อผิดพลาดในการลบบัญชีผู้ใช้");
+      toast.error("เกิดข้อผิดพลาดในการลบบัญชีผู้ใช้");
     } finally {
       setIsDeleting(null);
       setUserToDelete(null);
@@ -127,13 +129,16 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
     try {
       const result = await UserService.deleteUsers(usersToDelete);
       if (result.error) {
-        alert(result.error);
+        toast.error(result.error);
       } else {
         setRowData((prev) => prev.filter((u) => !usersToDelete.includes(u.id)));
+        toast.success(
+          `ลบผู้ใช้ ${result.count ?? usersToDelete.length} คนแล้ว`,
+        );
       }
     } catch (error) {
       console.error("Batch delete error:", error);
-      alert("เกิดข้อผิดพลาดในการลบผู้ใช้งานหลายคน");
+      toast.error("เกิดข้อผิดพลาดในการลบผู้ใช้งานหลายคน");
     } finally {
       setIsBatchDeleting(false);
       setShowBatchDeleteDialog(false);

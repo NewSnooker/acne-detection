@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Power, Trash2, Loader2 } from "lucide-react";
@@ -39,9 +40,10 @@ export function ModelActions({ model }: { model: AiModel }) {
     const res = await ModelService.toggleModelActive(modelId);
     setLoading(false);
     if (res?.error) {
-      alert(res.error);
+      toast.error(res.error);
     } else {
       setActiveOpen(false);
+      toast.success("ตั้งเป็นโมเดลหลักแล้ว");
       router.refresh(); // อัปเดต UI หลังเปลี่ยนสถานะโมเดล
     }
   };
@@ -51,9 +53,10 @@ export function ModelActions({ model }: { model: AiModel }) {
     const res = await ModelService.deleteModel(modelId);
     setLoading(false);
     if (res?.error) {
-      alert(res.error);
+      toast.error(res.error);
     } else {
       setDeleteOpen(false);
+      toast.success("ลบโมเดลแล้ว");
       router.refresh(); // อัปเดต UI หลังลบโมเดล
     }
   };

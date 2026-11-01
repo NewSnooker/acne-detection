@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ModelService } from "@/lib/api-client/model-api";
@@ -93,6 +94,7 @@ export function UploadModelDialog({
       setLoading(false);
       resetForm();
       setIsOpen(false);
+      toast.success("อัปโหลดโมเดลแล้ว กำลังอ่านค่าประเมินจากไฟล์...");
       router.refresh(); // อัปเดต UI หลังอัปโหลดโมเดลสำเร็จ
       if (onSuccess) onSuccess();
 

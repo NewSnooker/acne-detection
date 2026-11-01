@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import React, {
   useMemo,
   useState,
@@ -104,13 +105,14 @@ export function HistoryTableView({
     try {
       const result = await AnalyzeService.deleteHistories(historiesToDelete);
       if (result.error) {
-        alert("เกิดข้อผิดพลาดในการลบประวัติการวิเคราะห์");
+        toast.error(result.error || "เกิดข้อผิดพลาดในการลบประวัติการวิเคราะห์");
       } else {
+        toast.success(`ลบประวัติ ${historiesToDelete.length} รายการแล้ว`);
         router.refresh(); // Use router.refresh() to avoid full page reload which resets view state
       }
     } catch (error) {
       console.error(error);
-      alert("เกิดข้อผิดพลาดในการลบประวัติการวิเคราะห์");
+      toast.error("เกิดข้อผิดพลาดในการลบประวัติการวิเคราะห์");
     } finally {
       setIsBatchDeleting(false);
       setShowBatchDeleteDialog(false);
@@ -123,13 +125,14 @@ export function HistoryTableView({
     try {
       const result = await AnalyzeService.deleteHistories([historyToDelete]);
       if (result.error) {
-        alert("เกิดข้อผิดพลาดในการลบประวัติการวิเคราะห์");
+        toast.error(result.error || "เกิดข้อผิดพลาดในการลบประวัติการวิเคราะห์");
       } else {
+        toast.success("ลบประวัติแล้ว");
         router.refresh();
       }
     } catch (error) {
       console.error(error);
-      alert("เกิดข้อผิดพลาดในการลบประวัติการวิเคราะห์");
+      toast.error("เกิดข้อผิดพลาดในการลบประวัติการวิเคราะห์");
     } finally {
       setIsDeleting(null);
       setHistoryToDelete(null);

@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import React, { useMemo, useState, useRef, useCallback } from "react";
 import type { AgGridReact } from "ag-grid-react";
 import type { ColDef, SelectionChangedEvent } from "ag-grid-community";
@@ -83,12 +84,15 @@ export function ModelTable({ models }: ModelTableProps) {
     try {
       const result = await ModelService.deleteModels(modelsToDelete);
       if (result.error) {
-        alert("เกิดข้อผิดพลาดในการลบโมเดลแบบกลุ่ม");
+        toast.error(result.error || "เกิดข้อผิดพลาดในการลบโมเดลแบบกลุ่ม");
       } else {
         setRowData((prev) =>
           prev.filter((m) => !modelsToDelete.includes(m.id)),
         );
         setShowBatchDeleteDialog(false);
+        toast.success(
+          `ลบโมเดล ${result.count ?? modelsToDelete.length} ตัวแล้ว`,
+        );
         setModelsToDelete([]);
         setSelectedModels([]);
         setSelectedRowCount(0);
@@ -98,7 +102,7 @@ export function ModelTable({ models }: ModelTableProps) {
       }
     } catch (error) {
       console.error(error);
-      alert("เกิดข้อผิดพลาดในการลบโมเดลแบบกลุ่ม");
+      toast.error("เกิดข้อผิดพลาดในการลบโมเดลแบบกลุ่ม");
     } finally {
       setIsBatchDeleting(false);
     }

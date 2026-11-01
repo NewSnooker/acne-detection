@@ -92,10 +92,6 @@ export async function callFastApiForPrediction(
   apiFormData.append("model_url_or_path", activeModelPath);
   apiFormData.append("confidence", confidence.toString());
 
-  console.log(
-    `[FastAPI] image: ${apiFormData.get("image_url_or_path")} | model: ${activeModelPath}`,
-  );
-
   const response = await fetch(`${fastApiUrl}/predict`, {
     method: "POST",
     headers: {
