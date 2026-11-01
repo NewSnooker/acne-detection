@@ -20,7 +20,8 @@ export interface AnalysisResult {
   total: number;
   severity: "MILD" | "MODERATE" | "SEVERE";
 }
-export const ACCURACY_THRESHOLD = 0.25; // Default confidence for UI
+// ความมั่นใจขั้นต่ำของกรอบสิว (0–1) เมื่อไม่ได้ตั้ง env AI_CONFIDENCE_THRESHOLD — ต้องตรงกับค่าเริ่มต้นฝั่ง ai (app/config.py)
+export const DEFAULT_CONFIDENCE_THRESHOLD = 0.25;
 
 export const ACNE_COLORS: Record<string, string> = {
   blackhead: "#6b7280", // gray-500

@@ -174,7 +174,7 @@ async def health():
 async def predict(
     image_url_or_path: str = Form(..., description="URL หรือ Absolute path ของรูป"),
     model_url_or_path: str = Form(..., description="URL หรือ Absolute path ของไฟล์ .pt"),
-    confidence: float = Form(0.20),
+    confidence: float | None = Form(None, description="ไม่ส่ง = ใช้ AI_CONFIDENCE_THRESHOLD"),
     _: str = Security(verify_api_key),
 ):
     """
@@ -196,7 +196,8 @@ async def predict(
 
         t2 = time.time()
         service = YoloService()
-        result = service.predict(local_image_path, local_model_path, confidence)
+        threshold = settings.AI_CONFIDENCE_THRESHOLD if confidence is None else confidence
+        result = service.predict(local_image_path, local_model_path, threshold)
         t_infer = time.time() - t2
 
         total_time = time.time() - t0

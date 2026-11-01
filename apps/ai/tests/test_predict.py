@@ -59,6 +59,17 @@ def test_predict_success_docker_mode(client, dirs):
     ]
 
 
+def test_predict_without_confidence_uses_setting(client, dirs, monkeypatch):
+    """เว็บไม่ส่ง confidence มา ใช้ AI_CONFIDENCE_THRESHOLD (ค่าเดียวกับฝั่งเว็บ)"""
+    from app import main
+
+    monkeypatch.setattr(main.settings, "AI_CONFIDENCE_THRESHOLD", 0.33)
+    res = predict(client, str(dirs / "images" / "face.jpg"), MODEL_URL)
+
+    assert res.status_code == 200
+    assert client.calls[-1]["confidence"] == 0.33
+
+
 def test_predict_does_not_delete_stored_image(client, dirs):
     """รูปที่เว็บบันทึกไว้ต้องยังอยู่หลังวิเคราะห์ (ลบเฉพาะรูปชั่วคราวที่ดาวน์โหลดมา)"""
     image = dirs / "images" / "face.jpg"

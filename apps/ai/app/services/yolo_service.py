@@ -37,7 +37,7 @@ def clear_cache(model_path: str | None = None):
 
 
 class YoloService:
-    def predict(self, image_path: str, model_path: str, confidence: float = 0.40) -> dict:
+    def predict(self, image_path: str, model_path: str, confidence: float) -> dict:
         model = _get_model(model_path)
         results = model(image_path, conf=confidence, verbose=False)
 

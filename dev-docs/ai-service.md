@@ -40,15 +40,14 @@ ACNE_CLASSES = {0:"blackhead", 1:"cyst", 2:"nodule", 3:"papule", 4:"pustule", 5:
 - cache โมเดลตาม path ไม่มีการล้างเมื่อโมเดลถูกลบ/เปลี่ยนจากฝั่ง web
 - ไม่ได้กำหนด `imgsz`, `iou`, `device` → ใช้ค่า default ของ Ultralytics
 
-## ค่า confidence (มี 3 ที่ ไม่ตรงกัน)
+## ค่า confidence (ค่าเดียวทั้งระบบ)
 
-| ที่ | ค่า |
+ตั้งที่ env `AI_CONFIDENCE_THRESHOLD` (ค่าเริ่มต้น **0.25**) — `docker-compose.yml` ส่งค่าเดียวกันให้ทั้ง web และ ai จาก anchor `x-ai-confidence`
+
+| ที่ | ใช้อย่างไร |
 |---|---|
-| `YoloService.predict` default | 0.40 |
-| `/predict` form default | 0.20 |
-| Next.js ส่งมาจริง (`AI_CONFIDENCE_THRESHOLD` หรือ default) | 0.25 |
-
-ค่าที่มีผลจริงคือ 0.25 จากฝั่ง Next.js
+| web `confidenceThreshold()` (`server/analyze.ts`) | อ่าน env ไม่ตั้ง/ผิด = `DEFAULT_CONFIDENCE_THRESHOLD` (0.25) แล้วส่งไปกับ `/predict` ทุกครั้ง |
+| ai `settings.AI_CONFIDENCE_THRESHOLD` | ใช้เมื่อคำขอไม่ได้ส่ง `confidence` มา |
 
 ## Environment (apps/ai/.env)
 
