@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { calculateSeverity } from "./analyze";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { calculateSeverity, confidenceThreshold } from "./analyze";
 
 // เกณฑ์ตามขอบเขตโครงงานข้อ 1.3.3.5
 //   เล็กน้อย (MILD)     : สิวไม่อักเสบ ≤ 20 จุด หรือ สิวอักเสบตื้น ≤ 5 จุด
@@ -87,5 +87,19 @@ describe("calculateSeverity", () => {
     it("ส่งมาเฉพาะบางชนิด ชนิดที่ขาดนับเป็น 0", () => {
       expect(calculateSeverity({ pustule: 6 })).toBe("MODERATE");
     });
+  });
+});
+
+describe("confidenceThreshold", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("ใช้ค่าจาก env ถ้าอยู่ในช่วง 0–1", () => {
+    vi.stubEnv("AI_CONFIDENCE_THRESHOLD", "0.4");
+    expect(confidenceThreshold()).toBe(0.4);
+  });
+
+  it.each(["", "abc", "0", "1.5"])("ค่า %j ใช้ค่าเริ่มต้น 0.25", (value) => {
+    vi.stubEnv("AI_CONFIDENCE_THRESHOLD", value);
+    expect(confidenceThreshold()).toBe(0.25);
   });
 });

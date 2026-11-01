@@ -5,7 +5,7 @@ export type ApiResult<T extends object = object> = Partial<T> & {
 };
 
 type RequestOptions = {
-  method: "GET" | "POST" | "PATCH" | "DELETE";
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   /** FormData และ Blob/File ส่งตรง อย่างอื่นแปลงเป็น JSON */
   body?: FormData | Blob | object;
   /** ข้อความเมื่อเชื่อมต่อไม่ได้หรือเซิร์ฟเวอร์ไม่บอกเหตุผล */

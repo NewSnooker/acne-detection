@@ -125,7 +125,7 @@ describe("GET (ดาวน์โหลดไฟล์โมเดล)", () => {
     }
   });
 
-  it("โมเดลที่เก็บเป็นไฟล์แต่ไฟล์หาย ตอบ 404", async () => {
+  it("โมเดลแบบไฟล์ที่เซิร์ฟเวอร์นี้ไม่มีไฟล์ ตอบ 409 พร้อมบอกให้อัปโหลดใหม่", async () => {
     const dir = await mkdtemp(path.join(os.tmpdir(), "models-"));
     vi.stubEnv("MODEL_STORAGE_PATH", dir);
     m.modelFindUnique.mockResolvedValue({
@@ -134,8 +134,21 @@ describe("GET (ดาวน์โหลดไฟล์โมเดล)", () => {
       filePath: "gone.pt",
     });
 
-    expect((await GET(req({ "x-api-key": KEY }), ctx)).status).toBe(404);
+    const res = await GET(req({ "x-api-key": KEY }), ctx);
+    expect(res.status).toBe(409);
+    expect((await res.json()).error).toContain("อัปโหลดไฟล์ใหม่");
     await rm(dir, { recursive: true, force: true });
+  });
+
+  it("โมเดลแบบไฟล์บนเครื่องที่ไม่ได้ตั้ง MODEL_STORAGE_PATH (เช่น Vercel) ตอบ 409 ไม่ใช่ 500", async () => {
+    vi.stubEnv("MODEL_STORAGE_PATH", "");
+    m.modelFindUnique.mockResolvedValue({
+      fileName: "x.pt",
+      provider: "file",
+      filePath: "x.pt",
+    });
+
+    expect((await GET(req({ "x-api-key": KEY }), ctx)).status).toBe(409);
   });
 });
 

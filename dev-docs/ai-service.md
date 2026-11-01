@@ -1,15 +1,21 @@
 # AI Service (apps/ai)
 
-FastAPI 0.115.5 · Ultralytics 8.3.40 · PyTorch · Python 3.12 (Docker) / venv (Windows)
+FastAPI 0.115.5 · Ultralytics 8.4.180 · PyTorch · Python 3.12 (Docker) / venv (Windows)
 
 ## ไฟล์
 
 | ไฟล์ | หน้าที่ |
 |---|---|
-| `app/main.py` | สร้าง app, CORS, API key, endpoint ทั้งหมด (`/`, `/health`, `/predict`, `/model-metrics`) และ `resolve_image()` / `resolve_model()` ที่จำกัดว่าอ่านไฟล์จากที่ไหนได้บ้าง |
-| `app/services/yolo_service.py` | `ACNE_CLASSES`, cache โมเดลใน memory (`_cache` + lock), `YoloService.predict()` |
+| `app/main.py` | สร้าง app, CORS, ตั้ง `logging`, รวม router |
+| `app/routers/health.py` | `/`, `/health` |
+| `app/routers/predict.py` | `/predict` (เป็น `def` ให้รันใน thread pool เพราะดาวน์โหลด/YOLO เป็นงาน blocking) |
+| `app/routers/models.py` | `/model-metrics` |
+| `app/schemas.py` | Pydantic response model (`PredictResponse`, `Detection`, `ModelMetricsResponse`, `HealthResponse`) — ดูได้ที่ `/docs` เมื่อ `DEBUG=true` |
+| `app/security.py` | `verify_api_key` (header `X-API-Key`) |
+| `app/services/model_files.py` | `resolve_image()` / `resolve_model()` จำกัดว่าอ่านไฟล์จากที่ไหนได้, `model_parts()` อ่าน manifest ของโมเดลแบบหั่นชิ้น, `_download()` |
+| `app/services/yolo_service.py` | `ACNE_CLASSES`, cache โมเดลใน memory (`_cache` + lock), `YoloService.predict()`, `class_names_mismatch()` เตือนใน log ถ้าลำดับคลาสของโมเดลไม่ตรง |
 | `app/services/model_metrics.py` | `extract_metrics()` อ่าน `train_metrics` ของ Ultralytics (`metrics/mAP50(B)`, `precision(B)`, `recall(B)`) เป็นร้อยละ + คำนวณ F1; `read_model_metrics()` โหลดด้วย `torch.load(weights_only=False)` — ไฟล์มาจากแอดมินเท่านั้น |
-| `app/config.py` | `Settings` (pydantic-settings): `AI_SERVICE_API_KEY`, `STORAGE_PATH`, `MODELS_PATH`, `ALLOWED_IMAGE_HOSTS`, `ALLOWED_MODEL_HOSTS`, `DEBUG` |
+| `app/config.py` | `Settings` (pydantic-settings): `AI_SERVICE_API_KEY`, `STORAGE_PATH`, `MODELS_PATH`, `ALLOWED_IMAGE_HOSTS`, `ALLOWED_MODEL_HOSTS`, `AI_CONFIDENCE_THRESHOLD`, `DEBUG` |
 | `inspect_pt.py` | สคริปต์ดูข้างในไฟล์ `.pt` (keys, results_dict, names) — ไม่ได้อยู่ใน flow |
 | `requirements.txt` | pin เวอร์ชัน (ไม่มี torch — ติดมากับ ultralytics) |
 | `Dockerfile` | python:3.12-slim, ติดตั้ง PyTorch รุ่น CPU ก่อน `requirements.txt` |
@@ -23,11 +29,11 @@ FastAPI 0.115.5 · Ultralytics 8.3.40 · PyTorch · Python 3.12 (Docker) / venv 
    - URL: ต้องเป็น `https` และ host อยู่ใน `ALLOWED_IMAGE_HOSTS` (ค่าเริ่มต้นคือ Vercel Blob) → ดาวน์โหลดเป็น `STORAGE_PATH/tmp_<uuid>.<ext>` แล้วลบใน `finally`
    - path: ต้องเป็นไฟล์ `.jpg/.jpeg/.png/.webp` ที่อยู่ใต้ `STORAGE_PATH` หรือ `<repo>/apps/images` เท่านั้น
 3. `resolve_model()` — โมเดล (ไม่ผ่านเงื่อนไขตอบ 400)
-   - URL: path ต้องเป็น `/api/models/<id 24 หลัก>` (และ host อยู่ใน `ALLOWED_MODEL_HOSTS` ถ้าตั้งไว้) → ดาวน์โหลดพร้อม header `X-API-Key` เก็บที่ `MODELS_PATH/<id>.pt` ถ้ามีไฟล์แล้วข้าม (cache hit)
+   - URL: path ต้องเป็น `/api/models/<id 24 หลัก>` (และ host อยู่ใน `ALLOWED_MODEL_HOSTS` ถ้าตั้งไว้) → ถาม `<url>/manifest` ได้รายการ path (ชิ้นละ ≤ 4 MB หรือทั้งไฟล์) ดาวน์โหลดทีละ path พร้อม header `X-API-Key` แล้วต่อกันเก็บที่ `MODELS_PATH/<id>.pt` ถ้ามีไฟล์แล้วข้าม (cache hit) — เว็บรุ่นเก่าที่ไม่มี manifest (404) โหลดทั้งไฟล์
    - path: ต้องเป็นไฟล์ `.pt` ที่อยู่ใต้ `MODELS_PATH` เท่านั้น
    - การดาวน์โหลดใช้ `urllib` timeout 120 วินาที โหลดลงไฟล์ `.tmp` แล้วค่อยย้าย
 4. `YoloService().predict(image_path, model_path, confidence)`
-5. print เวลาแต่ละขั้น
+5. `logging` บันทึกเวลาแต่ละขั้นและจำนวนกรอบ (`predict timing: ...`)
 
 ## yolo_service.py
 
@@ -35,20 +41,19 @@ FastAPI 0.115.5 · Ultralytics 8.3.40 · PyTorch · Python 3.12 (Docker) / venv 
 ACNE_CLASSES = {0:"blackhead", 1:"cyst", 2:"nodule", 3:"papule", 4:"pustule", 5:"whitehead"}
 ```
 
-- เรียงตามตัวอักษร (ลำดับที่ Roboflow export) — **hard-code** ไม่ได้อ่านจาก `model.names`
+- เรียงตามตัวอักษร (ลำดับที่ Roboflow export) — **hard-code** ตอนโหลดโมเดลเทียบกับ `model.names` ถ้าไม่ตรงจะ log `WARNING ... class order differs` (ไม่หยุดทำงาน)
 - `torch.set_num_threads(min(2, cpu_count))` กัน CPU throttling ใน container
 - cache โมเดลตาม path ไม่มีการล้างเมื่อโมเดลถูกลบ/เปลี่ยนจากฝั่ง web
 - ไม่ได้กำหนด `imgsz`, `iou`, `device` → ใช้ค่า default ของ Ultralytics
 
-## ค่า confidence (มี 3 ที่ ไม่ตรงกัน)
+## ค่า confidence (ค่าเดียวทั้งระบบ)
 
-| ที่ | ค่า |
+ตั้งที่ env `AI_CONFIDENCE_THRESHOLD` (ค่าเริ่มต้น **0.25**) — `docker-compose.yml` ส่งค่าเดียวกันให้ทั้ง web และ ai จาก anchor `x-ai-confidence`
+
+| ที่ | ใช้อย่างไร |
 |---|---|
-| `YoloService.predict` default | 0.40 |
-| `/predict` form default | 0.20 |
-| Next.js ส่งมาจริง (`AI_CONFIDENCE_THRESHOLD` หรือ default) | 0.25 |
-
-ค่าที่มีผลจริงคือ 0.25 จากฝั่ง Next.js
+| web `confidenceThreshold()` (`server/analyze.ts`) | อ่าน env ไม่ตั้ง/ผิด = `DEFAULT_CONFIDENCE_THRESHOLD` (0.25) แล้วส่งไปกับ `/predict` ทุกครั้ง |
+| ai `settings.AI_CONFIDENCE_THRESHOLD` | ใช้เมื่อคำขอไม่ได้ส่ง `confidence` มา |
 
 ## Environment (apps/ai/.env)
 

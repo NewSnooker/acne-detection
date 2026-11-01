@@ -58,6 +58,16 @@ Server component (page.tsx)
 
 กติกา type: เปิด `noImplicitAny` และ lint `no-explicit-any` เป็น error — ใช้ type จาก `@prisma/client`, ตาราง ag-grid ใช้ `ColDef<T>` / `CustomCellRendererProps<T>`
 
+## หน้าพิเศษและการแจ้งผล
+
+| ไฟล์ | ใช้เมื่อ |
+|---|---|
+| `app/not-found.tsx` | ไม่พบหน้า (404) |
+| `app/error.tsx`, `app/(dashboard)/error.tsx` | error ที่ไม่คาดคิด — ใช้ `components/layout/error-view.tsx` ปุ่ม **ลองใหม่** เรียก `unstable_retry` (Next 16) |
+| `app/global-error.tsx` | layout หลักพัง (มี `<html>`/`<body>` ของตัวเอง) |
+| `app/(dashboard)/loading.tsx` | skeleton ระหว่างรอข้อมูล |
+| `components/providers/toaster.tsx` | `toast.success / toast.error` จาก `sonner` — **ห้ามใช้ `alert()`** แสดงข้อความ error จาก server ก่อนข้อความกลาง |
+
 ## Components
 
 | โฟลเดอร์ | ไฟล์หลัก |

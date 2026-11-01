@@ -5,7 +5,7 @@
 | ส่วน | เทคโนโลยี | หน้าที่ |
 |---|---|---|
 | `apps/web` | Next.js 16.2 (App Router), React 19, TypeScript, Tailwind 4, Prisma 6, Auth.js v5 (beta) | UI + Backend หลัก: auth, CRUD, อัปโหลดรูป, คำนวณ severity, บันทึกผล, สถิติ |
-| `apps/ai` | FastAPI 0.115, Ultralytics 8.3.40, PyTorch | รับ path/URL ของรูปและโมเดล → รัน YOLO → คืน JSON ไม่แตะ DB |
+| `apps/ai` | FastAPI 0.115, Ultralytics 8.4.180, PyTorch | รับ path/URL ของรูปและโมเดล → รัน YOLO → คืน JSON ไม่แตะ DB |
 | MongoDB | mongo:7 (replica set `rs0`) / Atlas | เก็บผู้ใช้, session ของ Auth.js, โมเดล (รวมไฟล์ `.pt`), รูป (metadata), ผลวิเคราะห์ |
 | Image storage | ดิสก์ `apps/images/` หรือ Vercel Blob | ไฟล์รูปจริง |
 
@@ -16,7 +16,7 @@
 | รัน | `npm run dev` + uvicorn | `docker-compose up` | Vercel (web) + Render (ai) |
 | DB | MongoDB Atlas | container `mongodb` | Atlas |
 | รูป | ดิสก์ `apps/images/` | volume `./apps/images` (mount ทั้ง web และ ai) | Vercel Blob |
-| โมเดล | `MODEL_STORAGE_PATH` ถ้าตั้งไว้ ไม่งั้น MongoDB `modelData` | volume `model_files` (`MODEL_STORAGE_PATH=/app/model-files`) | MongoDB `modelData` (ไม่เกิน 15 MB) |
+| โมเดล | MongoDB `AiModelChunk` (หั่นชิ้น ไม่จำกัดขนาด) | เหมือนกัน (volume `model_files` เหลือไว้อ่านโมเดลแบบเก่า) | เหมือนกัน |
 | `AI_SERVICE_URL` | `http://localhost:8000` | `http://ai:8000` | URL ของ Render |
 | URL ที่ ai ใช้โหลดโมเดล | `NEXT_PUBLIC_APP_URL` | `INTERNAL_APP_URL=http://web:3000` | `NEXT_PUBLIC_APP_URL` |
 
@@ -54,16 +54,18 @@
 ## Flow: จัดการโมเดล (Admin)
 
 ```
-upload-model-dialog.tsx → POST /api/models?fileName&name&version&description  (body = ไฟล์ .pt ตรง ๆ ไม่ใช่ multipart)
-   → uploadModelLogic() → saveModel() (lib/storage/model-provider.ts)
-        ตั้ง MODEL_STORAGE_PATH: stream ลงดิสก์ → AiModel { provider:"file", filePath:<fileName>, modelData:null }
-        ไม่ตั้ง:                อ่านเข้า Buffer (เกิน 15 MB ตอบ 413) → AiModel { provider:"mongodb", modelData }
-     isActive = (ยังไม่มีตัว active) | บันทึก DB ไม่สำเร็จ → ลบไฟล์ทิ้ง
-   หมายเหตุ: /api/models ถูกยกเว้นจาก proxy.ts เพราะ proxy เก็บ body ไว้ในหน่วยความจำและตัดทิ้งเงียบ ๆ ที่ 10 MB
+upload-model-dialog.tsx (ModelService.uploadModel)
+   1. POST /api/models { fileName, sizeBytes, name, version, description }
+        → startChunkedUpload(): AiModel { provider:"chunks", chunkCount, uploadComplete:false, isActive:false }
+   2. PUT /api/models/[id]/chunks/[i]  (body = ไฟล์ช่วงนั้น ≤ 4 MB, ลองใหม่ได้ 3 ครั้ง) → AiModelChunk { modelId, index, data }
+   3. POST /api/models/[id]/complete → ชิ้นครบ → uploadComplete:true, isActive = (ยังไม่มีตัว active)
+      ล้มกลางทาง → client ลบโมเดลที่ค้าง (DELETE /api/models/[id])
+   ทำไมหั่น: Vercel รับคำขอไม่เกิน 4.5 MB และเอกสาร MongoDB ใหญ่ได้ไม่เกิน 16 MB
 ตั้ง active:  POST /api/models/[id]/activate → setActiveModelLogic (ปิดตัวอื่น แล้วเปิดตัวนี้ ใน $transaction)
 แก้ข้อมูล:    PATCH /api/models/[id]         → name, version, description, ค่าประเมิน
 ลบ:          DELETE /api/models/[id] (โมเดลหลักตอบ 409) | DELETE /api/models { ids }  (batch ข้ามตัว active)
-FastAPI ดึงไฟล์: GET /api/models/[id]     → provider "file" stream จากดิสก์ | "mongodb" ส่ง modelData
+FastAPI ดึงไฟล์: GET /api/models/[id]/manifest → { parts } แล้วโหลดทีละ path มาต่อกันเป็น cache <id>.pt
+             "chunks" = /api/models/[id]/chunks/0..n-1 | แบบเก่า ("mongodb" / "file") = /api/models/[id] ทั้งไฟล์
 ```
 
 ## การเก็บรูป

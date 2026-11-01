@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FcGoogle } from "react-icons/fc";
+import { GoogleIcon } from "./google-icon";
 import { loginSchema } from "@/schemas/auth";
 import {
   loginWithGoogle,
@@ -165,7 +165,7 @@ export function LoginForm({
             disabled={isPending}
             className="w-full"
           >
-            <FcGoogle className="mr-2 h-5 w-5" />
+            <GoogleIcon className="mr-2 h-5 w-5" />
             Google
           </Button>
         </form>
@@ -178,7 +178,7 @@ export function LoginForm({
           className="w-full"
           onClick={() => setError(AUTH_ERROR_MESSAGES.GoogleNotConfigured)}
         >
-          <FcGoogle className="mr-2 h-5 w-5" />
+          <GoogleIcon className="mr-2 h-5 w-5" />
           Google
         </Button>
       )}

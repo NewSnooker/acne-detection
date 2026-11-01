@@ -31,7 +31,7 @@
 | ข้อ | ขอบเขต | สถานะ | โค้ด / หมายเหตุ |
 |---|---|---|---|
 | 1.3.3.1 | จำแนกสิว 6 ประเภท | ✅ | `yolo_service.py` `ACNE_CLASSES` |
-| 1.3.3.2 | กรอบสีแยกชนิด + **ปรับการแสดง label อัตโนมัติ** | ⚠️ | `image-preview.tsx` วาดกรอบสีตาม `ACNE_COLORS` แต่ label เป็นชื่ออังกฤษ, ปรับแค่ขนาดฟอนต์ตามความกว้างรูป ไม่มี logic ซ่อน/ย้าย label เมื่อกรอบชิดขอบหรือซ้อนกัน |
+| 1.3.3.2 | กรอบสีแยกชนิด + **ปรับการแสดง label อัตโนมัติ** | ⚠️ | `image-preview.tsx` วาดกรอบสีตาม `ACNE_COLORS` ป้ายชื่อเป็นภาษาไทยแล้ว ขนาดฟอนต์ปรับตามความกว้างรูป ยังไม่มี logic ซ่อน/ย้าย label เมื่อกรอบซ้อนกัน |
 | 1.3.3.3 | แสดงค่า **Recall, F1-score, mAP** ของโมเดล | ✅ | field `mAP50/precision/recall/f1Score/accuracy` ใน `AiModel` แอดมินกรอกใน `edit-model-dialog.tsx` แสดงในตาราง `/admin/models` และหน้าแรกหัวข้อ `#accuracy` (`model-metrics.tsx`) — ค่ามาจากการกรอก ไม่ได้อ่านจาก `.pt` |
 | 1.3.3.4 | แสดงคำแนะนำดูแลผิวแบบองค์รวม (นอน, เครียด, อาหาร) **ก่อน** เข้าสู่การประมวลผล | ✅ | `components/knowledge/holistic-care-promo.tsx` ป๊อปอัปบนหน้า `/analyze` ก่อนอัปโหลด (ครั้งแรกเด้งเอง เปิดซ้ำได้จากปุ่ม "คำแนะนำก่อนเริ่ม") + `holistic-care.tsx` ในหน้าแรกหัวข้อ `#care` |
 | 1.3.3.5 | ประเมิน 3 ระดับจากชนิด + จำนวน | ✅ | `calculateSeverity()` ตัวเลขตรงกับเล่มทุกเงื่อนไข (เช็คจากรุนแรง → เบา) |
@@ -48,7 +48,7 @@
 |---|---|---|
 | Next.js / FastAPI | Next 16.2.12 / FastAPI 0.115.5 | ✅ |
 | MongoDB + Prisma | Prisma 6.19 | ✅ |
-| Ultralytics (YOLO26) | `ultralytics==8.3.40` | ⚠️ ต้องตรวจ — YOLO26 ออกกับ Ultralytics 8.4 ขึ้นไป เวอร์ชัน 8.3.40 น่าจะโหลดโมเดล YOLO26 ไม่ได้ |
+| Ultralytics (YOLO26) | `ultralytics==8.4.180` | ✅ รองรับ YOLO26 (ต้อง 8.4 ขึ้นไป) — ควรใช้รุ่นใกล้กับที่เทรนบน Kaggle |
 | NextAuth + Google | next-auth 5 beta | ✅ |
 | Docker | docker-compose.yml | ✅ |
 

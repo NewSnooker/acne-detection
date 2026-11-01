@@ -164,3 +164,21 @@ def test_model_is_loaded_once_and_reused(monkeypatch):
     assert first is second
     assert loaded == ["a.pt", "b.pt"]
     yolo_service.clear_cache()
+
+
+def test_class_names_match_expected_order():
+    assert yolo_service.class_names_mismatch(dict(ACNE_CLASSES)) == {}
+    assert yolo_service.class_names_mismatch({str(k): v for k, v in ACNE_CLASSES.items()}) == {}
+
+
+def test_class_names_mismatch_reports_swapped_classes():
+    swapped = dict(ACNE_CLASSES)
+    swapped[0], swapped[5] = swapped[5], swapped[0]
+    assert yolo_service.class_names_mismatch(swapped) == {
+        0: ("whitehead", "blackhead"),
+        5: ("blackhead", "whitehead"),
+    }
+
+
+def test_class_names_unknown_format_is_ignored():
+    assert yolo_service.class_names_mismatch(None) == {}

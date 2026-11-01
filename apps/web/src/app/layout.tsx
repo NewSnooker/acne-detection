@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Thai } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { Toaster } from "@/components/providers/toaster";
 import { siteConfig } from "@/config/site";
 import { PALETTE_INIT_SCRIPT } from "@/lib/theme/palettes";
 import "./globals.css";
@@ -53,6 +54,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

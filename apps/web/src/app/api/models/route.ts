@@ -1,34 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/guards";
 import { errorResponse, parseBody, readJson } from "@/lib/http-error";
-import { deleteModelsLogic, uploadModelLogic } from "@/server/models";
-import { idListSchema, modelInfoSchema } from "@/lib/validation/api-input";
+import { deleteModelsLogic } from "@/server/models";
+import { MODEL_CHUNK_SIZE, startChunkedUpload } from "@/server/model-chunks";
+import { idListSchema, startUploadSchema } from "@/lib/validation/api-input";
 
-// อัปโหลดโมเดลใหม่: body = เนื้อไฟล์ .pt ตรง ๆ (ไม่ใช่ multipart) เพื่อเขียนลงดิสก์แบบ stream ได้
-// ข้อมูลโมเดลส่งทาง query: fileName, name, version, description
+// เริ่มอัปโหลดโมเดล: สร้าง record (ยังไม่ครบ) แล้วให้เบราว์เซอร์ส่งไฟล์ทีละชิ้น
+// → PUT /api/models/[id]/chunks/[index] → POST /api/models/[id]/complete
 export async function POST(req: NextRequest) {
   try {
     const guard = await requireAdminApi();
     if (!guard.ok) return guard.response;
 
-    const query = req.nextUrl.searchParams;
-    const info = parseBody(modelInfoSchema, {
-      name: query.get("name"),
-      version: query.get("version"),
-      description: query.get("description"),
+    const input = parseBody(startUploadSchema, await readJson(req));
+    const model = await startChunkedUpload({
+      originalName: input.fileName,
+      sizeBytes: input.sizeBytes,
+      name: input.name,
+      version: input.version,
+      description: input.description ?? "",
+      userId: guard.session.user.id,
     });
-
-    const newModel = await uploadModelLogic(
-      { originalName: query.get("fileName") ?? "", body: req.body },
-      info.name,
-      info.version,
-      info.description ?? "",
-      guard.session.user.id,
+    return NextResponse.json(
+      { success: true, model, chunkSize: MODEL_CHUNK_SIZE },
+      { status: 201 },
     );
-    const { modelData: _omit, ...model } = newModel;
-    return NextResponse.json({ success: true, model }, { status: 201 });
   } catch (error) {
-    return errorResponse(error, "อัปโหลดโมเดลไม่สำเร็จ", "POST /api/models");
+    return errorResponse(
+      error,
+      "เริ่มอัปโหลดโมเดลไม่สำเร็จ",
+      "POST /api/models",
+    );
   }
 }
 

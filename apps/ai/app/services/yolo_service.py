@@ -1,3 +1,4 @@
+import logging
 import threading
 import os
 from pathlib import Path
@@ -17,14 +18,33 @@ ACNE_CLASSES = {
     5: "whitehead",
 }
 
+logger = logging.getLogger(__name__)
+
 _cache: dict[str, YOLO] = {}
 _lock = threading.Lock()
+
+
+def class_names_mismatch(names) -> dict[int, tuple[str | None, str | None]]:
+    """เทียบชื่อคลาสในโมเดลกับ ACNE_CLASSES — คืน {index: (ในโมเดล, ที่ระบบคาด)} เฉพาะที่ไม่ตรง"""
+    if not isinstance(names, dict):
+        return {}
+    model_names = {int(k): v for k, v in names.items()}
+    return {
+        i: (model_names.get(i), ACNE_CLASSES.get(i))
+        for i in sorted(set(model_names) | set(ACNE_CLASSES))
+        if model_names.get(i) != ACNE_CLASSES.get(i)
+    }
 
 
 def _get_model(model_path: str) -> YOLO:
     with _lock:
         if model_path not in _cache:
-            _cache[model_path] = YOLO(model_path)
+            model = YOLO(model_path)
+            mismatch = class_names_mismatch(getattr(model, "names", None))
+            if mismatch:
+                # ลำดับคลาสไม่ตรง = ผลวิเคราะห์จะเรียกชื่อสิวผิดชนิด (กฎข้อ 4 ใน CLAUDE.md)
+                logger.warning("Model %s class order differs from ACNE_CLASSES: %s", model_path, mismatch)
+            _cache[model_path] = model
         return _cache[model_path]
 
 
@@ -37,7 +57,7 @@ def clear_cache(model_path: str | None = None):
 
 
 class YoloService:
-    def predict(self, image_path: str, model_path: str, confidence: float = 0.40) -> dict:
+    def predict(self, image_path: str, model_path: str, confidence: float) -> dict:
         model = _get_model(model_path)
         results = model(image_path, conf=confidence, verbose=False)
 

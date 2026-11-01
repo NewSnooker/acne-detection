@@ -1,72 +1,10 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import crypto from "crypto";
-import type { ReadableStream as WebReadableStream } from "stream/web";
-import { saveModel, deleteModelFile } from "@/lib/storage/model-provider";
+import { deleteModelFile } from "@/lib/storage/model-provider";
 import { HttpError } from "@/lib/http-error";
+import { CHUNK_TRANSACTION_OPTIONS } from "@/server/model-chunks";
 import { MODEL_METRICS, type ModelMetricKey } from "@/types/analyze";
 import { getAiServiceConfig, modelDownloadUrl } from "@/server/analyze";
-
-export type ModelUpload = {
-  /** ชื่อไฟล์เดิมจากเครื่องผู้ใช้ */
-  originalName: string;
-  /** เนื้อไฟล์แบบ stream — ไม่อ่านทั้งไฟล์เข้าหน่วยความจำ */
-  body: ReadableStream<Uint8Array> | null;
-};
-
-export async function uploadModelLogic(
-  upload: ModelUpload,
-  name: string,
-  version: string,
-  description: string,
-  userId: string,
-) {
-  if (!upload.body || !upload.originalName.toLowerCase().endsWith(".pt")) {
-    throw new HttpError(400, "กรุณาอัปโหลดไฟล์นามสกุล .pt เท่านั้น");
-  }
-
-  // 1. เก็บไฟล์ (โฟลเดอร์ MODEL_STORAGE_PATH หรือ MongoDB) — ชื่อไฟล์สุ่มนำหน้า กันชนและกัน path แปลก ๆ
-  const uniqueId = crypto.randomBytes(8).toString("hex");
-  const safeName = upload.originalName.replace(/[^a-zA-Z0-9.-]/g, "_");
-  const fileName = `${uniqueId}_${safeName}`;
-
-  const saved = await saveModel(
-    upload.body as WebReadableStream<Uint8Array>,
-    fileName,
-  );
-  if (saved.sizeBytes === 0) {
-    await deleteModelFile(saved.provider, saved.filePath);
-    throw new HttpError(400, "ไฟล์โมเดลว่างเปล่า");
-  }
-  const sizeMb = parseFloat((saved.sizeBytes / (1024 * 1024)).toFixed(2));
-
-  try {
-    // 2. ยังไม่มีโมเดลหลัก → ตัวที่อัปโหลดเป็นโมเดลหลักทันที
-    const activeCount = await prisma.aiModel.count({
-      where: { isActive: true },
-    });
-
-    // 3. บันทึกข้อมูลโมเดลใหม่ลงฐานข้อมูล
-    return await prisma.aiModel.create({
-      data: {
-        name,
-        version,
-        description,
-        filePath: saved.filePath,
-        modelData: saved.modelData,
-        provider: saved.provider,
-        fileName,
-        sizeMb,
-        isActive: activeCount === 0,
-        uploadedBy: userId,
-      },
-    });
-  } catch (error) {
-    // บันทึกลงฐานข้อมูลไม่สำเร็จ → ไม่ทิ้งไฟล์ค้างในโฟลเดอร์
-    await deleteModelFile(saved.provider, saved.filePath).catch(() => {});
-    throw error;
-  }
-}
 
 const ACTIVE_MODEL_ERROR =
   "ลบโมเดลหลักที่ใช้งานอยู่ไม่ได้ กรุณาตั้งโมเดลอื่นเป็นโมเดลหลักก่อน";
@@ -89,13 +27,17 @@ async function removeInactiveModels(ids: string[]) {
       where: { modelId: { in: removableIds } },
       data: { modelId: null },
     });
+    await tx.aiModelChunk.deleteMany({
+      where: { modelId: { in: removableIds } },
+    });
     const { count } = await tx.aiModel.deleteMany({
       where: { id: { in: removableIds }, isActive: false },
     });
     if (count !== removableIds.length)
       throw new HttpError(409, ACTIVE_MODEL_ERROR);
     return models;
-  });
+    // โมเดลใหญ่มีชิ้นหลายสิบชิ้น บน Atlas ฟรีอาจลบนานกว่าค่าเริ่มต้น 5 วินาที
+  }, CHUNK_TRANSACTION_OPTIONS);
 
   await Promise.all(
     removed.map((model) =>
@@ -124,8 +66,17 @@ export async function deleteModelsLogic(ids: string[]) {
 
 // ปิดตัวเดิมและเปิดตัวใหม่ใน transaction เดียว — มีโมเดลหลักได้ครั้งละ 1 ตัวเสมอ
 export async function setActiveModelLogic(id: string) {
-  const exists = await prisma.aiModel.count({ where: { id } });
-  if (!exists) throw new HttpError(404, "ไม่พบข้อมูลโมเดล");
+  const model = await prisma.aiModel.findUnique({
+    where: { id },
+    select: { uploadComplete: true },
+  });
+  if (!model) throw new HttpError(404, "ไม่พบข้อมูลโมเดล");
+  if (model.uploadComplete === false) {
+    throw new HttpError(
+      409,
+      "โมเดลนี้ยังอัปโหลดไม่ครบ ตั้งเป็นโมเดลหลักไม่ได้",
+    );
+  }
 
   await prisma.$transaction([
     prisma.aiModel.updateMany({
@@ -219,6 +170,22 @@ export function pickImportedMetrics(raw: unknown): ImportedMetrics {
   return result;
 }
 
+/** แปลรหัสที่ FastAPI ตอบเป็นสาเหตุที่แอดมินแก้ต่อได้ */
+export function aiErrorMessage(status: number) {
+  switch (status) {
+    case 400:
+      return "ระบบ AI ดาวน์โหลดไฟล์โมเดลไม่ได้ (ตรวจ INTERNAL_APP_URL และ ALLOWED_MODEL_HOSTS)";
+    case 403:
+      return "AI_SERVICE_API_KEY ของเว็บกับระบบ AI ไม่ตรงกัน";
+    case 404:
+      return "ระบบ AI ยังไม่รองรับการดึงค่า หรือหาไฟล์โมเดลไม่พบ (ลองอัปเดตและเริ่มบริการ AI ใหม่)";
+    case 422:
+      return "ระบบ AI เปิดไฟล์นี้ไม่ได้ ไฟล์อาจเสียหรือไม่ใช่ไฟล์ .pt ของ PyTorch";
+    default:
+      return `ระบบ AI ขัดข้อง (รหัส ${status}) กรุณาลองใหม่อีกครั้ง`;
+  }
+}
+
 /**
  * ให้บริการ AI อ่าน mAP@0.5, Precision, Recall, F1 จากผลเทรนในไฟล์ .pt แล้วบันทึกทับค่าเดิม
  * (Ultralytics เก็บไว้ใน checkpoint["train_metrics"]) — คืนค่าที่อ่านได้
@@ -241,11 +208,14 @@ export async function importModelMetricsLogic(id: string) {
     });
   } catch (error) {
     console.error("model-metrics: cannot reach AI service", error);
-    throw new HttpError(502, "เชื่อมต่อระบบ AI ไม่ได้ กรุณาลองใหม่อีกครั้ง");
+    throw new HttpError(
+      502,
+      "เชื่อมต่อระบบ AI ไม่ได้ (บริการอาจปิดอยู่หรือกำลังเริ่มใหม่) กรุณาลองใหม่อีกครั้ง",
+    );
   }
   if (!response.ok) {
     console.error("model-metrics:", response.status, await response.text());
-    throw new HttpError(502, "ระบบ AI อ่านไฟล์โมเดลนี้ไม่ได้");
+    throw new HttpError(502, aiErrorMessage(response.status));
   }
 
   const metrics = pickImportedMetrics(await response.json());

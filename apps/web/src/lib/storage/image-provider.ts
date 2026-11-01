@@ -40,12 +40,10 @@ export async function uploadImage(
   if (isHosted) {
     // ─── Hosted: อัปโหลดขึ้น Vercel Blob (Internal Network → เร็วมาก)
     // put() จะ Return URL กลับมาทันที ไม่ต้องทำ Background Job
-    console.log(`[Image Upload] Uploading to Vercel Blob: ${fileName}`);
     const blob = await put(fileName, buffer, {
       access: "public",
       contentType: kind === "png" ? "image/png" : "image/jpeg",
     });
-    console.log(`[Image Upload] Vercel Blob upload success: ${blob.url}`);
 
     return {
       originalImage: blob.pathname, // เก็บ pathname ไว้ใช้ตอนลบ
@@ -62,7 +60,6 @@ export async function uploadImage(
     const localFileName = `${uuid}.${extension}`;
     const filePath = path.join(storagePath, localFileName);
     await fs.promises.writeFile(filePath, buffer);
-    console.log(`[Image Upload] Saved to local disk: ${filePath}`);
 
     return {
       originalImage: localFileName,
@@ -88,7 +85,6 @@ export async function deleteImage(
       }
       const target = imageUrl || originalImage;
       await del(target);
-      console.log(`[Image Delete] Deleted from Vercel Blob: ${target}`);
     } catch (error) {
       console.error("[Image Delete] Failed to delete from Vercel Blob:", error);
     }
@@ -99,7 +95,6 @@ export async function deleteImage(
       const filePath = path.join(storagePath, originalImage);
       if (fs.existsSync(filePath)) {
         await fs.promises.unlink(filePath);
-        console.log(`[Image Delete] Deleted from local disk: ${filePath}`);
       }
     } catch (fsError) {
       console.error(

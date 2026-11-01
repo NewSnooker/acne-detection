@@ -59,6 +59,17 @@ def test_predict_success_docker_mode(client, dirs):
     ]
 
 
+def test_predict_without_confidence_uses_setting(client, dirs, monkeypatch):
+    """เว็บไม่ส่ง confidence มา ใช้ AI_CONFIDENCE_THRESHOLD (ค่าเดียวกับฝั่งเว็บ)"""
+    from app import main
+
+    monkeypatch.setattr(main.settings, "AI_CONFIDENCE_THRESHOLD", 0.33)
+    res = predict(client, str(dirs / "images" / "face.jpg"), MODEL_URL)
+
+    assert res.status_code == 200
+    assert client.calls[-1]["confidence"] == 0.33
+
+
 def test_predict_does_not_delete_stored_image(client, dirs):
     """รูปที่เว็บบันทึกไว้ต้องยังอยู่หลังวิเคราะห์ (ลบเฉพาะรูปชั่วคราวที่ดาวน์โหลดมา)"""
     image = dirs / "images" / "face.jpg"
@@ -133,7 +144,7 @@ def test_image_url_from_disallowed_host_rejected(client, url):
 
 def test_image_url_from_vercel_blob_is_downloaded_then_removed(client, dirs, monkeypatch):
     """โหมด hosted: รูปมาจาก Vercel Blob → ดาวน์โหลดเป็นไฟล์ชั่วคราว → ลบทิ้งหลังวิเคราะห์"""
-    from app import main
+    from app.services import model_files
 
     downloaded = []
 
@@ -142,7 +153,7 @@ def test_image_url_from_vercel_blob_is_downloaded_then_removed(client, dirs, mon
         with open(local_path, "wb") as f:
             f.write(b"img")
 
-    monkeypatch.setattr(main, "_download", fake_download)
+    monkeypatch.setattr(model_files, "_download", fake_download)
     url = "https://store123.public.blob.vercel-storage.com/acne-ai/abc.png"
 
     res = predict(client, url, MODEL_URL)
@@ -189,7 +200,7 @@ def test_model_url_must_be_web_model_endpoint(client, dirs, url):
 
 def test_model_download_sends_api_key_and_caches(client, dirs, monkeypatch):
     """โมเดลที่ยังไม่มีในเครื่อง: ดาวน์โหลดจากเว็บพร้อม API key แล้วเก็บเป็น <id>.pt ครั้งถัดไปไม่โหลดซ้ำ"""
-    from app import main
+    from app.services import model_files
 
     downloaded = []
 
@@ -198,7 +209,8 @@ def test_model_download_sends_api_key_and_caches(client, dirs, monkeypatch):
         with open(local_path, "wb") as f:
             f.write(b"model")
 
-    monkeypatch.setattr(main, "_download", fake_download)
+    monkeypatch.setattr(model_files, "_download", fake_download)
+    monkeypatch.setattr(model_files, "model_parts", lambda url, model_id, headers: [url])
     new_id = "b" * 24
     url = f"http://web:3000/api/models/{new_id}"
     image = str(dirs / "images" / "face.jpg")

@@ -23,7 +23,7 @@ export default async function AdminModelsPage() {
             อัปโหลด จัดการ และกำหนดโมเดล AI ที่ใช้สำหรับตรวจจับและจำแนกชนิดสิว
           </p>
         </div>
-        <UploadModelDialog />
+        <UploadModelDialog isHosted={process.env.APP_ENV === "hosted"} />
       </div>
 
       <div className="min-h-[500px] flex-1">

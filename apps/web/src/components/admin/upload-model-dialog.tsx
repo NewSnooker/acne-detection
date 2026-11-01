@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ModelService } from "@/lib/api-client/model-api";
@@ -13,7 +14,17 @@ import {
   Loader2,
 } from "lucide-react";
 
-export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
+// ไฟล์ใหญ่กว่านี้บนเว็บที่ deploy (Vercel + MongoDB Atlas ฟรี) จะเตือนก่อนอัปโหลด
+const HOSTED_WARN_MB = 50;
+
+export function UploadModelDialog({
+  onSuccess,
+  isHosted = false,
+}: {
+  onSuccess?: () => void;
+  /** เว็บที่ deploy บน Vercel (APP_ENV=hosted) */
+  isHosted?: boolean;
+}) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -22,6 +33,7 @@ export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
   const [description, setDescription] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,11 +80,12 @@ export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
     setLoading(true);
     setError("");
 
-    const result = await ModelService.uploadModel(file, {
-      name,
-      version,
-      description,
-    });
+    setProgress(0);
+    const result = await ModelService.uploadModel(
+      file,
+      { name, version, description },
+      setProgress,
+    );
 
     if (result.error) {
       setError(result.error);
@@ -81,6 +94,7 @@ export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
       setLoading(false);
       resetForm();
       setIsOpen(false);
+      toast.success("อัปโหลดโมเดลแล้ว กำลังอ่านค่าประเมินจากไฟล์...");
       router.refresh(); // อัปเดต UI หลังอัปโหลดโมเดลสำเร็จ
       if (onSuccess) onSuccess();
 
@@ -146,11 +160,41 @@ export function UploadModelDialog({ onSuccess }: { onSuccess?: () => void }) {
                       คลิกเพื่อเลือกไฟล์ .pt
                     </p>
                     <p className="text-muted-foreground mt-1 text-xs">
-                      ไม่จำกัดขนาดเมื่อรันด้วย Docker (บน Vercel ไม่เกิน 4.5 MB)
+                      ไม่จำกัดขนาด (ระบบแบ่งส่งทีละ 4 MB)
                     </p>
                   </div>
                 )}
               </div>
+
+              {isHosted && file && file.size > HOSTED_WARN_MB * 1024 * 1024 && (
+                <div
+                  role="note"
+                  className="flex gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100"
+                >
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>
+                    ไฟล์ใหญ่กว่า {HOSTED_WARN_MB} MB:
+                    เว็บนี้เก็บโมเดลในฐานข้อมูล (MongoDB Atlas ฟรีมีพื้นที่รวม
+                    512 MB) และบริการ AI แบบฟรีอาจรันโมเดลใหญ่ไม่ไหวหรือช้ามาก
+                    อัปโหลดได้ แต่ควรลบโมเดลเก่าที่ไม่ใช้
+                  </span>
+                </div>
+              )}
+
+              {loading && (
+                <div className="space-y-1" role="status" aria-live="polite">
+                  <div className="bg-muted h-2 overflow-hidden rounded-full">
+                    <div
+                      className="bg-primary h-full transition-[width] duration-300"
+                      style={{ width: `${Math.round(progress * 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-muted-foreground text-xs">
+                    อัปโหลดแล้ว {Math.round(progress * 100)}% —
+                    อย่าปิดหน้านี้จนกว่าจะเสร็จ
+                  </p>
+                </div>
+              )}
 
               {error && (
                 <div className="bg-destructive/15 text-destructive flex items-center gap-2 rounded-md p-3 text-sm">

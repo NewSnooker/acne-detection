@@ -9,15 +9,19 @@
 | POST | `/api/analyze` | login | multipart `image` | upload → FastAPI → severity → บันทึก |
 | DELETE | `/api/analyze/history` | ADMIN | JSON `{id}` หรือ `{ids:[]}` | `deleteHistories` (ไม่พบตอบ 404) |
 | GET | `/api/images/[...path]` | login + เป็นเจ้าของรูป (หรือ ADMIN) | — | อ่านไฟล์จากดิสก์ (รูปคนอื่นตอบ 404, cache แบบ private) |
-| GET | `/api/models/[id]` | header `X-API-Key` (= `AI_SERVICE_API_KEY`) หรือ ADMIN | — | ส่งไฟล์ `.pt` จาก MongoDB (FastAPI เรียก — ห้ามเปลี่ยน path) |
+| GET | `/api/models/[id]` | header `X-API-Key` (= `AI_SERVICE_API_KEY`) หรือ ADMIN | — | ส่งไฟล์ `.pt` ทั้งไฟล์ (แบบหั่นชิ้นส่งต่อกันเป็น stream — บน Vercel ใช้ไม่ได้ถ้าเกิน 4.5 MB) |
+| GET | `/api/models/[id]/manifest` | `X-API-Key` หรือ ADMIN | — | `{parts:[...]}` path ที่ FastAPI ต้องโหลดมาต่อกัน (ยังส่งชิ้นไม่ครบ 409) |
+| GET | `/api/models/[id]/chunks/[index]` | `X-API-Key` หรือ ADMIN | — | เนื้อชิ้นที่ index (≤ 4 MB) |
+| PUT | `/api/models/[id]/chunks/[index]` | ADMIN | เนื้อไฟล์ช่วงนั้นตรง ๆ (≤ 4 MB) | บันทึกชิ้น (ส่งซ้ำได้) ขนาดผิด 400 |
+| POST | `/api/models/[id]/complete` | ADMIN | — | ตรวจว่าชิ้นครบแล้วเปิดใช้ (ไม่ครบ 409) |
 | PATCH | `/api/models/[id]` | ADMIN | JSON `{name,version,description?,mAP50?,precision?,recall?,f1Score?,accuracy?}` | แก้ข้อมูลและค่าประเมิน |
 | DELETE | `/api/models/[id]` | ADMIN | — | ลบโมเดล (โมเดลหลักตอบ 409) |
 | POST | `/api/models/[id]/activate` | ADMIN | — | ตั้งเป็นโมเดลหลัก (ไม่พบตอบ 404) |
 | POST | `/api/models/[id]/metrics` | ADMIN | — | ให้ FastAPI อ่าน mAP50/precision/recall/f1Score จากไฟล์ `.pt` แล้วบันทึก คืน `{metrics}` (ไม่มีผลเทรน 422, AI ล่ม 502) |
-| POST | `/api/models` | ADMIN | multipart `file,name,version,description` | อัปโหลด `.pt` ตอบ 201 |
+| POST | `/api/models` | ADMIN | JSON `{fileName,sizeBytes,name,version,description?}` | เริ่มอัปโหลด: สร้างโมเดล (ยังไม่ครบ) ตอบ 201 `{model:{id,chunkCount},chunkSize}` |
 | DELETE | `/api/models` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม (ข้ามตัว active) คืน `count` |
-| DELETE | `/api/users/[id]` | ADMIN | — | ลบผู้ใช้ + รูป + ประวัติ (กันลบตัวเอง) |
-| DELETE | `/api/users` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม คืน `count` |
+| DELETE | `/api/users/[id]` | ADMIN | — | ลบผู้ใช้ + รูป + ประวัติ (ลบตัวเอง 400, ลบแอดมิน 403, ไม่พบ 404) |
+| DELETE | `/api/users` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม ข้ามตัวเองและแอดมิน คืน `count` |
 
 รูปแบบ response: สำเร็จ `{ success: true, ... }` / ผิดพลาด `{ error: "ข้อความไทย" }`
 ไม่ผ่านสิทธิ์: 401 เมื่อยังไม่ login, 403 เมื่อ role ไม่ถึง (ตรวจด้วย `lib/auth/guards.ts`)
@@ -46,7 +50,7 @@ error ที่ไม่ได้ตั้งใจตอบ 500 พร้อม
 |---|---|---|---|---|
 | GET | `/` | — | ตัวตรวจสถานะของ Render / เปิด URL ตรง | `{status:"ok"}` |
 | GET | `/health` | — | ใช้ ping | `{status:"ok"}` |
-| POST | `/predict` | `X-API-Key` | **ใช่** | form: `image_url_or_path`, `model_url_or_path`, `confidence` (default 0.20) |
+| POST | `/predict` | `X-API-Key` | **ใช่** | form: `image_url_or_path`, `model_url_or_path`, `confidence` (ไม่ส่ง = `AI_CONFIDENCE_THRESHOLD` ค่าเริ่มต้น 0.25) |
 | POST | `/model-metrics` | `X-API-Key` | ใช่ (หลังอัปโหลด/ปุ่มดึงค่า) | form: `model_url_or_path` → `{metrics:{mAP50,precision,recall,f1Score}}` เป็นร้อยละ จาก `checkpoint["train_metrics"]` (ไม่มีข้อมูล = `{}`) |
 | GET | `/docs` | — | เปิดเมื่อ `DEBUG=true` | Swagger |
 

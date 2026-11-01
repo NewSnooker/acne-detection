@@ -6,7 +6,11 @@ const db = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: db }));
 
-import { importModelMetricsLogic, pickImportedMetrics } from "./models";
+import {
+  aiErrorMessage,
+  importModelMetricsLogic,
+  pickImportedMetrics,
+} from "./models";
 
 const fetchMock = vi.fn();
 const json = (body: unknown, status = 200) =>
@@ -106,5 +110,14 @@ describe("importModelMetricsLogic", () => {
     await expect(importModelMetricsLogic("m1")).rejects.toMatchObject({
       status: 502,
     });
+  });
+});
+
+describe("aiErrorMessage", () => {
+  it("บอกสาเหตุตามรหัสที่ FastAPI ตอบ", () => {
+    expect(aiErrorMessage(403)).toContain("AI_SERVICE_API_KEY");
+    expect(aiErrorMessage(404)).toContain("เริ่มบริการ AI ใหม่");
+    expect(aiErrorMessage(422)).toContain("ไฟล์อาจเสีย");
+    expect(aiErrorMessage(500)).toContain("รหัส 500");
   });
 });

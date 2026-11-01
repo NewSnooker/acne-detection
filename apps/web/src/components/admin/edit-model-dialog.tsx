@@ -52,7 +52,7 @@ export function EditModelDialog({ model }: { model: AiModel }) {
       }
       return next;
     });
-    setNotice("ดึงค่าจากไฟล์โมเดลแล้ว (Accuracy ไม่มีในไฟล์ ต้องกรอกเอง)");
+    setNotice("ดึงค่าจากไฟล์โมเดลแล้ว (Type Accuracy ไม่มีในไฟล์ ต้องกรอกเอง)");
     router.refresh();
   };
 
