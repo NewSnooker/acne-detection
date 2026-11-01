@@ -20,6 +20,8 @@
 | 27 test | ทำแล้วเฉพาะฟีเจอร์สำคัญ — เว็บ 164 กรณี (Vitest), AI 37 กรณี (pytest) ดู `testing.md` |
 | 28 `.gitattributes` | เพิ่มแล้ว |
 | 29 CI, prettier, typecheck | ทำแล้ว (2026-10-30) — `.github/workflows/ci.yml`, prettier + `prettier-plugin-tailwindcss`, commit จัดรูปแบบอยู่ใน `.git-blame-ignore-revs` |
+| 22, 23 FastAPI | แก้แล้ว (2026-11-01) — แยก routers/schemas/security/services, `logging`, response model, confidence ค่าเดียว (`AI_CONFIDENCE_THRESHOLD`), เทียบ `model.names` กับ `ACNE_CLASSES` ตอนโหลด (ลำดับยัง hard-code) |
+| 19 โมเดลใน Bytes ติด 16 MB | แก้แล้ว (2026-11-01) — หั่นชิ้น 4 MB ใน `AiModelChunk` ไม่จำกัดขนาด |
 | 14 ชั้นโค้ดชื่อสับสน | แก้แล้ว (2026-10-30) — server logic อยู่ `src/server/<feature>.ts` (มี `server-only`), client fetch อยู่ `src/lib/api-client/` |
 | 16 โค้ดซ้ำ | แก้แล้ว — ประวัติเหลือ `getHistory` / `deleteHistories`, ลบโมเดลเดี่ยว/กลุ่มใช้ `removeInactiveModels` ร่วมกัน, ลบผู้ใช้และลบประวัติใช้ `deleteAnalysesWhere` ร่วมกัน |
 | 17 ดึงข้อมูลมากรองใน memory | แก้บางส่วน — ไม่ดึง `modelData` ตอนวิเคราะห์; ประวัติยังกรองใน memory เพราะตาราง ag-grid แบ่งหน้าฝั่ง client (ต้องเปลี่ยน UI เป็นแบ่งหน้าฝั่ง server ก่อน) |
