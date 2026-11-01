@@ -8,11 +8,14 @@ export function EmptyState({
   description,
   icon: Icon = Inbox,
   className,
+  children,
 }: {
   title: string;
   description?: string;
   icon?: LucideIcon;
   className?: string;
+  /** ปุ่มหรือลิงก์ให้ผู้ใช้ไปต่อ */
+  children?: React.ReactNode;
 }) {
   return (
     <div
@@ -27,6 +30,11 @@ export function EmptyState({
       <p className="text-foreground font-semibold">{title}</p>
       {description && (
         <p className="text-muted-foreground max-w-md text-sm">{description}</p>
+      )}
+      {children && (
+        <div className="mt-2 flex flex-wrap justify-center gap-2">
+          {children}
+        </div>
       )}
     </div>
   );
