@@ -48,3 +48,47 @@ export async function apiRequest<T extends object = object>(
     return failure<T>(fallbackError);
   }
 }
+
+/**
+ * ส่งไฟล์ (POST body = ไฟล์ตรง ๆ) พร้อมรายงานความคืบหน้า — fetch ยังรายงานการส่งไม่ได้ จึงใช้ XMLHttpRequest
+ * คืนผลแบบเดียวกับ apiRequest (ไม่ throw)
+ */
+export function uploadWithProgress<T extends object = object>(
+  url: string,
+  file: Blob,
+  {
+    fallbackError,
+    tooLargeError,
+    onProgress,
+  }: {
+    fallbackError: string;
+    tooLargeError?: string;
+    onProgress?: (fraction: number) => void;
+  },
+): Promise<ApiResult<T>> {
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+    xhr.setRequestHeader("Content-Type", "application/octet-stream");
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) onProgress?.(event.loaded / event.total);
+    };
+    xhr.onload = () => {
+      let result: ApiResult<T> = {};
+      try {
+        result = JSON.parse(xhr.responseText) as ApiResult<T>;
+      } catch {
+        // ผู้ให้บริการตอบเป็นหน้า HTML (เช่น 413 ของ Vercel)
+      }
+      if (xhr.status === 413 && !result.error && tooLargeError) {
+        return resolve(failure<T>(tooLargeError));
+      }
+      if (xhr.status < 200 || xhr.status >= 300) {
+        return resolve(failure<T>(result.error || fallbackError));
+      }
+      resolve(result);
+    };
+    xhr.onerror = () => resolve(failure<T>(fallbackError));
+    xhr.send(file);
+  });
+}

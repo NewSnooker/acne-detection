@@ -1,3 +1,6 @@
+import { mkdtemp, readdir, readFile, rm } from "fs/promises";
+import os from "os";
+import path from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // จัดการโมเดล AI ของผู้ดูแลระบบ (ขอบเขตข้อ 1.3.1.4) — จำลองฐานข้อมูล
@@ -13,7 +16,6 @@ const db = vi.hoisted(() => ({
     updateMany: vi.fn(),
   },
   analysis: { updateMany: vi.fn() },
-  aiModelChunk: { deleteMany: vi.fn() },
   // จำลอง transaction: แบบ array รอผลคำสั่งที่เรียกไปแล้ว, แบบ callback ส่ง db ตัวเดิมเป็น tx
   $transaction: vi.fn(),
 }));
@@ -24,14 +26,18 @@ import {
   deleteModelsLogic,
   editModelLogic,
   setActiveModelLogic,
+  uploadModelLogic,
 } from "./models";
 
+const ptFile = (name = "best.pt", bytes = 1024 * 1024) => ({
+  originalName: name,
+  body: new Blob([new Uint8Array(bytes)]).stream(),
+});
+
 beforeEach(() => {
-  [
-    ...Object.values(db.aiModel),
-    ...Object.values(db.analysis),
-    ...Object.values(db.aiModelChunk),
-  ].forEach((fn) => fn.mockReset());
+  [...Object.values(db.aiModel), ...Object.values(db.analysis)].forEach((fn) =>
+    fn.mockReset(),
+  );
   db.$transaction.mockReset();
   db.$transaction.mockImplementation((arg: unknown) =>
     typeof arg === "function" ? arg(db) : Promise.all(arg as unknown[]),
@@ -50,10 +56,143 @@ beforeEach(() => {
   );
 });
 
+describe("uploadModelLogic", () => {
+  it("ไม่รับไฟล์ที่ไม่ใช่ .pt", async () => {
+    await expect(
+      uploadModelLogic(ptFile("model.onnx"), "n", "v1", "", "a1"),
+    ).rejects.toThrow("กรุณาอัปโหลดไฟล์นามสกุล .pt เท่านั้น");
+    expect(db.aiModel.create).not.toHaveBeenCalled();
+  });
+
+  it("ไม่ส่งไฟล์มา ตอบ error เดียวกัน", async () => {
+    await expect(
+      uploadModelLogic(
+        { originalName: "best.pt", body: null },
+        "n",
+        "v1",
+        "",
+        "a1",
+      ),
+    ).rejects.toThrow(".pt");
+  });
+
+  it("ยังไม่มีโมเดลหลัก โมเดลที่อัปโหลดเป็นโมเดลหลักทันที", async () => {
+    db.aiModel.count.mockResolvedValue(0);
+
+    const model = await uploadModelLogic(ptFile(), "YOLO", "v1", "ทดสอบ", "a1");
+
+    expect(model.isActive).toBe(true);
+    expect(db.aiModel.count).toHaveBeenCalledWith({
+      where: { isActive: true },
+    });
+  });
+
+  it("มีโมเดลหลักอยู่แล้ว โมเดลใหม่อยู่ในสถานะไม่ได้ใช้", async () => {
+    db.aiModel.count.mockResolvedValue(1);
+
+    const model = await uploadModelLogic(ptFile(), "YOLO", "v2", "", "a1");
+
+    expect(model.isActive).toBe(false);
+  });
+
+  it("บันทึกชื่อ เวอร์ชัน ขนาด (MB) ผู้อัปโหลด และเนื้อไฟล์ลงฐานข้อมูล", async () => {
+    db.aiModel.count.mockResolvedValue(0);
+
+    await uploadModelLogic(
+      ptFile("best.pt", 1.5 * 1024 * 1024),
+      "YOLO",
+      "v1",
+      "รายละเอียด",
+      "a1",
+    );
+
+    const { data } = db.aiModel.create.mock.calls[0][0];
+    expect(data).toMatchObject({
+      name: "YOLO",
+      version: "v1",
+      description: "รายละเอียด",
+      sizeMb: 1.5,
+      uploadedBy: "a1",
+      provider: "mongodb",
+    });
+    expect(Buffer.isBuffer(data.modelData)).toBe(true);
+    expect(data.modelData.length).toBe(1.5 * 1024 * 1024);
+  });
+
+  it("ชื่อไฟล์ที่เก็บถูกทำให้ปลอดภัยและไม่ซ้ำกัน", async () => {
+    db.aiModel.count.mockResolvedValue(0);
+
+    await uploadModelLogic(ptFile("../โมเดล ใหม่.pt"), "n", "v", "", "a1");
+    await uploadModelLogic(ptFile("../โมเดล ใหม่.pt"), "n", "v", "", "a1");
+
+    const [first, second] = db.aiModel.create.mock.calls.map(
+      (c) => c[0].data.fileName as string,
+    );
+    expect(first).toMatch(/^[0-9a-f]{16}_[a-zA-Z0-9._-]+\.pt$/);
+    expect(first).not.toContain("/");
+    expect(first).not.toBe(second);
+  });
+});
+
+describe("uploadModelLogic: เก็บเป็นไฟล์ (MODEL_STORAGE_PATH)", () => {
+  let dir: string;
+  beforeEach(async () => {
+    dir = await mkdtemp(path.join(os.tmpdir(), "models-"));
+    vi.stubEnv("MODEL_STORAGE_PATH", dir);
+  });
+  afterEach(async () => {
+    vi.unstubAllEnvs();
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it("ไฟล์ใหญ่เกิน 16 MB เขียนลงโฟลเดอร์ได้ครบ ไม่เก็บใน MongoDB", async () => {
+    const bytes = 20 * 1024 * 1024;
+    await uploadModelLogic(ptFile("big.pt", bytes), "L", "v1", "", "a1");
+
+    const { data } = db.aiModel.create.mock.calls[0][0];
+    expect(data).toMatchObject({
+      provider: "file",
+      modelData: null,
+      sizeMb: 20,
+    });
+    expect(data.filePath).toBe(data.fileName);
+    const saved = await readFile(path.join(dir, data.filePath));
+    expect(saved.length).toBe(bytes);
+  });
+
+  it("บันทึกลงฐานข้อมูลไม่สำเร็จ ลบไฟล์ที่เขียนไปแล้วทิ้ง", async () => {
+    db.aiModel.create.mockRejectedValueOnce(new Error("db down"));
+
+    await expect(
+      uploadModelLogic(ptFile(), "n", "v", "", "a1"),
+    ).rejects.toThrow("db down");
+    expect(await readdir(dir)).toEqual([]);
+  });
+
+  it("ลบโมเดลแล้วไฟล์ในโฟลเดอร์หายไปด้วย", async () => {
+    await uploadModelLogic(ptFile(), "n", "v", "", "a1");
+    const { data } = db.aiModel.create.mock.calls[0][0];
+    db.aiModel.findMany.mockResolvedValue([
+      { id: "m1", provider: "file", filePath: data.filePath },
+    ]);
+
+    await deleteModelLogic("m1");
+
+    expect(await readdir(dir)).toEqual([]);
+  });
+});
+
+describe("uploadModelLogic: เก็บใน MongoDB (ไม่ได้ตั้ง MODEL_STORAGE_PATH)", () => {
+  it("ไฟล์เกิน 15 MB ตอบ 413 พร้อมบอกวิธีแก้ และไม่บันทึกอะไร", async () => {
+    await expect(
+      uploadModelLogic(ptFile("big.pt", 16 * 1024 * 1024), "n", "v", "", "a1"),
+    ).rejects.toMatchObject({ status: 413 });
+    expect(db.aiModel.create).not.toHaveBeenCalled();
+  });
+});
+
 describe("setActiveModelLogic", () => {
   it("ปิดโมเดลหลักตัวเดิมก่อน แล้วเปิดตัวที่เลือก (มีโมเดลหลักได้ครั้งละ 1 ตัว)", async () => {
-    db.aiModel.findUnique.mockResolvedValue({ uploadComplete: null });
-
     await setActiveModelLogic("m2");
 
     expect(db.aiModel.updateMany).toHaveBeenCalledWith({
@@ -71,21 +210,10 @@ describe("setActiveModelLogic", () => {
   });
 
   it("ไม่พบโมเดล ตอบ 404 และไม่ปิดโมเดลหลักตัวเดิม", async () => {
-    db.aiModel.findUnique.mockResolvedValue(null);
+    db.aiModel.count.mockResolvedValue(0);
 
     await expect(setActiveModelLogic("none")).rejects.toMatchObject({
       status: 404,
-    });
-    expect(db.aiModel.updateMany).not.toHaveBeenCalled();
-  });
-});
-
-describe("setActiveModelLogic: อัปโหลดไม่ครบ", () => {
-  it("โมเดลที่ยังอัปโหลดชิ้นไม่ครบ ตั้งเป็นโมเดลหลักไม่ได้ (409)", async () => {
-    db.aiModel.findUnique.mockResolvedValue({ uploadComplete: false });
-
-    await expect(setActiveModelLogic("m3")).rejects.toMatchObject({
-      status: 409,
     });
     expect(db.aiModel.updateMany).not.toHaveBeenCalled();
   });
@@ -115,10 +243,6 @@ describe("deleteModelLogic (ลบ 1 ตัว)", () => {
     });
     expect(db.aiModel.deleteMany).toHaveBeenCalledWith({
       where: { id: { in: ["m1"] }, isActive: false },
-    });
-    // ชิ้นไฟล์ของโมเดลแบบหั่นชิ้นถูกลบใน transaction เดียวกัน
-    expect(db.aiModelChunk.deleteMany).toHaveBeenCalledWith({
-      where: { modelId: { in: ["m1"] } },
     });
   });
 
