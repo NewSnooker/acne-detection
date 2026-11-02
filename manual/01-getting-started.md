@@ -85,6 +85,8 @@ acne_web  | [seed] ใส่โมเดลเริ่มต้นแล้ว 
 acne_web  |  ✓ Ready in ...
 ```
 
+**ใส่โมเดลอื่นตั้งแต่เปิดครั้งแรก (ไม่บังคับ):** วางไฟล์ `.pt` ไว้ที่ `apps/web/prisma/seed/extra/` ก่อนสั่ง `docker compose up` ถ้าจะให้เป็นโมเดลหลัก สร้างไฟล์ `.env` ข้าง `docker-compose.yml` ใส่ `SEED_ACTIVE_MODEL=<ชื่อไฟล์>` เช่น `SEED_ACTIVE_MODEL=acne14k_l_960.pt` (ระบบทำงานแล้วก็วางเพิ่มได้ สั่ง `docker compose restart web` ให้ seed ใส่ให้)
+
 เมื่อเห็นคำว่า `Ready` ให้เปิด <http://localhost:3000>
 
 ไม่ต้องสร้างไฟล์ `.env` ถ้าอยากเปลี่ยนค่า เช่น port หรือรหัสผ่านแอดมิน ดู [การตั้งค่า](04-configuration.md)

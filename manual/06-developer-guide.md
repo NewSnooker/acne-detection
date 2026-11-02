@@ -103,6 +103,8 @@ npm run dev
 
 `npm run db:seed` สร้างแอดมินเริ่มต้นและใส่โมเดลเริ่มต้นถ้ายังไม่มี ถ้าไม่รัน คนแรกที่สมัครผ่านหน้าเว็บจะได้เป็นผู้ดูแลระบบ
 
+**ใส่โมเดลเพิ่ม (เช่นโมเดล L) ตอน seed:** วางไฟล์ `.pt` ไว้ในโฟลเดอร์ `apps/web/prisma/seed/extra/` (ไม่ขึ้น git) แล้วตั้ง `SEED_ACTIVE_MODEL=<ชื่อไฟล์>` ถ้าจะให้เป็นโมเดลหลัก เช่น `SEED_ACTIVE_MODEL=acne14k_l_960.pt` — seed ใส่เฉพาะตัวที่ยังไม่มี เก็บตาม `MODEL_STORAGE` (`file` คัดลอกลงโฟลเดอร์โมเดล, `mongodb` ไม่เกิน 15 MB) ค่าประเมินกด **ดึงค่าจากไฟล์โมเดล** ในหน้าแก้ไขโมเดลภายหลัง
+
 คำสั่งด้านบนเป็นของ Windows บน macOS/Linux ใช้ `venv/bin/pip`, `venv/bin/python` และ `cp` แทน
 
 [↑ สารบัญ](#toc)
@@ -164,7 +166,7 @@ mongodb://localhost:27018/acne_dev?replicaSet=rs0&directConnection=true
 รายการว่าทดสอบอะไรบ้าง: [dev-docs/testing.md](../dev-docs/testing.md)
 | `npx prisma generate` | สร้าง Prisma Client ใหม่หลังแก้ `schema.prisma` |
 | `npx prisma db push` | ส่งโครงสร้างขึ้น MongoDB |
-| `npm run db:seed` | สร้างแอดมินและโมเดลเริ่มต้นถ้ายังไม่มี |
+| `npm run db:seed` | สร้างแอดมินและโมเดลเริ่มต้นถ้ายังไม่มี + โมเดลใน `prisma/seed/extra/` |
 
 [↑ สารบัญ](#toc)
 

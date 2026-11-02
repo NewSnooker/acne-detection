@@ -89,6 +89,9 @@ apps/images/*
 apps/ai/models/*.pt
 # ไฟล์โมเดลที่อัปโหลดตอนรัน npm run dev แบบ MODEL_STORAGE=file (Docker เก็บใน volume model_files แทน)
 apps/model-files/
+# โมเดลเพิ่มเติมสำหรับ npm run db:seed (ไฟล์ใหญ่ ไม่ขึ้น git)
+apps/web/prisma/seed/extra/*
+!apps/web/prisma/seed/extra/.gitkeep
 apps/ai/models/*.pth
 
 
