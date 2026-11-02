@@ -97,7 +97,7 @@ venv\Scripts\python.exe -m pytest   # ชุดทดสอบ (ติดตั�
 # Docker ทั้งระบบ (ไม่ต้องมี .env — แอดมินเริ่มต้น admin@acne.local / Admin1234)
 docker compose up --build
 # Docker สำหรับพัฒนา (เปิด port 8000 + hot reload ฝั่ง ai) — MongoDB ของ Docker อยู่ที่ localhost:27018
-# npm run dev ใช้ MongoDB ที่ติดตั้งในเครื่อง (localhost:27017, replica set) — ดู manual/06-developer-guide.md
+# npm run dev ใช้ MongoDB ของ Docker (docker compose up -d mongodb) database acne_dev — ดู manual/06-developer-guide.md
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 # ข้อมูลเริ่มต้น (apps/web) — สร้างแอดมินและใส่โมเดลเริ่มต้นถ้ายังไม่มี

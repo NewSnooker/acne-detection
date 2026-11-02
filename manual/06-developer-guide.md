@@ -80,7 +80,7 @@ copy .env.example .env
 
 | ตัวแปร | ใส่อะไร |
 | --- | --- |
-| `DATABASE_URL` | MongoDB ที่ติดตั้งในเครื่อง: `mongodb://localhost:27017/acne_dev?replicaSet=rs0&directConnection=true` (ตั้งไว้ใน `.env.example` แล้ว ต้องตั้ง replica set ก่อน ดู[ด้านล่าง](#local-mongodb)) |
+| `DATABASE_URL` | MongoDB ของ Docker database `acne_dev`: `mongodb://localhost:27018/acne_dev?replicaSet=rs0&directConnection=true` (ตั้งไว้ใน `.env.example` แล้ว เปิดด้วย `docker compose up -d mongodb` ดู[ด้านล่าง](#local-mongodb)) |
 | `AUTH_SECRET` | ข้อความสุ่มยาว ๆ |
 | `AI_SERVICE_API_KEY` | ต้องตรงกับใน `apps/ai/.env` (ไฟล์ตัวอย่างสองฝั่งตั้งไว้ตรงกันแล้ว) |
 | `STORAGE_PATH` | เว้นว่างไว้เพื่อใช้โฟลเดอร์ `apps/images` หรือใส่ path แบบเต็มของโฟลเดอร์ที่ต้องการ |
@@ -111,33 +111,23 @@ npm run dev
 
 <a id="local-mongodb"></a>
 
-## ตั้ง MongoDB ในเครื่องสำหรับ npm run dev (ทำครั้งเดียว)
+## ฐานข้อมูลสำหรับ npm run dev
 
-`npm run dev` ใช้ MongoDB ที่ติดตั้งในเครื่อง (port 27017) แยกจาก MongoDB ของ Docker (port 27018) ข้อมูลสองแบบจึงไม่ปนกัน
+`npm run dev` ใช้ **MongoDB ของ Docker** (เป็น replica set ที่ Prisma ต้องการอยู่แล้ว ไม่ต้องติดตั้ง MongoDB เพิ่ม) แต่ใช้ database **`acne_dev`** แยกจาก `acne_db` ที่ Docker web ใช้ ข้อมูลจึงไม่ปนกัน
 
-Prisma ต้องใช้ MongoDB แบบ **replica set** (ใช้ transaction ตอนบันทึกผลวิเคราะห์และตั้งโมเดลหลัก) MongoDB ที่ติดตั้งปกติเป็นแบบ standalone ต้องเปิดโหมดนี้ก่อน — ใช้เซิร์ฟเวอร์ตัวเดียวได้ ข้อมูลเดิมไม่หาย
+เปิดเฉพาะฐานข้อมูล (ไม่ต้องเปิด web/ai ใน Docker):
 
-1. เปิด Notepad แบบ **Run as administrator** แล้วเปิด `C:\Program Files\MongoDB\Server\<รุ่น เช่น 8.0>\bin\mongod.cfg` หาบรรทัด `#replication:` แล้วแก้เป็น
+```bash
+docker compose up -d mongodb
+```
 
-   ```yaml
-   replication:
-     replSetName: rs0
-   ```
+แล้วใช้ `DATABASE_URL` ใน `apps/web/.env` ตามที่ตั้งไว้ใน `.env.example`:
 
-2. รีสตาร์ท MongoDB ใน cmd แบบ **Run as administrator**
+```
+mongodb://localhost:27018/acne_dev?replicaSet=rs0&directConnection=true
+```
 
-   ```bash
-   net stop MongoDB
-   net start MongoDB
-   ```
-
-3. เปิด mongosh (ใน Compass กดแท็บ **>_ MONGOSH** ด้านล่าง หรือพิมพ์ `mongosh` ใน cmd) แล้วสั่ง
-
-   ```
-   rs.initiate()
-   ```
-
-   ขึ้น `ok: 1` คือเสร็จ (ถ้าขึ้นว่า already initialized แปลว่าตั้งไว้แล้ว)
+ถ้าติดตั้ง MongoDB ในเครื่องเองแทนได้ แต่ต้องตั้งเป็น replica set (`replication: replSetName: rs0` ใน `mongod.cfg` แล้ว `rs.initiate()`)
 
 <a id="database"></a>
 
@@ -147,8 +137,7 @@ Prisma ต้องใช้ MongoDB แบบ **replica set** (ใช้ transa
 
 | ระบบ | URL | database |
 | --- | --- | --- |
-| `npm run dev` (MongoDB ในเครื่อง) | `mongodb://localhost:27017/?directConnection=true` | `acne_dev` |
-| Docker | `mongodb://localhost:27018/?directConnection=true` | `acne_db` |
+| ทั้ง `npm run dev` และ Docker | `mongodb://localhost:27018/?directConnection=true` | `acne_dev` (npm run dev), `acne_db` (Docker web) |
 
 ถ้าเปลี่ยน `MONGO_PORT` ของ Docker ให้แก้เลข port ตาม
 

@@ -117,7 +117,7 @@ docker compose ps               # ดูว่าแต่ละส่วนท�
 
 **ความหมาย:** ระบบเก็บรูปหรือไฟล์โมเดลลงดิสก์ของเครื่องนี้ แต่ `DATABASE_URL` เป็นฐานข้อมูลบนคลาวด์ (MongoDB Atlas) ที่เว็บจริงใช้ด้วย ถ้าปล่อยให้ทำงาน เว็บจริงจะเห็นประวัติและโมเดลที่ไฟล์อยู่บนเครื่องนี้ แล้วเปิดไม่ได้
 
-**วิธีแก้:** ใช้ MongoDB ที่ติดตั้งในเครื่อง — ตั้ง `DATABASE_URL=mongodb://localhost:27017/acne_dev?replicaSet=rs0&directConnection=true` ใน `apps/web/.env` (ดู [คู่มือนักพัฒนา](06-developer-guide.md#local-mongodb)) ถ้าตั้งใจใช้ฐานข้อมูลร่วมจริง ๆ ตั้ง `ALLOW_SHARED_DB=true`
+**วิธีแก้:** ใช้ MongoDB ของ Docker — `docker compose up -d mongodb` แล้วตั้ง `DATABASE_URL=mongodb://localhost:27018/acne_dev?replicaSet=rs0&directConnection=true` ใน `apps/web/.env` (ดู [คู่มือนักพัฒนา](06-developer-guide.md#local-mongodb)) ถ้าตั้งใจใช้ฐานข้อมูลร่วมจริง ๆ ตั้ง `ALLOW_SHARED_DB=true`
 
 [↑ สารบัญ](#toc)
 
@@ -127,9 +127,9 @@ docker compose ps               # ดูว่าแต่ละส่วนท�
 
 ## รัน npm run dev แล้วขึ้น "requires your MongoDB server to be run as a replica set"
 
-**ความหมาย:** MongoDB ที่ติดตั้งในเครื่องยังรันแบบปกติ (standalone) แต่ Prisma ต้องใช้แบบ replica set ถึงจะบันทึกข้อมูลบางอย่างได้ (เช่น ผลวิเคราะห์ และการตั้งโมเดลหลัก)
+**ความหมาย:** `DATABASE_URL` ชี้ไปที่ MongoDB ที่ไม่ใช่ replica set (เช่น MongoDB ที่ติดตั้งในเครื่องแบบปกติ) แต่ Prisma ต้องใช้ replica set ถึงจะบันทึกข้อมูลบางอย่างได้ (เช่น ผลวิเคราะห์ และการตั้งโมเดลหลัก)
 
-**วิธีแก้:** ตั้ง MongoDB ในเครื่องเป็น replica set ครั้งเดียว ตาม [คู่มือนักพัฒนา](06-developer-guide.md#local-mongodb)
+**วิธีแก้:** ใช้ MongoDB ของ Docker ซึ่งเป็น replica set อยู่แล้ว ตาม [คู่มือนักพัฒนา](06-developer-guide.md#local-mongodb)
 
 [↑ สารบัญ](#toc)
 
