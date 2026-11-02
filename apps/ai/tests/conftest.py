@@ -66,10 +66,12 @@ def client(dirs, monkeypatch):
     from app.routers import predict as predict_router
 
     calls = []
+    augment_calls = []
 
     class FakeYoloService:
-        def predict(self, image_path, model_path, confidence):
+        def predict(self, image_path, model_path, confidence, augment=False):
             calls.append({"image": image_path, "model": model_path, "confidence": confidence})
+            augment_calls.append(augment)
             return {"detections": [], "counts": {"papule": 0}, "total": 0}
 
     monkeypatch.setattr(predict_router, "YoloService", FakeYoloService)
@@ -77,4 +79,5 @@ def client(dirs, monkeypatch):
 
     with TestClient(main.app) as test_client:
         test_client.calls = calls
+        test_client.augment_calls = augment_calls
         yield test_client

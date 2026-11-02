@@ -32,7 +32,7 @@ FastAPI 0.115.5 · Ultralytics 8.4.180 · PyTorch · Python 3.12 (Docker) / venv
    - URL: path ต้องเป็น `/api/models/<id 24 หลัก>` (และ host อยู่ใน `ALLOWED_MODEL_HOSTS` ถ้าตั้งไว้) → ดาวน์โหลดพร้อม header `X-API-Key` เก็บที่ `MODELS_PATH/<id>.pt` ถ้ามีไฟล์แล้วข้าม (cache hit)
    - path: ต้องเป็นไฟล์ `.pt` ที่อยู่ใต้ `MODELS_PATH` เท่านั้น
    - การดาวน์โหลดใช้ `urllib` timeout 120 วินาที โหลดลงไฟล์ `.tmp` แล้วค่อยย้าย
-4. `YoloService().predict(image_path, model_path, confidence)`
+4. `YoloService().predict(image_path, model_path, confidence, augment)` — `augment=True` = Test-Time Augmentation (Ultralytics ทายหลายขนาด/พลิกภาพแล้วรวมผล)
 5. `logging` บันทึกเวลาแต่ละขั้นและจำนวนกรอบ (`predict timing: ...`)
 
 ## yolo_service.py
@@ -76,3 +76,10 @@ venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 ```
 
 Hosted บน Render free tier จะ sleep หลัง 15 นาที → ใช้ cron ping `/health`
+
+## Test-Time Augmentation (TTA)
+
+เปิด/ปิดรายโมเดลในหน้าแอดมิน (`AiModel.useTta`) เว็บส่ง `augment` มากับ `/predict` ทุกครั้ง ไม่มี env ตั้งทั้งระบบ
+
+ผลวัด (โมเดล L, ชุด test): mAP@0.5 −0.26, F1 −0.79, ช้าลง ×2.1 → ปิดเป็นค่าเริ่มต้น ค่าประเมินที่ "ดึงจากไฟล์" เป็นค่าแบบไม่ใช้ TTA เสมอ
+รายละเอียด วิธีทำงานของ TTA และข้อความสำหรับเล่ม: [performance/tta.md](performance/tta.md) — สคริปต์วัด `apps/ai/scripts/eval_tta.py`

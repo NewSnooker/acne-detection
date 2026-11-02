@@ -66,7 +66,7 @@ export async function callFastApiForPrediction(
     imageUrl?: string | null;
     imageProvider: string;
   },
-  activeModelId: string,
+  activeModel: { id: string; useTta: boolean },
 ): Promise<AnalysisResult> {
   const { url: fastApiUrl, apiKey } = getAiServiceConfig();
   const confidence = confidenceThreshold();
@@ -87,10 +87,12 @@ export async function callFastApiForPrediction(
   }
 
   // ส่ง URL ไปให้ FastAPI ดาวน์โหลดโมเดล
-  const activeModelPath = modelDownloadUrl(activeModelId);
+  const activeModelPath = modelDownloadUrl(activeModel.id);
 
   apiFormData.append("model_url_or_path", activeModelPath);
   apiFormData.append("confidence", confidence.toString());
+  // Test-Time Augmentation ตั้งรายโมเดลในหน้าแอดมิน (AiModel.useTta)
+  apiFormData.append("augment", activeModel.useTta ? "true" : "false");
 
   const response = await fetch(`${fastApiUrl}/predict`, {
     method: "POST",

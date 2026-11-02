@@ -2,6 +2,12 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AnalysisResult } from "@/types/analyze";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ImagePreview } from "@/components/analyze/image-preview";
 import { AnalysisResultPanel } from "@/components/analyze/analysis-result";
 import { HistoryItem } from "./history-gallery";
@@ -120,6 +126,28 @@ export function HistoryModal({
                 >
                   {selectedItem.model.name} {selectedItem.model.version}
                 </Badge>
+                {selectedItem.usedTta && (
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge
+                          variant="outline"
+                          tabIndex={0}
+                          className="cursor-help border-violet-500/30 bg-violet-500/10 text-[10px] text-violet-600 dark:text-violet-400"
+                        >
+                          TTA
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-64">
+                        <p>
+                          วิเคราะห์แบบ Test-Time Augmentation:
+                          ระบบวิเคราะห์ภาพหลายขนาดและแบบพลิกภาพแล้วรวมผล
+                          ใช้เวลาประมาณ 2 เท่าของปกติ
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
               </>
             )}
           </div>

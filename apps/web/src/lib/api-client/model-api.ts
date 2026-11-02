@@ -38,6 +38,14 @@ export const ModelService = {
       fallbackError: "เกิดข้อผิดพลาดในการเปลี่ยนสถานะ",
     }),
 
+  /** เปิด/ปิด TTA ของโมเดล — PUT /api/models/[id]/tta */
+  setModelTta: (id: string, enabled: boolean) =>
+    apiRequest(`/api/models/${id}/tta`, {
+      method: "PUT",
+      body: { enabled },
+      fallbackError: "เกิดข้อผิดพลาดในการตั้งค่า TTA",
+    }),
+
   /** ลบโมเดล 1 ตัว (ลบโมเดลหลักไม่ได้) — DELETE /api/models/[id] */
   deleteModel: (id: string) =>
     apiRequest(`/api/models/${id}`, {

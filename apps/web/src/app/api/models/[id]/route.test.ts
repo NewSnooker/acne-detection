@@ -11,6 +11,7 @@ const m = vi.hoisted(() => ({
   deleteModelLogic: vi.fn(),
   setActiveModelLogic: vi.fn(),
   editModelLogic: vi.fn(),
+  setModelTtaLogic: vi.fn(),
 }));
 vi.mock("@/lib/auth", () => ({ auth: m.auth }));
 vi.mock("@/lib/prisma", () => ({
@@ -20,10 +21,12 @@ vi.mock("@/server/models", () => ({
   deleteModelLogic: m.deleteModelLogic,
   setActiveModelLogic: m.setActiveModelLogic,
   editModelLogic: m.editModelLogic,
+  setModelTtaLogic: m.setModelTtaLogic,
 }));
 
 import { HttpError } from "@/lib/http-error";
 import { POST as ACTIVATE } from "./activate/route";
+import { PUT as SET_TTA } from "./tta/route";
 import { DELETE, GET, PATCH } from "./route";
 
 const KEY = "test-ai-key";
@@ -263,5 +266,45 @@ describe("PATCH (แก้ไขข้อมูลโมเดล)", () => {
       version: "v2",
       mAP50: "80",
     });
+  });
+});
+
+describe("PUT /tta (เปิด/ปิด Test-Time Augmentation)", () => {
+  it("ผู้ใช้ทั่วไปเปลี่ยนไม่ได้ (403)", async () => {
+    m.auth.mockResolvedValue(USER);
+
+    const res = await SET_TTA(req({}, "PUT", { enabled: true }), ctx);
+
+    expect(res.status).toBe(403);
+    expect(m.setModelTtaLogic).not.toHaveBeenCalled();
+  });
+
+  it("enabled ไม่ใช่ true/false ตอบ 400", async () => {
+    m.auth.mockResolvedValue(ADMIN);
+
+    const res = await SET_TTA(req({}, "PUT", { enabled: "yes" }), ctx);
+
+    expect(res.status).toBe(400);
+    expect(m.setModelTtaLogic).not.toHaveBeenCalled();
+  });
+
+  it.each([true, false])("ผู้ดูแลระบบตั้ง enabled=%s ได้", async (enabled) => {
+    m.auth.mockResolvedValue(ADMIN);
+
+    const res = await SET_TTA(req({}, "PUT", { enabled }), ctx);
+
+    expect(res.status).toBe(200);
+    expect(m.setModelTtaLogic).toHaveBeenCalledWith("model1", enabled);
+  });
+
+  it("ไม่พบโมเดล ตอบ 404", async () => {
+    m.auth.mockResolvedValue(ADMIN);
+    m.setModelTtaLogic.mockRejectedValueOnce(
+      new HttpError(404, "ไม่พบข้อมูลโมเดล"),
+    );
+
+    const res = await SET_TTA(req({}, "PUT", { enabled: true }), ctx);
+
+    expect(res.status).toBe(404);
   });
 });

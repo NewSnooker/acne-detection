@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     // ใช้แค่ id — ห้ามดึง modelData (ไฟล์ .pt หลาย MB) มาทุกครั้งที่วิเคราะห์
     const activeModel = await prisma.aiModel.findFirst({
       where: { isActive: true },
-      select: { id: true },
+      select: { id: true, useTta: true },
     });
 
     if (!activeModel) {
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     let analysisRecord: { id: string };
     try {
       // 5. ส่งให้ AI วิเคราะห์
-      result = await callFastApiForPrediction(imageResult, activeModel.id);
+      result = await callFastApiForPrediction(imageResult, activeModel);
 
       // 6. ประเมินความรุนแรงของสิว
       severity = calculateSeverity(result.counts);
@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
           counts: result.counts as unknown as Prisma.InputJsonValue,
           total: result.total,
           severity: severity,
+          usedTta: activeModel.useTta,
         },
       });
     } catch (error) {
@@ -120,6 +121,7 @@ export async function POST(req: NextRequest) {
         ...result,
         id: analysisRecord.id,
         severity,
+        usedTta: activeModel.useTta,
         imageName: imageResult.originalImage,
         imageUrl: imageResult.imageUrl,
         imageProvider: imageResult.imageProvider,

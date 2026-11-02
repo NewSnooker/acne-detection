@@ -40,6 +40,10 @@ export const startUploadSchema = modelInfoSchema.extend({
 
 export const editModelSchema = modelInfoSchema.extend(metricShape);
 
+export const modelTtaSchema = z.object({
+  enabled: z.boolean({ message: "กรุณาระบุว่าจะเปิดหรือปิด TTA" }),
+});
+
 export const idListSchema = z.object({
   ids: z.array(z.string().min(1)).min(1, "กรุณาเลือกอย่างน้อย 1 รายการ"),
 });

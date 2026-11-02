@@ -160,6 +160,13 @@ export function parseModelMetrics(input: ModelMetricInput) {
   return result;
 }
 
+/** เปิด/ปิด Test-Time Augmentation ของโมเดล 1 ตัว */
+export async function setModelTtaLogic(id: string, enabled: boolean) {
+  const exists = await prisma.aiModel.count({ where: { id } });
+  if (!exists) throw new HttpError(404, "ไม่พบข้อมูลโมเดล");
+  await prisma.aiModel.update({ where: { id }, data: { useTta: enabled } });
+}
+
 export async function editModelLogic(
   id: string,
   data: {
