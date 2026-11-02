@@ -5,15 +5,11 @@
 // ทำซ้ำได้ ไม่สร้างข้อมูลซ้ำ:
 // 1) ถ้ายังไม่มีผู้ดูแลระบบ → สร้างบัญชีแอดมินเริ่มต้น
 // 2) ถ้ายังไม่มีโมเดล AI   → ใส่โมเดลเริ่มต้นจาก prisma/seed/acne-default.pt
-// 3) โมเดลเพิ่มเติมในโฟลเดอร์ prisma/seed/extra/*.pt (ไม่ขึ้น git — ไฟล์ใหญ่ เช่นโมเดล L)
-//    → ใส่ตัวที่ยังไม่มี เก็บตาม MODEL_STORAGE (file = คัดลอกลง MODEL_STORAGE_PATH, mongodb ≤ 15 MB)
-//    ตั้ง SEED_ACTIVE_MODEL=<ชื่อไฟล์> ให้ตัวนั้นเป็นโมเดลหลัก (เช่น acne14k_l_960.pt)
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import crypto from "node:crypto";
 
 const prisma = new PrismaClient();
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -23,14 +19,6 @@ const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || "Admin1234";
 const ADMIN_NAME = process.env.SEED_ADMIN_NAME || "Administrator";
 const MODEL_PATH =
   process.env.SEED_MODEL_PATH || path.join(here, "seed", "acne-default.pt");
-const EXTRA_DIR =
-  process.env.SEED_EXTRA_MODELS_DIR || path.join(here, "seed", "extra");
-const ACTIVE_MODEL = process.env.SEED_ACTIVE_MODEL?.trim();
-// ตรงกับ lib/storage/config.ts (MODEL_STORAGE, MONGODB_MODEL_LIMIT)
-const MODEL_STORAGE =
-  process.env.MODEL_STORAGE?.trim() ||
-  (process.env.MODEL_STORAGE_PATH?.trim() ? "file" : "mongodb");
-const MONGODB_MODEL_LIMIT = 15 * 1024 * 1024;
 
 async function seedAdmin() {
   const admin = await prisma.user.findFirst({ where: { role: "ADMIN" } });
@@ -99,98 +87,9 @@ async function seedModel(admin) {
   console.log(`[seed] ใส่โมเดลเริ่มต้นแล้ว (${sizeMb} MB)`);
 }
 
-/** ชื่อที่เก็บของโมเดลเพิ่มเติม — ขึ้นต้นด้วย seed_ ไว้เช็คว่าเคยใส่แล้วหรือยัง */
-function extraFileName(originalName) {
-  return `seed_${originalName.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-}
-
-async function seedExtraModels(admin) {
-  if (!fs.existsSync(EXTRA_DIR)) return;
-  const files = fs
-    .readdirSync(EXTRA_DIR)
-    .filter((name) => name.toLowerCase().endsWith(".pt"))
-    .sort();
-  if (files.length === 0) return;
-  if (!admin) {
-    console.warn("[seed] ไม่มีแอดมินสำหรับเป็นเจ้าของโมเดล ข้ามโมเดลเพิ่มเติม");
-    return;
-  }
-
-  for (const original of files) {
-    const fileName = extraFileName(original);
-    const existing = await prisma.aiModel.findFirst({
-      where: { fileName },
-      select: { id: true },
-    });
-    if (existing) {
-      console.log(`[seed] มีโมเดล ${original} อยู่แล้ว ข้าม`);
-      continue;
-    }
-
-    const source = path.join(EXTRA_DIR, original);
-    const size = fs.statSync(source).size;
-    const sizeMb = parseFloat((size / (1024 * 1024)).toFixed(2));
-    const stored = { filePath: "", modelData: null, provider: MODEL_STORAGE };
-
-    if (MODEL_STORAGE === "file") {
-      const dir = process.env.MODEL_STORAGE_PATH?.trim();
-      if (!dir) {
-        console.warn("[seed] MODEL_STORAGE=file แต่ไม่ได้ตั้ง MODEL_STORAGE_PATH ข้ามโมเดลเพิ่มเติม");
-        return;
-      }
-      fs.mkdirSync(path.resolve(dir), { recursive: true });
-      // คัดลอกแบบ stream ในตัว ไม่อ่านทั้งไฟล์เข้าหน่วยความจำ
-      fs.copyFileSync(source, path.resolve(dir, fileName));
-      stored.filePath = fileName;
-    } else if (MODEL_STORAGE === "mongodb") {
-      if (size > MONGODB_MODEL_LIMIT) {
-        console.warn(
-          `[seed] ${original} (${sizeMb} MB) ใหญ่เกิน 15 MB เก็บในฐานข้อมูลไม่ได้ ข้าม (ใช้ MODEL_STORAGE=file)`,
-        );
-        continue;
-      }
-      stored.modelData = fs.readFileSync(source); // Prisma Bytes ต้องเป็น Buffer
-    } else {
-      console.warn(`[seed] MODEL_STORAGE=${MODEL_STORAGE} ไม่รองรับใน seed ข้ามโมเดลเพิ่มเติม`);
-      return;
-    }
-
-    await prisma.aiModel.create({
-      data: {
-        name: original.replace(/\.pt$/i, ""),
-        version: "1.0",
-        description: "ใส่จาก prisma/seed/extra",
-        ...stored,
-        fileName,
-        sizeMb,
-        isActive: false,
-        uploadedBy: admin.id,
-      },
-    });
-    console.log(`[seed] ใส่โมเดล ${original} แล้ว (${sizeMb} MB, ${MODEL_STORAGE})`);
-  }
-
-  if (ACTIVE_MODEL) {
-    const target = await prisma.aiModel.findFirst({
-      where: { fileName: extraFileName(ACTIVE_MODEL) },
-      select: { id: true, isActive: true },
-    });
-    if (!target) {
-      console.warn(`[seed] ไม่พบโมเดล SEED_ACTIVE_MODEL=${ACTIVE_MODEL} ใน ${EXTRA_DIR}`);
-    } else if (!target.isActive) {
-      await prisma.$transaction([
-        prisma.aiModel.updateMany({ where: { isActive: true }, data: { isActive: false } }),
-        prisma.aiModel.update({ where: { id: target.id }, data: { isActive: true } }),
-      ]);
-      console.log(`[seed] ตั้ง ${ACTIVE_MODEL} เป็นโมเดลหลักแล้ว`);
-    }
-  }
-}
-
 async function main() {
   const admin = await seedAdmin();
   await seedModel(admin);
-  await seedExtraModels(admin);
 }
 
 main()

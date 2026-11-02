@@ -72,8 +72,6 @@ services:
     volumes:
       - image_files:/app/images              # รูปที่ผู้ใช้อัปโหลด (volume เดียวกับ ai)
       - model_files:/app/model-files         # ไฟล์โมเดล .pt (ไม่จำกัดขนาด)
-      # โมเดลเพิ่มเติมให้ seed ใส่ตอนเริ่ม (วางไฟล์ .pt ไว้ในโฟลเดอร์นี้บนเครื่อง)
-      - ./apps/web/prisma/seed/extra:/app/prisma/seed/extra:ro
     env_file:
       # ไม่บังคับ — มีไว้ใส่ค่าเสริม เช่น GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
       - path: ./apps/web/.env
@@ -96,8 +94,6 @@ services:
       ENV_NAME: docker
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@acne.local}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin1234}
-      # ชื่อไฟล์ใน apps/web/prisma/seed/extra ที่จะตั้งเป็นโมเดลหลัก (เว้นว่าง = ใช้โมเดลเริ่มต้น)
-      SEED_ACTIVE_MODEL: ${SEED_ACTIVE_MODEL:-}
     depends_on:
       mongodb:
         condition: service_healthy

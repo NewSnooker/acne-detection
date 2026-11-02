@@ -10,5 +10,3 @@ Dockerfile
 .dockerignore
 scratch.ts
 scratch_update.ts
-# โมเดลเพิ่มเติมไม่ build เข้า image — docker-compose mount เข้ามาตอนรันแทน
-prisma/seed/extra
