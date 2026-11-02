@@ -14,16 +14,16 @@ import {
   Loader2,
 } from "lucide-react";
 
-// ไฟล์ใหญ่กว่านี้บนเว็บที่ deploy (Vercel + MongoDB Atlas ฟรี) จะเตือนก่อนอัปโหลด
-const HOSTED_WARN_MB = 50;
+const MB = 1024 * 1024;
+const formatMb = (bytes: number) => `${Number((bytes / MB).toFixed(1))} MB`;
 
 export function UploadModelDialog({
   onSuccess,
-  isHosted = false,
+  maxUploadBytes = null,
 }: {
   onSuccess?: () => void;
-  /** เว็บที่ deploy บน Vercel (APP_ENV=hosted) */
-  isHosted?: boolean;
+  /** ขนาดสูงสุดที่ระบบนี้รับได้ (null = ไม่จำกัด) — มาจาก maxModelUploadBytes() ฝั่ง server */
+  maxUploadBytes?: number | null;
 }) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -54,6 +54,16 @@ export function UploadModelDialog({
     // ตรวจสอบนามสกุล
     if (!selected.name.endsWith(".pt")) {
       setError("กรุณาเลือกไฟล์ .pt (PyTorch Model) เท่านั้น");
+      setFile(null);
+      e.target.value = "";
+      return;
+    }
+
+    // เกินเพดานของระบบนี้ (เช่น Vercel) — บอกก่อนส่ง ไม่ต้องรอให้ส่งแล้วล้ม
+    if (maxUploadBytes !== null && selected.size > maxUploadBytes) {
+      setError(
+        `ไฟล์ขนาด ${formatMb(selected.size)} ใหญ่เกินที่ระบบนี้รับได้ (ไม่เกิน ${formatMb(maxUploadBytes)}) — อัปโหลดโมเดลใหญ่ผ่านระบบที่รันด้วย Docker หรือ Azure`,
+      );
       setFile(null);
       e.target.value = "";
       return;
@@ -160,26 +170,13 @@ export function UploadModelDialog({
                       คลิกเพื่อเลือกไฟล์ .pt
                     </p>
                     <p className="text-muted-foreground mt-1 text-xs">
-                      ไม่จำกัดขนาด (ระบบแบ่งส่งทีละ 4 MB)
+                      {maxUploadBytes === null
+                        ? "ไม่จำกัดขนาด"
+                        : `ไม่เกิน ${formatMb(maxUploadBytes)} บนระบบนี้`}
                     </p>
                   </div>
                 )}
               </div>
-
-              {isHosted && file && file.size > HOSTED_WARN_MB * 1024 * 1024 && (
-                <div
-                  role="note"
-                  className="flex gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100"
-                >
-                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>
-                    ไฟล์ใหญ่กว่า {HOSTED_WARN_MB} MB:
-                    เว็บนี้เก็บโมเดลในฐานข้อมูล (MongoDB Atlas ฟรีมีพื้นที่รวม
-                    512 MB) และบริการ AI แบบฟรีอาจรันโมเดลใหญ่ไม่ไหวหรือช้ามาก
-                    อัปโหลดได้ แต่ควรลบโมเดลเก่าที่ไม่ใช้
-                  </span>
-                </div>
-              )}
 
               {loading && (
                 <div className="space-y-1" role="status" aria-live="polite">

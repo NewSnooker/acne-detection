@@ -87,6 +87,8 @@ env/
 apps/images/*
 !apps/images/.gitkeep
 apps/ai/models/*.pt
+# ไฟล์โมเดลที่อัปโหลดตอนรัน npm run dev แบบ MODEL_STORAGE=file (Docker เก็บใน volume model_files แทน)
+apps/model-files/
 apps/ai/models/*.pth
 
 

@@ -2,6 +2,7 @@ import { getAdminModels } from "@/server/models";
 import { requireAdminPage } from "@/lib/auth/guards";
 import { UploadModelDialog } from "@/components/admin/upload-model-dialog";
 import { ModelTable } from "./model-table";
+import { maxModelUploadBytes } from "@/lib/storage/config";
 
 export const metadata = {
   title: "จัดการโมเดล AI (AI Model Management)",
@@ -23,7 +24,7 @@ export default async function AdminModelsPage() {
             อัปโหลด จัดการ และกำหนดโมเดล AI ที่ใช้สำหรับตรวจจับและจำแนกชนิดสิว
           </p>
         </div>
-        <UploadModelDialog isHosted={process.env.APP_ENV === "hosted"} />
+        <UploadModelDialog maxUploadBytes={maxModelUploadBytes()} />
       </div>
 
       <div className="min-h-[500px] flex-1">

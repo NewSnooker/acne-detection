@@ -84,7 +84,11 @@ copy .env.example .env
 | `AUTH_SECRET` | ข้อความสุ่มยาว ๆ |
 | `AI_SERVICE_API_KEY` | ต้องตรงกับใน `apps/ai/.env` (ไฟล์ตัวอย่างสองฝั่งตั้งไว้ตรงกันแล้ว) |
 | `STORAGE_PATH` | เว้นว่างไว้เพื่อใช้โฟลเดอร์ `apps/images` หรือใส่ path แบบเต็มของโฟลเดอร์ที่ต้องการ |
-| `MODEL_STORAGE_PATH` | ไม่ต้องตั้ง — ใช้อ่านโมเดลแบบเก่าที่เคยเก็บเป็นไฟล์เท่านั้น (โมเดลใหม่เก็บใน MongoDB แบบหั่นชิ้น) |
+| `IMAGE_STORAGE` | `local` (เก็บรูปลงโฟลเดอร์) |
+| `MODEL_STORAGE` | `mongodb` (เก็บไฟล์โมเดลในฐานข้อมูล ≤ 15 MB) หรือ `file` + `MODEL_STORAGE_PATH` (ไม่จำกัดขนาด) |
+| `ENV_NAME` | `dev` (ป้ายบนหัวหน้าแอดมิน) |
+
+**ห้ามใช้ `DATABASE_URL` ของเว็บจริง (Atlas)** ตอนรันในเครื่อง — รูปและไฟล์โมเดลจะอยู่ในเครื่องนี้ แต่เว็บจริงเห็นแค่ข้อมูลในฐานข้อมูล จึงเปิดไฟล์ไม่ได้ ระบบจะไม่ยอมเริ่มถ้าตั้งแบบนี้ ให้ใช้ MongoDB ของ Docker แทน: `docker compose up -d mongodb` แล้วตั้ง `DATABASE_URL=mongodb://localhost:27017/acne_db?replicaSet=rs0&directConnection=true` (รายละเอียด `dev-docs/environments.md`)
 
 จากนั้น:
 

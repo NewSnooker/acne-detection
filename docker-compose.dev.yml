@@ -5,6 +5,7 @@
 # เพิ่มจากไฟล์หลัก:
 # - เปิด port ของ AI (8000) ออกมาที่เครื่อง
 # - mount ซอร์สโค้ด AI เข้า container และเปิด hot reload
+# รูปยังอยู่ใน volume image_files ร่วมกับ web (ดูไฟล์ได้ด้วย: docker compose exec web ls /app/images)
 
 services:
   ai:
@@ -12,7 +13,6 @@ services:
       - "8000:8000"
     volumes:
       - ./apps/ai:/app
-      - ./apps/images:/app/images
       - ./apps/ai/models:/app/models
     environment:
       DEBUG: "true"

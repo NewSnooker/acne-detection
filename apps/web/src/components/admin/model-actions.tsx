@@ -63,7 +63,7 @@ export function ModelActions({ model }: { model: AiModel }) {
 
   return (
     <div className="flex items-center justify-end gap-1">
-      {!isActive && model.uploadComplete !== false && (
+      {!isActive && (
         <AlertDialog open={activeOpen} onOpenChange={setActiveOpen}>
           <TooltipProvider delayDuration={0}>
             <Tooltip>

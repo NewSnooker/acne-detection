@@ -11,7 +11,8 @@
     "test": "vitest run",
     "db:seed": "node prisma/seed.mjs",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:cleanup": "node prisma/cleanup-cross-env.mjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",

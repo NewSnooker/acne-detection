@@ -146,11 +146,36 @@ acne_web  |  ✓ Ready in ...
 
 | ข้อมูล | ที่เก็บ | หายเมื่อ |
 | --- | --- | --- |
-| ผู้ใช้ ประวัติการวิเคราะห์ โมเดล AI | Docker volume `mongodb_data` | สั่ง `docker compose down -v` |
-| รูปที่ผู้ใช้อัปโหลด | โฟลเดอร์ `apps/images/` | ลบไฟล์ในโฟลเดอร์นี้ |
-| ไฟล์โมเดลที่ AI โหลดมาพักไว้ | โฟลเดอร์ `apps/ai/models/` | ลบได้ ระบบจะโหลดใหม่เอง |
+| ผู้ใช้ ประวัติการวิเคราะห์ ข้อมูลโมเดล | Docker volume `mongodb_data` | สั่ง `docker compose down -v` |
+| รูปที่ผู้ใช้อัปโหลด | Docker volume `image_files` | สั่ง `docker compose down -v` |
+| ไฟล์โมเดล `.pt` ที่แอดมินอัปโหลด (ไม่จำกัดขนาด) | Docker volume `model_files` | สั่ง `docker compose down -v` |
+| ไฟล์โมเดลที่ AI โหลดมาพักไว้ | ในตัว container `ai` | ลบได้ ระบบจะโหลดใหม่เอง |
 
-ถ้าลบรูปใน `apps/images/` เอง ประวัติจะยังอยู่แต่รูปจะไม่แสดง ดู [แก้ปัญหา](05-troubleshooting.md#image-missing)
+ข้อมูลทั้งหมดอยู่ใน Docker volume ของเครื่องนี้ ไม่ต้องใช้อินเทอร์เน็ตหรือบัญชีคลาวด์ ปิดเครื่องหรือสั่ง `docker compose down` (ไม่ใส่ `-v`) ข้อมูลยังอยู่ครบ
+
+**สำรองข้อมูล** (ปิดระบบก่อนด้วย `docker compose stop`)
+
+1. ดูชื่อ volume จริง — ขึ้นต้นด้วยชื่อโฟลเดอร์โปรเจค เช่น `acne-detection_image_files`
+
+   ```bash
+   docker volume ls
+   ```
+
+2. สำรองทีละ volume (แทน `<ชื่อ volume>` ด้วยชื่อจากข้อ 1) ได้ไฟล์ `.tgz` ในโฟลเดอร์ปัจจุบัน ทำครบสามตัว: `..._mongodb_data`, `..._image_files`, `..._model_files`
+
+   ```bash
+   docker run --rm -v <ชื่อ volume>:/v -v "$PWD":/backup alpine tar czf /backup/<ชื่อ volume>.tgz -C /v .
+   ```
+
+3. กู้คืนใช้คำสั่งเดียวกันแต่เปลี่ยน `tar czf /backup/<ชื่อ volume>.tgz -C /v .` เป็น `tar xzf /backup/<ชื่อ volume>.tgz -C /v`
+
+**เคยใช้รุ่นก่อนที่เก็บรูปในโฟลเดอร์ `apps/images/`** — รุ่นนี้เก็บรูปใน volume แทน รูปเก่าจะไม่แสดงจนกว่าจะคัดลอกเข้า volume (ทำครั้งเดียว ขณะระบบเปิดอยู่):
+
+```bash
+docker compose cp apps/images/. web:/app/images
+```
+
+**ล้างข้อมูลทั้งหมดแล้วเริ่มใหม่:** `docker compose down -v` แล้ว `docker compose up` ระบบจะสร้างแอดมินและโมเดลเริ่มต้นให้ใหม่
 
 [↑ สารบัญ](#toc)
 

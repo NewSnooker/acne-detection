@@ -16,12 +16,12 @@ Browser ──► Next.js 16 (apps/web)  ──X-API-Key──►  FastAPI + YOL
               ▼                                        │  โหลดโมเดลจาก GET /api/models/[id] (cache ลงดิสก์)
            MongoDB (User, AiModel+ไฟล์ .pt, Image, Analysis)
               ▲
-        รูปภาพ: apps/images/ (dev/docker)  |  Vercel Blob (APP_ENV=hosted)
+        รูป/โมเดล: Docker volume (image_files, model_files) | Vercel Blob + modelData | Azure Blob (กำลังทำ)
 ```
 
 - Next.js เป็นทั้ง Frontend และ Backend หลัก (auth, CRUD, คำนวณ severity, บันทึกผล)
 - FastAPI ทำ inference อย่างเดียว ไม่แตะฐานข้อมูล
-- ไฟล์โมเดล `.pt` หั่นเป็นชิ้นละ 4 MB เก็บใน MongoDB (`AiModelChunk`) ไม่จำกัดขนาด ทุก environment ที่ใช้ฐานข้อมูลเดียวกันเห็นไฟล์เดียวกัน — ai ถาม `GET /api/models/[id]/manifest` แล้วโหลดทีละชิ้นมาต่อกัน โฟลเดอร์ `apps/ai/models/` เป็นแค่ cache (โมเดลเก่าแบบ `modelData` / โฟลเดอร์ `MODEL_STORAGE_PATH` ยังอ่านได้)
+- **แต่ละ environment (Docker / Vercel+Render / Azure) มีฐานข้อมูลและที่เก็บไฟล์ของตัวเอง ห้ามใช้ปนกัน** — เลือกที่เก็บด้วย `IMAGE_STORAGE` / `MODEL_STORAGE` ใน `lib/storage/config.ts` ที่เดียว (ดู `dev-docs/environments.md`) ai โหลดโมเดลผ่าน `GET /api/models/[id]` เสมอ โฟลเดอร์ `apps/ai/models/` เป็นแค่ cache
 
 ## โครงสร้างโฟลเดอร์
 
@@ -44,7 +44,7 @@ acne-ai-v1/
 │   │       ├── app/api/              ← Route Handlers (backend)
 │   │       ├── app/actions/          ← Server Actions (เฉพาะ login)
 │   │       ├── server/               ← business logic ฝั่ง server (Prisma, import "server-only") แยกไฟล์ตาม feature
-│   │       ├── lib/storage/          ← image-provider (local/Vercel Blob), model-provider (MongoDB)
+│   │       ├── lib/storage/          ← config.ts (เลือกที่เก็บจาก env), image-provider, model-provider
 │   │       ├── lib/auth*.ts          ← Auth.js config
 │   │       ├── lib/api-client/       ← fetch wrapper ฝั่ง client (เรียก /api/*)
 │   │       ├── components/           ← admin, analyze, auth, history, layout, statistics, ui
@@ -63,7 +63,8 @@ acne-ai-v1/
 
 | ไฟล์ | อ่านเมื่อ |
 |---|---|
-| `dev-docs/architecture.md` | ต้องเข้าใจ flow วิเคราะห์สิว, environment 3 แบบ, การเก็บรูป/โมเดล |
+| `dev-docs/environments.md` | **แก้เรื่อง deploy / ที่เก็บรูปและโมเดล / env** — ระบบแต่ละชุด, ตัวแปร, การกันพลาด |
+| `dev-docs/architecture.md` | ต้องเข้าใจ flow วิเคราะห์สิว, การเก็บรูป/โมเดล |
 | `dev-docs/web-app.md` | แก้โค้ด Next.js — route, layer, component, auth |
 | `dev-docs/api-reference.md` | แก้/เพิ่ม endpoint ทั้งฝั่ง Next.js และ FastAPI |
 | `dev-docs/data-model.md` | แก้ Prisma schema หรือ query |
@@ -100,6 +101,8 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 # ข้อมูลเริ่มต้น (apps/web) — สร้างแอดมินและใส่โมเดลเริ่มต้นถ้ายังไม่มี
 npm run db:seed
+# ล้างข้อมูลที่ปนข้าม environment ใน Atlas (ดูรายการก่อน, ลบจริงต้อง --apply)
+npm run db:cleanup
 ```
 
 CI (`.github/workflows/ci.yml`) รันทุก push เข้า `main` และทุก PR: เว็บ = format:check + lint + typecheck + test, AI = pytest (ไม่ติดตั้ง torch)
@@ -118,6 +121,7 @@ CI (`.github/workflows/ci.yml`) รันทุก push เข้า `main` แ�
 10. UI และข้อความ error เป็นภาษาไทย — error ที่ผู้ใช้ควรเห็นให้โยน `HttpError(status, ข้อความ)` (`lib/http-error.ts`) และตรวจ body ด้วย zod ผ่าน `parseBody`
 11. ห้ามฝัง key หรือ secret ในโค้ด — ค่าเริ่มต้นสำหรับ Docker อยู่ใน `docker-compose.yml` ที่เดียว และ `AI_SERVICE_API_KEY` ของ web กับ ai ต้องเป็นค่าเดียวกัน
 12. ห้ามใช้ `any` (lint เป็น error) — ใช้ type จาก `@prisma/client` หรือ `unknown` แล้ว narrow
+13. ห้ามใช้ฐานข้อมูลของ environment อื่น (เช่นรันในเครื่องแล้วต่อ Atlas ของเว็บจริง) — ระบบจะไม่ยอมเริ่มถ้าเก็บไฟล์ลงดิสก์แต่ต่อ Atlas
 
 ## ศัพท์ในโปรเจค
 
@@ -127,4 +131,5 @@ CI (`.github/workflows/ci.yml`) รันทุก push เข้า `main` แ�
 | อักเสบตื้น (shallow) | papule + pustule |
 | อักเสบลึก (deep) | nodule + cyst |
 | Active model | `AiModel.isActive = true` — ตัวที่ใช้วิเคราะห์ มีได้ตัวเดียว |
-| `APP_ENV=hosted` | โหมด Vercel + Render (รูปขึ้น Vercel Blob) ค่าอื่น = เก็บลงดิสก์ |
+| `APP_ENV=hosted` | ค่าเดิมของ Vercel — ไม่ตั้ง `IMAGE_STORAGE` จะได้ `vercel-blob` (ดู `dev-docs/environments.md`) |
+| environment | ระบบหนึ่งชุด (Docker / Vercel+Render / Azure) = เว็บ + AI + ฐานข้อมูล + ที่เก็บไฟล์ของตัวเอง |

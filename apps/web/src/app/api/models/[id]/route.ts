@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminApi, requireAiKeyOrAdminApi } from "@/lib/auth/guards";
-import { readModelChunk } from "@/server/model-chunks";
 import {
   errorResponse,
   HttpError,
@@ -24,14 +23,7 @@ export async function GET(
     const { id } = await params;
     const model = await prisma.aiModel.findUnique({
       where: { id },
-      select: {
-        fileName: true,
-        provider: true,
-        filePath: true,
-        sizeBytes: true,
-        chunkCount: true,
-        uploadComplete: true,
-      },
+      select: { fileName: true, provider: true, filePath: true },
     });
     if (!model) {
       throw new HttpError(404, "ไม่พบข้อมูลโมเดล");
@@ -41,32 +33,6 @@ export async function GET(
       "Content-Disposition": `attachment; filename="${model.fileName}"`,
       "Content-Type": "application/octet-stream",
     };
-
-    // หั่นชิ้นใน MongoDB: ส่งต่อกันทีละชิ้นแบบ stream (บริการ AI ใช้ /manifest + /chunks แทน
-    // เพราะบน Vercel ส่งคำตอบได้ไม่เกิน 4.5 MB — ทางนี้ไว้ให้แอดมินดาวน์โหลดจาก Docker/เครื่องตัวเอง)
-    if (model.provider === "chunks") {
-      if (model.uploadComplete === false || !model.chunkCount) {
-        throw new HttpError(409, "โมเดลนี้ยังอัปโหลดไม่ครบ");
-      }
-      const chunkCount = model.chunkCount;
-      let next = 0;
-      const stream = new ReadableStream<Uint8Array>({
-        async pull(controller) {
-          if (next >= chunkCount) return controller.close();
-          const data = await readModelChunk(id, next++);
-          if (!data) return controller.error(new Error("Missing model chunk"));
-          controller.enqueue(new Uint8Array(data));
-        },
-      });
-      return new NextResponse(stream, {
-        headers: {
-          ...headers,
-          ...(model.sizeBytes && {
-            "Content-Length": model.sizeBytes.toString(),
-          }),
-        },
-      });
-    }
 
     // เก็บเป็นไฟล์: ส่งแบบ stream ไม่โหลดทั้งไฟล์เข้าหน่วยความจำ
     if (model.provider === "file") {

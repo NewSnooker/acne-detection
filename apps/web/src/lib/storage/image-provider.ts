@@ -1,6 +1,7 @@
 import { put, del } from "@vercel/blob";
 import fs from "fs";
 import path from "path";
+import { imageStorage } from "@/lib/storage/config";
 
 export type ImageUploadResult = {
   originalImage: string; // fileName (local) or blob pathname (vercel-blob)
@@ -29,7 +30,6 @@ export async function uploadImage(
   file: File,
   kind: "jpeg" | "png",
 ): Promise<ImageUploadResult> {
-  const isHosted = process.env.APP_ENV === "hosted";
   const buffer = Buffer.from(await file.arrayBuffer());
   const crypto = await import("crypto");
   const uuid = crypto.randomUUID();
@@ -37,8 +37,8 @@ export async function uploadImage(
   const extension = kind === "png" ? "png" : "jpg";
   const fileName = `acne-ai/${uuid}.${extension}`;
 
-  if (isHosted) {
-    // ─── Hosted: อัปโหลดขึ้น Vercel Blob (Internal Network → เร็วมาก)
+  if (imageStorage() === "vercel-blob") {
+    // ─── Vercel Blob (Internal Network → เร็วมาก)
     // put() จะ Return URL กลับมาทันที ไม่ต้องทำ Background Job
     const blob = await put(fileName, buffer, {
       access: "public",
