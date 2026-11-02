@@ -20,7 +20,7 @@ services:
     ports:
       # เปิดให้เฉพาะเครื่องนี้เข้าได้ (เช่น MongoDB Compass) เครื่องอื่นในเครือข่ายเข้าไม่ได้
       # ต่อด้วย: mongodb://localhost:27018/acne_db?directConnection=true
-      # ใช้ 27018 บนเครื่อง ไม่ให้ชนกับ MongoDB ที่ติดตั้งในเครื่อง (27017 ใช้กับ npm run dev)
+      # ใช้ 27018 บนเครื่อง ไม่ให้ชนกับ MongoDB ที่อาจติดตั้งในเครื่อง (27017) — npm run dev ก็ต่อที่นี่ (database acne_dev)
       # ใน container ยังเป็น 27017 — เปลี่ยน port บนเครื่องได้ด้วย MONGO_PORT ในไฟล์ .env
       - "127.0.0.1:${MONGO_PORT:-27018}:27017"
     volumes:
