@@ -225,12 +225,6 @@ export function AnalysisResultPanel({
               </motion.div>
             </div>
 
-            {result.usedTta && (
-              <p className="text-muted-foreground -mt-3 text-xs">
-                วิเคราะห์แบบ TTA (Test-Time Augmentation)
-              </p>
-            )}
-
             <div>
               <h3 className="mb-3 border-b pb-2 font-semibold">
                 สรุปตามประเภทสิว
