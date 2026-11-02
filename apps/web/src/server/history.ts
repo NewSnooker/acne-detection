@@ -150,6 +150,7 @@ export async function getHistory({
     counts: readCounts(item.counts),
     total: item.total,
     severity: item.severity,
+    usedTta: item.usedTta,
     createdAt: item.createdAt,
     model: item.model,
     ...(isAllUsers && { user: item.user }),

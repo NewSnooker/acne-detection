@@ -21,7 +21,7 @@ def predict(
     image_url_or_path: str = Form(..., description="URL หรือ Absolute path ของรูป"),
     model_url_or_path: str = Form(..., description="URL หรือ Absolute path ของไฟล์ .pt"),
     confidence: float | None = Form(None, description="ไม่ส่ง = ใช้ AI_CONFIDENCE_THRESHOLD"),
-    augment: bool | None = Form(None, description="Test-Time Augmentation — ไม่ส่ง = ใช้ AI_USE_TTA"),
+    augment: bool = Form(False, description="Test-Time Augmentation — เว็บส่งตามค่า useTta ของโมเดล"),
     _: str = Security(verify_api_key),
 ):
     """รับ path หรือ URL รูปและโมเดล → รัน YOLO → return detections JSON"""
@@ -41,13 +41,12 @@ def predict(
 
         t2 = time.time()
         threshold = settings.AI_CONFIDENCE_THRESHOLD if confidence is None else confidence
-        use_tta = settings.AI_USE_TTA if augment is None else augment
-        result = YoloService().predict(local_image_path, local_model_path, threshold, augment=use_tta)
+        result = YoloService().predict(local_image_path, local_model_path, threshold, augment=augment)
         t_infer = time.time() - t2
 
         logger.info(
             "predict timing: image %.2fs | model %.2fs | inference %.2fs | total %.2fs | %d detections | tta=%s",
-            t_img, t_model, t_infer, time.time() - t0, result["total"], use_tta,
+            t_img, t_model, t_infer, time.time() - t0, result["total"], augment,
         )
         return result
     finally:

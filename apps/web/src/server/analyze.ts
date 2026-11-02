@@ -51,11 +51,6 @@ export function confidenceThreshold() {
   return value > 0 && value < 1 ? value : DEFAULT_CONFIDENCE_THRESHOLD;
 }
 
-/** Test-Time Augmentation (env AI_USE_TTA=true) — เจอสิวมากขึ้น แต่วิเคราะห์ช้าลง 2–3 เท่า */
-export function ttaEnabled() {
-  return process.env.AI_USE_TTA?.trim().toLowerCase() === "true";
-}
-
 /** URL ที่ FastAPI ใช้ดาวน์โหลดไฟล์โมเดล (GET /api/models/[id]) */
 export function modelDownloadUrl(modelId: string) {
   const appUrl =
@@ -71,7 +66,7 @@ export async function callFastApiForPrediction(
     imageUrl?: string | null;
     imageProvider: string;
   },
-  activeModelId: string,
+  activeModel: { id: string; useTta: boolean },
 ): Promise<AnalysisResult> {
   const { url: fastApiUrl, apiKey } = getAiServiceConfig();
   const confidence = confidenceThreshold();
@@ -92,11 +87,12 @@ export async function callFastApiForPrediction(
   }
 
   // ส่ง URL ไปให้ FastAPI ดาวน์โหลดโมเดล
-  const activeModelPath = modelDownloadUrl(activeModelId);
+  const activeModelPath = modelDownloadUrl(activeModel.id);
 
   apiFormData.append("model_url_or_path", activeModelPath);
   apiFormData.append("confidence", confidence.toString());
-  apiFormData.append("augment", ttaEnabled() ? "true" : "false");
+  // Test-Time Augmentation ตั้งรายโมเดลในหน้าแอดมิน (AiModel.useTta)
+  apiFormData.append("augment", activeModel.useTta ? "true" : "false");
 
   const response = await fetch(`${fastApiUrl}/predict`, {
     method: "POST",

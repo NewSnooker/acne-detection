@@ -147,19 +147,24 @@ export function ModelTable({ models }: ModelTableProps) {
     props: CustomCellRendererProps<ModelWithCount>,
   ) => {
     const isActive = props.value;
-    return isActive ? (
-      <div className="flex h-full items-center">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-          <CheckCircle2 className="h-3.5 w-3.5" />
-          ใช้งาน
-        </span>
-      </div>
-    ) : (
-      <div className="flex h-full items-center">
-        <span className="bg-muted text-muted-foreground inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
-          <Circle className="h-3.5 w-3.5" />
-          ไม่ใช้งาน
-        </span>
+    return (
+      <div className="flex h-full flex-wrap items-center gap-1.5">
+        {isActive ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            ใช้งาน
+          </span>
+        ) : (
+          <span className="bg-muted text-muted-foreground inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
+            <Circle className="h-3.5 w-3.5" />
+            ไม่ใช้งาน
+          </span>
+        )}
+        {props.data?.useTta && (
+          <span className="inline-flex items-center rounded-full bg-violet-500/10 px-2 py-1 text-xs font-medium text-violet-600 dark:text-violet-400">
+            TTA
+          </span>
+        )}
       </div>
     );
   };
@@ -222,7 +227,7 @@ export function ModelTable({ models }: ModelTableProps) {
         cellRenderer: StatusCellRenderer,
         filter: "agTextColumnFilter",
         filterValueGetter: (params) =>
-          params.data?.isActive ? "ใช้งานอยู่" : "ไม่ได้ใช้",
+          `${params.data?.isActive ? "ใช้งานอยู่" : "ไม่ได้ใช้"}${params.data?.useTta ? " TTA" : ""}`,
       },
       {
         colId: "metrics",

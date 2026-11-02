@@ -29,6 +29,7 @@ VerificationToken                (Auth.js)
 | fileName | String | `<hex>_<ชื่อไฟล์>` |
 | sizeMb | Float | |
 | isActive | Boolean | ควรมี true ได้ตัวเดียว (บังคับด้วยโค้ด ไม่ใช่ DB) |
+| useTta | Boolean | default false — วิเคราะห์แบบ Test-Time Augmentation (แอดมินเปิด/ปิดรายโมเดล) |
 | uploadedBy | ObjectId → User | |
 
 ค่าประเมินโมเดล (ข้อ 1.3.3.3): `mAP50`, `precision`, `recall`, `f1Score`, `accuracy` — `Float?` เก็บเป็นร้อยละ 0–100 แอดมินกรอกในหน้าแก้ไขโมเดล (`parseModelMetrics` ตรวจช่วงค่า) ไม่ได้อ่านจากไฟล์ `.pt`
@@ -46,6 +47,7 @@ VerificationToken                (Auth.js)
 | counts | Json | `{blackhead, whitehead, papule, pustule, nodule, cyst}` |
 | total | Int | |
 | severity | enum Severity | MILD / MODERATE / SEVERE |
+| usedTta | Boolean | default false — ผลครั้งนี้ใช้ TTA หรือไม่ (คัดลอกจาก `AiModel.useTta` ตอนวิเคราะห์) |
 | createdAt | DateTime | |
 
 ## ลำดับการลบ (สำคัญ)

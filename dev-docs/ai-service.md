@@ -32,7 +32,7 @@ FastAPI 0.115.5 · Ultralytics 8.4.180 · PyTorch · Python 3.12 (Docker) / venv
    - URL: path ต้องเป็น `/api/models/<id 24 หลัก>` (และ host อยู่ใน `ALLOWED_MODEL_HOSTS` ถ้าตั้งไว้) → ดาวน์โหลดพร้อม header `X-API-Key` เก็บที่ `MODELS_PATH/<id>.pt` ถ้ามีไฟล์แล้วข้าม (cache hit)
    - path: ต้องเป็นไฟล์ `.pt` ที่อยู่ใต้ `MODELS_PATH` เท่านั้น
    - การดาวน์โหลดใช้ `urllib` timeout 120 วินาที โหลดลงไฟล์ `.tmp` แล้วค่อยย้าย
-4. `YoloService().predict(image_path, model_path, confidence)`
+4. `YoloService().predict(image_path, model_path, confidence, augment)` — `augment=True` = Test-Time Augmentation (Ultralytics ทายหลายขนาด/พลิกภาพแล้วรวมผล)
 5. `logging` บันทึกเวลาแต่ละขั้นและจำนวนกรอบ (`predict timing: ...`)
 
 ## yolo_service.py
@@ -76,3 +76,17 @@ venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 ```
 
 Hosted บน Render free tier จะ sleep หลัง 15 นาที → ใช้ cron ping `/health`
+
+## Test-Time Augmentation (TTA)
+
+เปิด/ปิดรายโมเดลในหน้าแอดมิน (`AiModel.useTta`) เว็บส่ง `augment` มากับ `/predict` ทุกครั้ง ไม่มี env ตั้งทั้งระบบ
+
+ผลวัดโมเดล L (`acne14k_l_960`) บนชุด valid 2,895 รูป, imgsz 960, GPU T4 (Kaggle, ultralytics 8.4.198):
+
+| | mAP@0.5 | mAP@0.5:0.95 | Precision | Recall | F1 | เวลา/รูป |
+|---|---|---|---|---|---|---|
+| ปกติ | 60.4 | 30.9 | 69.8 | 56.1 | 62.2 | 81 ms |
+| TTA | 60.8 | 31.2 | 70.2 | 55.9 | 62.2 | 187 ms |
+
+แม่นขึ้นเล็กน้อย (mAP@0.5 +0.4) แต่ช้าลงประมาณ 2.3 เท่า จึงปิดเป็นค่าเริ่มต้น ค่าประเมินที่ "ดึงจากไฟล์" เป็นค่าแบบไม่ใช้ TTA เสมอ
+

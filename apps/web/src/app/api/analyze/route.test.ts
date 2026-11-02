@@ -64,7 +64,7 @@ beforeEach(() => {
   // ค่าเริ่มต้น: ผู้ใช้เข้าสู่ระบบแล้ว มีโมเดลหลัก ทุกอย่างพร้อม
   m.auth.mockResolvedValue({ user: { id: "u1", role: "USER" } });
   m.userFindUnique.mockResolvedValue({ id: "u1" });
-  m.modelFindFirst.mockResolvedValue({ id: "model1" });
+  m.modelFindFirst.mockResolvedValue({ id: "model1", useTta: false });
   m.uploadImage.mockResolvedValue({
     originalImage: "abc.jpg",
     imageUrl: null,
@@ -155,11 +155,11 @@ describe("POST /api/analyze", () => {
     // ใช้โมเดลหลักตัวที่เปิดใช้งานอยู่
     expect(m.modelFindFirst).toHaveBeenCalledWith({
       where: { isActive: true },
-      select: { id: true },
+      select: { id: true, useTta: true },
     });
     expect(m.callFastApiForPrediction).toHaveBeenCalledWith(
       expect.objectContaining({ originalImage: "abc.jpg" }),
-      "model1",
+      { id: "model1", useTta: false },
     );
     // บันทึกผลผูกกับผู้ใช้ โมเดล และรูป
     expect(m.analysisCreate).toHaveBeenCalledWith({
@@ -171,7 +171,24 @@ describe("POST /api/analyze", () => {
         },
         total: 7,
         severity: "MODERATE",
+        usedTta: false,
       }),
+    });
+  });
+
+  it("โมเดลหลักเปิด TTA: ส่ง useTta ให้ AI และบันทึก usedTta", async () => {
+    m.modelFindFirst.mockResolvedValue({ id: "model1", useTta: true });
+
+    const res = await POST(request(jpeg()));
+
+    expect(res.status).toBe(200);
+    expect((await res.json()).data.usedTta).toBe(true);
+    expect(m.callFastApiForPrediction).toHaveBeenCalledWith(expect.anything(), {
+      id: "model1",
+      useTta: true,
+    });
+    expect(m.analysisCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({ usedTta: true }),
     });
   });
 
@@ -230,7 +247,10 @@ describe("POST /api/analyze", () => {
   it("ดึงโมเดลหลักเฉพาะ id ไม่ดึงไฟล์โมเดล", async () => {
     await POST(request(jpeg()));
 
-    expect(m.modelFindFirst.mock.calls[0][0].select).toEqual({ id: true });
+    expect(m.modelFindFirst.mock.calls[0][0].select).toEqual({
+      id: true,
+      useTta: true,
+    });
   });
 
   it("วิเคราะห์สำเร็จ ไม่ลบรูป", async () => {
