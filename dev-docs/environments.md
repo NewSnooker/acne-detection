@@ -21,7 +21,7 @@
 | **Vercel + Render** | เว็บตัวอย่างบนบริการฟรี (เก็บไว้อ้างอิงในเล่ม) | Vercel / Render | Atlas database เดิม | `vercel-blob` | `mongodb` (`modelData`) อัปโหลดได้ ≤ 4.5 MB (เพดานของ Vercel) |
 | **Azure** (กำลังทำ) | ระบบหลัก วัดผลในเล่ม | Container Apps / Container Apps | Atlas database ใหม่ (`acne_azure`) | `azure-blob` (ยังไม่มีในโค้ด) | `azure-blob` (ยังไม่มีในโค้ด) |
 
-`npm run dev` ในเครื่อง (ไม่ใช้ Docker) = ชุด dev: ใช้ MongoDB ในเครื่อง/ใน Docker ไม่ใช่ Atlas ของเว็บจริง
+`npm run dev` ในเครื่อง (ไม่ใช้ Docker) = ชุด dev: ใช้ **MongoDB ที่ติดตั้งในเครื่อง** (port 27017, database `acne_dev`) + โฟลเดอร์ในโปรเจค แยกจาก Docker (MongoDB ของ container เปิดออกมาที่ port **27018**) ไม่ใช่ Atlas ของเว็บจริง — วิธีตั้ง replica set และเปิดดูใน Compass: `manual/06-developer-guide.md`
 
 ## ตัวแปรที่เลือกที่เก็บ (`apps/web/src/lib/storage/config.ts`)
 
@@ -49,9 +49,10 @@
 
 **npm run dev ในเครื่อง** — `apps/web/.env`:
 ```
-DATABASE_URL=mongodb://localhost:27017/acne_db?replicaSet=rs0&directConnection=true   # เปิด MongoDB ของ Docker อย่างเดียว: docker compose up -d mongodb
-IMAGE_STORAGE=local
-MODEL_STORAGE=mongodb          # หรือ file + MODEL_STORAGE_PATH
+DATABASE_URL=mongodb://localhost:27017/acne_dev?replicaSet=rs0&directConnection=true   # MongoDB ที่ติดตั้งในเครื่อง (ต้องเป็น replica set)
+IMAGE_STORAGE=local            # โฟลเดอร์ apps/images
+MODEL_STORAGE=file             # โฟลเดอร์ apps/model-files
+MODEL_STORAGE_PATH=../model-files
 ENV_NAME=dev
 ```
 

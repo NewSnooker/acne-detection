@@ -13,10 +13,11 @@
 **เปิดระบบไม่ขึ้น**
 
 - [สั่ง docker compose แล้ว error ทันที](#compose-error)
-- [port 3000 หรือ 27017 ถูกใช้อยู่](#port-in-use)
+- [port 3000 หรือ 27018 ถูกใช้อยู่](#port-in-use)
 - [build นานมากหรือค้าง](#slow-build)
 - [เว็บเปิดไม่ขึ้นหรือ container เว็บ restart วน](#web-restart)
 - [เปิดเว็บไม่ขึ้น ขึ้นว่า "ตั้งค่าไม่ปลอดภัย"](#shared-db)
+- [รัน npm run dev แล้วขึ้น "requires … replica set"](#replica-set)
 
 **เข้าสู่ระบบ**
 
@@ -73,14 +74,14 @@ docker compose ps               # ดูว่าแต่ละส่วนท�
 
 <a id="port-in-use"></a>
 
-## port 3000 หรือ 27017 ถูกใช้อยู่
+## port 3000 หรือ 27018 ถูกใช้อยู่
 
 ข้อความประมาณ `port is already allocated` หรือ `address already in use`
 
 | port | ใช้ทำอะไร | วิธีแก้ |
 | --- | --- | --- |
 | 3000 | เว็บ | ตั้ง `WEB_PORT` ตาม [เปลี่ยน port ของเว็บ](04-configuration.md#port) หรือปิดโปรแกรมที่ใช้ port นี้อยู่ |
-| 27017 | ฐานข้อมูล MongoDB | มักเกิดเมื่อเครื่องมี MongoDB ติดตั้งอยู่แล้ว ให้สร้างไฟล์ `.env` ข้าง `docker-compose.yml` ใส่ `MONGO_PORT=27018` แล้วสั่ง `docker compose up -d` |
+| 27018 | ฐานข้อมูล MongoDB ของ Docker | สร้างไฟล์ `.env` ข้าง `docker-compose.yml` ใส่ `MONGO_PORT=` เลขอื่น (เช่น 27019) แล้วสั่ง `docker compose up -d` |
 
 [↑ สารบัญ](#toc)
 
@@ -116,7 +117,19 @@ docker compose ps               # ดูว่าแต่ละส่วนท�
 
 **ความหมาย:** ระบบเก็บรูปหรือไฟล์โมเดลลงดิสก์ของเครื่องนี้ แต่ `DATABASE_URL` เป็นฐานข้อมูลบนคลาวด์ (MongoDB Atlas) ที่เว็บจริงใช้ด้วย ถ้าปล่อยให้ทำงาน เว็บจริงจะเห็นประวัติและโมเดลที่ไฟล์อยู่บนเครื่องนี้ แล้วเปิดไม่ได้
 
-**วิธีแก้:** ใช้ฐานข้อมูลของเครื่องนี้เอง — `docker compose up -d mongodb` แล้วตั้ง `DATABASE_URL=mongodb://localhost:27017/acne_db?replicaSet=rs0&directConnection=true` ใน `apps/web/.env` (ถ้าตั้งใจใช้ฐานข้อมูลร่วมจริง ๆ ตั้ง `ALLOW_SHARED_DB=true`)
+**วิธีแก้:** ใช้ MongoDB ที่ติดตั้งในเครื่อง — ตั้ง `DATABASE_URL=mongodb://localhost:27017/acne_dev?replicaSet=rs0&directConnection=true` ใน `apps/web/.env` (ดู [คู่มือนักพัฒนา](06-developer-guide.md#local-mongodb)) ถ้าตั้งใจใช้ฐานข้อมูลร่วมจริง ๆ ตั้ง `ALLOW_SHARED_DB=true`
+
+[↑ สารบัญ](#toc)
+
+---
+
+<a id="replica-set"></a>
+
+## รัน npm run dev แล้วขึ้น "requires your MongoDB server to be run as a replica set"
+
+**ความหมาย:** MongoDB ที่ติดตั้งในเครื่องยังรันแบบปกติ (standalone) แต่ Prisma ต้องใช้แบบ replica set ถึงจะบันทึกข้อมูลบางอย่างได้ (เช่น ผลวิเคราะห์ และการตั้งโมเดลหลัก)
+
+**วิธีแก้:** ตั้ง MongoDB ในเครื่องเป็น replica set ครั้งเดียว ตาม [คู่มือนักพัฒนา](06-developer-guide.md#local-mongodb)
 
 [↑ สารบัญ](#toc)
 
