@@ -45,8 +45,8 @@ class FakeModel:
         self.results = results
         self.called_with = None
 
-    def __call__(self, image_path, conf, verbose):
-        self.called_with = {"image": image_path, "conf": conf, "verbose": verbose}
+    def __call__(self, image_path, conf, verbose, augment=False):
+        self.called_with = {"image": image_path, "conf": conf, "verbose": verbose, "augment": augment}
         return self.results
 
 
@@ -134,7 +134,15 @@ def test_confidence_threshold_is_passed_to_model(use_model):
 
     YoloService().predict("face.jpg", "model.pt", 0.4)
 
-    assert model.called_with == {"image": "face.jpg", "conf": 0.4, "verbose": False}
+    assert model.called_with == {"image": "face.jpg", "conf": 0.4, "verbose": False, "augment": False}
+
+
+def test_tta_is_passed_to_model(use_model):
+    model = use_model([])
+
+    YoloService().predict("face.jpg", "model.pt", 0.15, augment=True)
+
+    assert model.called_with["augment"] is True
 
 
 def test_result_without_boxes_is_handled(monkeypatch):

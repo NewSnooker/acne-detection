@@ -57,9 +57,9 @@ def clear_cache(model_path: str | None = None):
 
 
 class YoloService:
-    def predict(self, image_path: str, model_path: str, confidence: float) -> dict:
+    def predict(self, image_path: str, model_path: str, confidence: float, augment: bool = False) -> dict:
         model = _get_model(model_path)
-        results = model(image_path, conf=confidence, verbose=False)
+        results = model(image_path, conf=confidence, augment=augment, verbose=False)
 
         counts = {v: 0 for v in ACNE_CLASSES.values()}
         detections = []

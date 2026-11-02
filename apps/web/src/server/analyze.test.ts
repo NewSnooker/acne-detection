@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { calculateSeverity, confidenceThreshold } from "./analyze";
+import { calculateSeverity, confidenceThreshold, ttaEnabled } from "./analyze";
 
 // เกณฑ์ตามขอบเขตโครงงานข้อ 1.3.3.5
 //   เล็กน้อย (MILD)     : สิวไม่อักเสบ ≤ 20 จุด หรือ สิวอักเสบตื้น ≤ 5 จุด
@@ -101,5 +101,20 @@ describe("confidenceThreshold", () => {
   it.each(["", "abc", "0", "1.5"])("ค่า %j ใช้ค่าเริ่มต้น 0.25", (value) => {
     vi.stubEnv("AI_CONFIDENCE_THRESHOLD", value);
     expect(confidenceThreshold()).toBe(0.25);
+  });
+});
+
+describe("ttaEnabled", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it.each([
+    ["true", true],
+    ["TRUE", true],
+    ["false", false],
+    ["", false],
+    ["1", false],
+  ])("AI_USE_TTA=%j → %s", (value, expected) => {
+    vi.stubEnv("AI_USE_TTA", value);
+    expect(ttaEnabled()).toBe(expected);
   });
 });

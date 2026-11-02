@@ -70,6 +70,19 @@ def test_predict_without_confidence_uses_setting(client, dirs, monkeypatch):
     assert client.calls[-1]["confidence"] == 0.33
 
 
+def test_predict_tta_follows_setting_and_request(client, dirs, monkeypatch):
+    """TTA: ไม่ส่ง augment มา ใช้ AI_USE_TTA, ส่งมา ใช้ค่าที่ส่ง"""
+    from app import main
+
+    image = str(dirs / "images" / "face.jpg")
+    predict(client, image, MODEL_URL)
+    monkeypatch.setattr(main.settings, "AI_USE_TTA", True)
+    predict(client, image, MODEL_URL)
+    predict(client, image, MODEL_URL, augment="false")
+
+    assert client.augment_calls == [False, True, False]
+
+
 def test_predict_does_not_delete_stored_image(client, dirs):
     """รูปที่เว็บบันทึกไว้ต้องยังอยู่หลังวิเคราะห์ (ลบเฉพาะรูปชั่วคราวที่ดาวน์โหลดมา)"""
     image = dirs / "images" / "face.jpg"

@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     ALLOWED_MODEL_HOSTS: str = ""
     # ความมั่นใจขั้นต่ำของกรอบสิว ใช้เมื่อเว็บไม่ได้ส่ง confidence มา — ต้องตรงกับ AI_CONFIDENCE_THRESHOLD ของ web
     AI_CONFIDENCE_THRESHOLD: float = 0.25
+    # Test-Time Augmentation: ทายจากรูปที่พลิก/ย่อขยายหลายแบบแล้วรวมผล — เจอสิวมากขึ้น แต่ช้าลง 2–3 เท่า
+    AI_USE_TTA: bool = False
     DEBUG: bool = False
 
     class Config:
