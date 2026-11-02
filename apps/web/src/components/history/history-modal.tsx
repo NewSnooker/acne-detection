@@ -142,7 +142,7 @@ export function HistoryModal({
                         <p>
                           วิเคราะห์แบบ Test-Time Augmentation:
                           ระบบวิเคราะห์ภาพหลายขนาดและแบบพลิกภาพแล้วรวมผล
-                          แม่นขึ้นเล็กน้อยแต่ใช้เวลานานขึ้น
+                          ใช้เวลาประมาณ 2 เท่าของปกติ
                         </p>
                       </TooltipContent>
                     </Tooltip>

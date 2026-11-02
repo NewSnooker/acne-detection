@@ -183,7 +183,7 @@ export function ModelActions({ model }: { model: AiModel }) {
                     <span className="text-foreground font-medium">
                       ความแม่นยำ:
                     </span>{" "}
-                    เพิ่มขึ้นเล็กน้อย
+                    ไม่แน่นอน อาจเพิ่มหรือลดเล็กน้อย ขึ้นอยู่กับโมเดล
                   </li>
                   <li>
                     <span className="text-foreground font-medium">เวลา:</span>{" "}

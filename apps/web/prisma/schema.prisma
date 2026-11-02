@@ -91,7 +91,7 @@ model AiModel {
   fileName    String
   sizeMb      Float
   isActive    Boolean  @default(true)
-  useTta      Boolean  @default(false) // Test-Time Augmentation ตอนวิเคราะห์ (แม่นขึ้นเล็กน้อย ช้าลง 2–3 เท่า)
+  useTta      Boolean  @default(false) // Test-Time Augmentation ตอนวิเคราะห์ (ช้าลง 2–3 เท่า ความแม่นยำไม่แน่นอน)
   // ค่าประเมินโมเดล (ข้อ 1.3.3.3) เก็บเป็นร้อยละ 0–100 แอดมินกรอกจากผลทดสอบ ไม่มี = null
   mAP50       Float?
   precision   Float?
