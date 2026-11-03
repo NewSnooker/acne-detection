@@ -22,8 +22,6 @@ export interface AnalysisResult {
   /** วิเคราะห์แบบ Test-Time Augmentation หรือไม่ (ผลเก่า = false) */
   usedTta?: boolean;
 }
-// ความมั่นใจขั้นต่ำของกรอบสิว (0–1) เมื่อไม่ได้ตั้ง env AI_CONFIDENCE_THRESHOLD — ต้องตรงกับค่าเริ่มต้นฝั่ง ai (app/config.py)
-export const DEFAULT_CONFIDENCE_THRESHOLD = 0.25;
 
 export const ACNE_COLORS: Record<string, string> = {
   blackhead: "#6b7280", // gray-500

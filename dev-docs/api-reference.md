@@ -10,10 +10,9 @@
 | DELETE | `/api/analyze/history` | ADMIN | JSON `{id}` หรือ `{ids:[]}` | `deleteHistories` (ไม่พบตอบ 404) |
 | GET | `/api/images/[...path]` | login + เป็นเจ้าของรูป (หรือ ADMIN) | — | อ่านไฟล์จากดิสก์ (รูปคนอื่นตอบ 404, cache แบบ private) |
 | GET | `/api/models/[id]` | header `X-API-Key` (= `AI_SERVICE_API_KEY`) หรือ ADMIN | — | ส่งไฟล์ `.pt` (FastAPI เรียก — ห้ามเปลี่ยน path) โมเดลแบบ `file` ที่เครื่องนี้ไม่มีไฟล์ตอบ 409 |
-| PATCH | `/api/models/[id]` | ADMIN | JSON `{name,version,description?,mAP50?,precision?,recall?,f1Score?,accuracy?}` | แก้ข้อมูลและค่าประเมิน |
+| PATCH | `/api/models/[id]` | ADMIN | JSON `{name,version,description?,mAP50?,precision?,recall?,f1Score?,accuracy?,confidence?,useTta?}` | แก้ข้อมูล ค่าประเมิน ความมั่นใจขั้นต่ำ (0.05–0.95, นอกช่วงตอบ 400) และ TTA |
 | DELETE | `/api/models/[id]` | ADMIN | — | ลบโมเดล (โมเดลหลักตอบ 409) |
 | POST | `/api/models/[id]/activate` | ADMIN | — | ตั้งเป็นโมเดลหลัก (ไม่พบตอบ 404) |
-| PUT | `/api/models/[id]/tta` | ADMIN | JSON `{enabled: boolean}` | เปิด/ปิด Test-Time Augmentation ของโมเดล (ไม่พบตอบ 404) |
 | POST | `/api/models/[id]/metrics` | ADMIN | — | ให้ FastAPI อ่าน mAP50/precision/recall/f1Score จากไฟล์ `.pt` แล้วบันทึก คืน `{metrics}` (ไม่มีผลเทรน 422, AI ล่ม 502) |
 | POST | `/api/models?fileName&name&version&description` | ADMIN | เนื้อไฟล์ `.pt` ตรง ๆ (ไม่ใช่ multipart) | อัปโหลดตาม `MODEL_STORAGE` ตอบ 201 (เกินเพดาน `mongodb` ตอบ 413) |
 | DELETE | `/api/models` | ADMIN | JSON `{ids:[]}` | ลบกลุ่ม (ข้ามตัว active) คืน `count` |
@@ -47,7 +46,7 @@ error ที่ไม่ได้ตั้งใจตอบ 500 พร้อม
 |---|---|---|---|---|
 | GET | `/` | — | ตัวตรวจสถานะของ Render / เปิด URL ตรง | `{status:"ok"}` |
 | GET | `/health` | — | ใช้ ping | `{status:"ok"}` |
-| POST | `/predict` | `X-API-Key` | **ใช่** | form: `image_url_or_path`, `model_url_or_path`, `confidence` (ไม่ส่ง = `AI_CONFIDENCE_THRESHOLD` ค่าเริ่มต้น 0.25), `augment` (TTA, ไม่ส่ง = false — เว็บส่งตาม `AiModel.useTta`) |
+| POST | `/predict` | `X-API-Key` | **ใช่** | form: `image_url_or_path`, `model_url_or_path`, `confidence` (เว็บส่งตาม `AiModel.confidence`, ไม่ส่ง = 0.2), `augment` (TTA, ไม่ส่ง = false — เว็บส่งตาม `AiModel.useTta`) |
 | POST | `/model-metrics` | `X-API-Key` | ใช่ (หลังอัปโหลด/ปุ่มดึงค่า) | form: `model_url_or_path` → `{metrics:{mAP50,precision,recall,f1Score}}` เป็นร้อยละ จาก `checkpoint["train_metrics"]` (ไม่มีข้อมูล = `{}`) |
 | GET | `/docs` | — | เปิดเมื่อ `DEBUG=true` | Swagger |
 

@@ -38,10 +38,23 @@ export const startUploadSchema = modelInfoSchema.extend({
     .max(Number.MAX_SAFE_INTEGER),
 });
 
-export const editModelSchema = modelInfoSchema.extend(metricShape);
+export const MIN_MODEL_CONFIDENCE = 0.05;
+export const MAX_MODEL_CONFIDENCE = 0.95;
 
-export const modelTtaSchema = z.object({
-  enabled: z.boolean({ message: "กรุณาระบุว่าจะเปิดหรือปิด TTA" }),
+export const editModelSchema = modelInfoSchema.extend({
+  ...metricShape,
+  confidence: z.coerce
+    .number({ error: "ความมั่นใจขั้นต่ำต้องเป็นตัวเลข" })
+    .min(
+      MIN_MODEL_CONFIDENCE,
+      `ความมั่นใจขั้นต่ำต้องอยู่ระหว่าง ${MIN_MODEL_CONFIDENCE}–${MAX_MODEL_CONFIDENCE}`,
+    )
+    .max(
+      MAX_MODEL_CONFIDENCE,
+      `ความมั่นใจขั้นต่ำต้องอยู่ระหว่าง ${MIN_MODEL_CONFIDENCE}–${MAX_MODEL_CONFIDENCE}`,
+    )
+    .optional(),
+  useTta: z.boolean({ error: "กรุณาระบุว่าจะเปิดหรือปิด TTA" }).optional(),
 });
 
 export const idListSchema = z.object({

@@ -92,6 +92,7 @@ model AiModel {
   sizeMb      Float
   isActive    Boolean  @default(true)
   useTta      Boolean  @default(false) // Test-Time Augmentation ตอนวิเคราะห์ (ช้าลง 2–3 เท่า ความแม่นยำไม่แน่นอน)
+  confidence  Float    @default(0.2)   // ความมั่นใจขั้นต่ำของกรอบสิว (0.05–0.95) แอดมินตั้งจาก F1-Confidence curve
   // ค่าประเมินโมเดล (ข้อ 1.3.3.3) เก็บเป็นร้อยละ 0–100 แอดมินกรอกจากผลทดสอบ ไม่มี = null
   mAP50       Float?
   precision   Float?
@@ -133,6 +134,7 @@ model Analysis {
   total           Int
   severity        Severity
   usedTta         Boolean  @default(false) // ผลครั้งนี้วิเคราะห์แบบ TTA หรือไม่
+  confidence      Float?   // ความมั่นใจขั้นต่ำที่ใช้ครั้งนี้ (ผลเก่า = null)
 
   createdAt DateTime @default(now())
 

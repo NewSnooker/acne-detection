@@ -5,6 +5,7 @@
 // ทำซ้ำได้ ไม่สร้างข้อมูลซ้ำ:
 // 1) ถ้ายังไม่มีผู้ดูแลระบบ → สร้างบัญชีแอดมินเริ่มต้น
 // 2) ถ้ายังไม่มีโมเดล AI   → ใส่โมเดลเริ่มต้นจาก prisma/seed/acne-default.pt
+// 3) เติมค่าเริ่มต้นให้ข้อมูลเก่าที่ยังไม่มีช่องใหม่ (MongoDB ไม่เติม @default ให้ document ที่มีอยู่แล้ว)
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import fs from "node:fs";
@@ -87,7 +88,36 @@ async function seedModel(admin) {
   console.log(`[seed] ใส่โมเดลเริ่มต้นแล้ว (${sizeMb} MB)`);
 }
 
+// ช่องที่เพิ่มทีหลัง: document เก่าไม่มีช่องนี้ ถ้าไม่เติม Prisma อาจอ่านไม่ได้
+const BACKFILL = [
+  { collection: "AiModel", field: "useTta", value: false },
+  { collection: "AiModel", field: "confidence", value: 0.2 },
+  { collection: "Analysis", field: "usedTta", value: false },
+];
+
+async function backfillNewFields() {
+  for (const { collection, field, value } of BACKFILL) {
+    const result = await prisma.$runCommandRaw({
+      update: collection,
+      updates: [
+        {
+          q: { [field]: { $exists: false } },
+          u: { $set: { [field]: value } },
+          multi: true,
+        },
+      ],
+    });
+    const count = Number(result.nModified ?? 0);
+    if (count > 0) {
+      console.log(
+        `[seed] เติม ${collection}.${field} = ${value} ให้ ${count} รายการ`,
+      );
+    }
+  }
+}
+
 async function main() {
+  await backfillNewFields();
   const admin = await seedAdmin();
   await seedModel(admin);
 }

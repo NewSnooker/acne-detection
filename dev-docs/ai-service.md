@@ -15,7 +15,7 @@ FastAPI 0.115.5 · Ultralytics 8.4.180 · PyTorch · Python 3.12 (Docker) / venv
 | `app/services/model_files.py` | `resolve_image()` / `resolve_model()` จำกัดว่าอ่านไฟล์จากที่ไหนได้, `_download()` |
 | `app/services/yolo_service.py` | `ACNE_CLASSES`, cache โมเดลใน memory (`_cache` + lock), `YoloService.predict()`, `class_names_mismatch()` เตือนใน log ถ้าลำดับคลาสของโมเดลไม่ตรง |
 | `app/services/model_metrics.py` | `extract_metrics()` อ่าน `train_metrics` ของ Ultralytics (`metrics/mAP50(B)`, `precision(B)`, `recall(B)`) เป็นร้อยละ + คำนวณ F1; `read_model_metrics()` โหลดด้วย `torch.load(weights_only=False)` — ไฟล์มาจากแอดมินเท่านั้น |
-| `app/config.py` | `Settings` (pydantic-settings): `AI_SERVICE_API_KEY`, `STORAGE_PATH`, `MODELS_PATH`, `ALLOWED_IMAGE_HOSTS`, `ALLOWED_MODEL_HOSTS`, `AI_CONFIDENCE_THRESHOLD`, `DEBUG` |
+| `app/config.py` | `Settings` (pydantic-settings): `AI_SERVICE_API_KEY`, `STORAGE_PATH`, `MODELS_PATH`, `ALLOWED_IMAGE_HOSTS`, `ALLOWED_MODEL_HOSTS`, `AI_CONFIDENCE_THRESHOLD` (สำรอง 0.2), `DEBUG` |
 | `inspect_pt.py` | สคริปต์ดูข้างในไฟล์ `.pt` (keys, results_dict, names) — ไม่ได้อยู่ใน flow |
 | `requirements.txt` | pin เวอร์ชัน (ไม่มี torch — ติดมากับ ultralytics) |
 | `Dockerfile` | python:3.12-slim, ติดตั้ง PyTorch รุ่น CPU ก่อน `requirements.txt` |
@@ -44,16 +44,18 @@ ACNE_CLASSES = {0:"blackhead", 1:"cyst", 2:"nodule", 3:"papule", 4:"pustule", 5:
 - เรียงตามตัวอักษร (ลำดับที่ Roboflow export) — **hard-code** ตอนโหลดโมเดลเทียบกับ `model.names` ถ้าไม่ตรงจะ log `WARNING ... class order differs` (ไม่หยุดทำงาน)
 - `torch.set_num_threads(min(2, cpu_count))` กัน CPU throttling ใน container
 - cache โมเดลตาม path ไม่มีการล้างเมื่อโมเดลถูกลบ/เปลี่ยนจากฝั่ง web
-- ไม่ได้กำหนด `imgsz`, `iou`, `device` → ใช้ค่า default ของ Ultralytics
+- ไม่ได้กำหนด `imgsz`, `iou`, `device` → ใช้ค่า default ของ Ultralytics (`imgsz` จากไฟล์ `.pt`, `iou` 0.7)
 
-## ค่า confidence (ค่าเดียวทั้งระบบ)
+## ค่า confidence และ TTA (รายโมเดล)
 
-ตั้งที่ env `AI_CONFIDENCE_THRESHOLD` (ค่าเริ่มต้น **0.25**) — `docker-compose.yml` ส่งค่าเดียวกันให้ทั้ง web และ ai จาก anchor `x-ai-confidence`
+ตั้งในหน้าแก้ไขโมเดล เก็บที่ `AiModel.confidence` (default **0.2**, ช่วง 0.05–0.95) และ `AiModel.useTta` — ไม่มี env ตั้งทั้งระบบ
 
 | ที่ | ใช้อย่างไร |
 |---|---|
-| web `confidenceThreshold()` (`server/analyze.ts`) | อ่าน env ไม่ตั้ง/ผิด = `DEFAULT_CONFIDENCE_THRESHOLD` (0.25) แล้วส่งไปกับ `/predict` ทุกครั้ง |
-| ai `settings.AI_CONFIDENCE_THRESHOLD` | ใช้เมื่อคำขอไม่ได้ส่ง `confidence` มา |
+| web `callFastApiForPrediction()` (`server/analyze.ts`) | ส่ง `confidence` และ `augment` ของโมเดลหลักไปกับ `/predict` ทุกครั้ง และบันทึกค่าที่ใช้ลง `Analysis.confidence` / `usedTta` |
+| ai `settings.AI_CONFIDENCE_THRESHOLD` (0.2) | สำรอง ใช้เมื่อคำขอไม่ได้ส่ง `confidence` มา (เว็บส่งเสมอ) |
+
+เลือกค่า: ใช้ conf ที่ F1 สูงสุดจากกราฟ F1-Confidence ของโมเดลนั้น (`F1_curve.png` ตอนเทรน หรือสคริปต์ `apps/ai/scripts/eval_nms_sweep.py`)
 
 ## Environment (apps/ai/.env)
 

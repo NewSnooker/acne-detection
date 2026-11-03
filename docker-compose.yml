@@ -6,8 +6,6 @@
 
 # key ที่ web ใช้เรียก ai — ต้องเป็นค่าเดียวกันทั้งสองฝั่ง จึงประกาศไว้ที่เดียว
 x-ai-key: &ai-key ${AI_SERVICE_API_KEY:-acne-local-docker-key}
-# ความมั่นใจขั้นต่ำของกรอบสิว (0–1) — web กับ ai ใช้ค่าเดียวกันจากตรงนี้
-x-ai-confidence: &ai-confidence ${AI_CONFIDENCE_THRESHOLD:-0.25}
 
 services:
   # ─── MongoDB (replica set — Prisma ต้องใช้) ────────────────
@@ -53,7 +51,6 @@ services:
       - ./apps/ai/models:/app/models         # cache ไฟล์โมเดลที่โหลดมาจาก web
     environment:
       AI_SERVICE_API_KEY: *ai-key
-      AI_CONFIDENCE_THRESHOLD: *ai-confidence
       STORAGE_PATH: /app/images
       MODELS_PATH: /app/models
       DEBUG: "false"
@@ -83,7 +80,6 @@ services:
       AUTH_TRUST_HOST: "true"
       AI_SERVICE_URL: http://ai:8000
       AI_SERVICE_API_KEY: *ai-key
-      AI_CONFIDENCE_THRESHOLD: *ai-confidence
       INTERNAL_APP_URL: http://web:3000     # ai ใช้ URL นี้โหลดไฟล์โมเดลจาก web
       STORAGE_PATH: /app/images
       # ที่เก็บไฟล์ของระบบนี้ (ดู dev-docs/environments.md) — ทุกอย่างอยู่ใน Docker volume ของเครื่องนี้

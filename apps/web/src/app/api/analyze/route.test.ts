@@ -64,7 +64,11 @@ beforeEach(() => {
   // ค่าเริ่มต้น: ผู้ใช้เข้าสู่ระบบแล้ว มีโมเดลหลัก ทุกอย่างพร้อม
   m.auth.mockResolvedValue({ user: { id: "u1", role: "USER" } });
   m.userFindUnique.mockResolvedValue({ id: "u1" });
-  m.modelFindFirst.mockResolvedValue({ id: "model1", useTta: false });
+  m.modelFindFirst.mockResolvedValue({
+    id: "model1",
+    useTta: false,
+    confidence: 0.2,
+  });
   m.uploadImage.mockResolvedValue({
     originalImage: "abc.jpg",
     imageUrl: null,
@@ -155,11 +159,11 @@ describe("POST /api/analyze", () => {
     // ใช้โมเดลหลักตัวที่เปิดใช้งานอยู่
     expect(m.modelFindFirst).toHaveBeenCalledWith({
       where: { isActive: true },
-      select: { id: true, useTta: true },
+      select: { id: true, useTta: true, confidence: true },
     });
     expect(m.callFastApiForPrediction).toHaveBeenCalledWith(
       expect.objectContaining({ originalImage: "abc.jpg" }),
-      { id: "model1", useTta: false },
+      { id: "model1", useTta: false, confidence: 0.2 },
     );
     // บันทึกผลผูกกับผู้ใช้ โมเดล และรูป
     expect(m.analysisCreate).toHaveBeenCalledWith({
@@ -172,12 +176,17 @@ describe("POST /api/analyze", () => {
         total: 7,
         severity: "MODERATE",
         usedTta: false,
+        confidence: 0.2,
       }),
     });
   });
 
-  it("โมเดลหลักเปิด TTA: ส่ง useTta ให้ AI และบันทึก usedTta", async () => {
-    m.modelFindFirst.mockResolvedValue({ id: "model1", useTta: true });
+  it("ใช้ TTA และ confidence ของโมเดลหลัก ส่งให้ AI และบันทึกในผล", async () => {
+    m.modelFindFirst.mockResolvedValue({
+      id: "model1",
+      useTta: true,
+      confidence: 0.3,
+    });
 
     const res = await POST(request(jpeg()));
 
@@ -186,9 +195,10 @@ describe("POST /api/analyze", () => {
     expect(m.callFastApiForPrediction).toHaveBeenCalledWith(expect.anything(), {
       id: "model1",
       useTta: true,
+      confidence: 0.3,
     });
     expect(m.analysisCreate).toHaveBeenCalledWith({
-      data: expect.objectContaining({ usedTta: true }),
+      data: expect.objectContaining({ usedTta: true, confidence: 0.3 }),
     });
   });
 
@@ -250,6 +260,7 @@ describe("POST /api/analyze", () => {
     expect(m.modelFindFirst.mock.calls[0][0].select).toEqual({
       id: true,
       useTta: true,
+      confidence: true,
     });
   });
 
