@@ -20,7 +20,7 @@ router = APIRouter(tags=["Inference"])
 def predict(
     image_url_or_path: str = Form(..., description="URL หรือ Absolute path ของรูป"),
     model_url_or_path: str = Form(..., description="URL หรือ Absolute path ของไฟล์ .pt"),
-    confidence: float | None = Form(None, description="ไม่ส่ง = ใช้ AI_CONFIDENCE_THRESHOLD"),
+    confidence: float | None = Form(None, description="เว็บส่งตาม AiModel.confidence — ไม่ส่ง = AI_CONFIDENCE_THRESHOLD (0.2)"),
     augment: bool = Form(False, description="Test-Time Augmentation — เว็บส่งตามค่า useTta ของโมเดล"),
     _: str = Security(verify_api_key),
 ):

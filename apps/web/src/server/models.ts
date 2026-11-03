@@ -160,19 +160,15 @@ export function parseModelMetrics(input: ModelMetricInput) {
   return result;
 }
 
-/** เปิด/ปิด Test-Time Augmentation ของโมเดล 1 ตัว */
-export async function setModelTtaLogic(id: string, enabled: boolean) {
-  const exists = await prisma.aiModel.count({ where: { id } });
-  if (!exists) throw new HttpError(404, "ไม่พบข้อมูลโมเดล");
-  await prisma.aiModel.update({ where: { id }, data: { useTta: enabled } });
-}
-
 export async function editModelLogic(
   id: string,
   data: {
     name: string;
     version: string;
     description?: string;
+    /** ไม่ส่ง = ไม่เปลี่ยน */
+    confidence?: number;
+    useTta?: boolean;
   } & ModelMetricInput,
 ) {
   const metrics = parseModelMetrics(data);
@@ -186,6 +182,8 @@ export async function editModelLogic(
       version: data.version,
       description: data.description || null,
       ...metrics,
+      ...(data.confidence !== undefined && { confidence: data.confidence }),
+      ...(data.useTta !== undefined && { useTta: data.useTta }),
     },
   });
 }

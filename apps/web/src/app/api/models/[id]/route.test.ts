@@ -11,7 +11,6 @@ const m = vi.hoisted(() => ({
   deleteModelLogic: vi.fn(),
   setActiveModelLogic: vi.fn(),
   editModelLogic: vi.fn(),
-  setModelTtaLogic: vi.fn(),
 }));
 vi.mock("@/lib/auth", () => ({ auth: m.auth }));
 vi.mock("@/lib/prisma", () => ({
@@ -21,12 +20,10 @@ vi.mock("@/server/models", () => ({
   deleteModelLogic: m.deleteModelLogic,
   setActiveModelLogic: m.setActiveModelLogic,
   editModelLogic: m.editModelLogic,
-  setModelTtaLogic: m.setModelTtaLogic,
 }));
 
 import { HttpError } from "@/lib/http-error";
 import { POST as ACTIVATE } from "./activate/route";
-import { PUT as SET_TTA } from "./tta/route";
 import { DELETE, GET, PATCH } from "./route";
 
 const KEY = "test-ai-key";
@@ -269,42 +266,43 @@ describe("PATCH (แก้ไขข้อมูลโมเดล)", () => {
   });
 });
 
-describe("PUT /tta (เปิด/ปิด Test-Time Augmentation)", () => {
-  it("ผู้ใช้ทั่วไปเปลี่ยนไม่ได้ (403)", async () => {
-    m.auth.mockResolvedValue(USER);
+describe("PATCH — ความมั่นใจขั้นต่ำและ TTA รายโมเดล", () => {
+  const base = { name: "YOLO", version: "v2" };
 
-    const res = await SET_TTA(req({}, "PUT", { enabled: true }), ctx);
-
-    expect(res.status).toBe(403);
-    expect(m.setModelTtaLogic).not.toHaveBeenCalled();
-  });
-
-  it("enabled ไม่ใช่ true/false ตอบ 400", async () => {
+  it("ส่ง confidence และ useTta ต่อให้ editModelLogic", async () => {
     m.auth.mockResolvedValue(ADMIN);
 
-    const res = await SET_TTA(req({}, "PUT", { enabled: "yes" }), ctx);
-
-    expect(res.status).toBe(400);
-    expect(m.setModelTtaLogic).not.toHaveBeenCalled();
-  });
-
-  it.each([true, false])("ผู้ดูแลระบบตั้ง enabled=%s ได้", async (enabled) => {
-    m.auth.mockResolvedValue(ADMIN);
-
-    const res = await SET_TTA(req({}, "PUT", { enabled }), ctx);
-
-    expect(res.status).toBe(200);
-    expect(m.setModelTtaLogic).toHaveBeenCalledWith("model1", enabled);
-  });
-
-  it("ไม่พบโมเดล ตอบ 404", async () => {
-    m.auth.mockResolvedValue(ADMIN);
-    m.setModelTtaLogic.mockRejectedValueOnce(
-      new HttpError(404, "ไม่พบข้อมูลโมเดล"),
+    const res = await PATCH(
+      req({}, "PATCH", { ...base, confidence: 0.3, useTta: true }),
+      ctx,
     );
 
-    const res = await SET_TTA(req({}, "PUT", { enabled: true }), ctx);
+    expect(res.status).toBe(200);
+    expect(m.editModelLogic).toHaveBeenCalledWith(
+      "model1",
+      expect.objectContaining({ confidence: 0.3, useTta: true }),
+    );
+  });
 
-    expect(res.status).toBe(404);
+  it.each([0, 0.01, 0.96, 1, "abc"])(
+    "confidence=%j อยู่นอกช่วง 0.05–0.95 ตอบ 400",
+    async (confidence) => {
+      m.auth.mockResolvedValue(ADMIN);
+
+      const res = await PATCH(req({}, "PATCH", { ...base, confidence }), ctx);
+
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toContain("ความมั่นใจขั้นต่ำ");
+      expect(m.editModelLogic).not.toHaveBeenCalled();
+    },
+  );
+
+  it("useTta ไม่ใช่ true/false ตอบ 400", async () => {
+    m.auth.mockResolvedValue(ADMIN);
+
+    const res = await PATCH(req({}, "PATCH", { ...base, useTta: "yes" }), ctx);
+
+    expect(res.status).toBe(400);
+    expect(m.editModelLogic).not.toHaveBeenCalled();
   });
 });

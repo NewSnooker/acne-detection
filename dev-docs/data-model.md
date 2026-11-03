@@ -29,7 +29,8 @@ VerificationToken                (Auth.js)
 | fileName | String | `<hex>_<ชื่อไฟล์>` |
 | sizeMb | Float | |
 | isActive | Boolean | ควรมี true ได้ตัวเดียว (บังคับด้วยโค้ด ไม่ใช่ DB) |
-| useTta | Boolean | default false — วิเคราะห์แบบ Test-Time Augmentation (แอดมินเปิด/ปิดรายโมเดล) |
+| useTta | Boolean | default false — วิเคราะห์แบบ Test-Time Augmentation (แอดมินเปิด/ปิดในหน้าแก้ไขโมเดล) |
+| confidence | Float | default 0.2 — ความมั่นใจขั้นต่ำของกรอบสิว (0.05–0.95) ตั้งในหน้าแก้ไขโมเดล |
 | uploadedBy | ObjectId → User | |
 
 ค่าประเมินโมเดล (ข้อ 1.3.3.3): `mAP50`, `precision`, `recall`, `f1Score`, `accuracy` — `Float?` เก็บเป็นร้อยละ 0–100 แอดมินกรอกในหน้าแก้ไขโมเดล (`parseModelMetrics` ตรวจช่วงค่า) ไม่ได้อ่านจากไฟล์ `.pt`
@@ -48,6 +49,7 @@ VerificationToken                (Auth.js)
 | total | Int | |
 | severity | enum Severity | MILD / MODERATE / SEVERE |
 | usedTta | Boolean | default false — ผลครั้งนี้ใช้ TTA หรือไม่ (คัดลอกจาก `AiModel.useTta` ตอนวิเคราะห์) |
+| confidence | Float? | ความมั่นใจขั้นต่ำที่ใช้ครั้งนี้ (คัดลอกจาก `AiModel.confidence`) ผลเก่า = null |
 | createdAt | DateTime | |
 
 ## ลำดับการลบ (สำคัญ)
@@ -56,6 +58,8 @@ VerificationToken                (Auth.js)
 - ลบผู้ใช้: ลบไฟล์รูปทั้งหมด → ลบ `Image` ทั้งหมด → ลบ `User`
 - ลบโมเดล: set `Analysis.modelId = null` → ลบ `AiModel` (ใน transaction เดียว) แล้วลบไฟล์ (`file`) ถ้าเครื่องนี้มีโฟลเดอร์
 
+> **ช่องใหม่ที่เป็น required + `@default`:** MongoDB ไม่เติมค่าให้ document เดิม ต้องเพิ่มใน `BACKFILL` ของ `prisma/seed.mjs` (Docker รันตอนเริ่ม, Atlas รัน `npm run db:seed`)
+>
 > **หลังแก้ schema ต้องรัน `npx prisma db push` กับฐานข้อมูลของทุก environment** — Docker ทำให้ตอน container เริ่ม แต่ Atlas ต้องรันเอง (Vercel build รันแค่ `prisma generate`)
 
 ## ข้อจำกัดที่ต้องรู้
