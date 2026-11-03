@@ -1,5 +1,5 @@
 import "server-only";
-import { AnalysisResult, DEFAULT_CONFIDENCE_THRESHOLD } from "@/types/analyze";
+import { AnalysisResult } from "@/types/analyze";
 import path from "path";
 import { getStoragePath } from "@/lib/storage/image-provider";
 
@@ -45,12 +45,6 @@ export function getAiServiceConfig() {
   return { url, apiKey };
 }
 
-/** ความมั่นใจขั้นต่ำ: env AI_CONFIDENCE_THRESHOLD (0–1) ไม่ตั้งหรือค่าผิด = ค่าเริ่มต้น */
-export function confidenceThreshold() {
-  const value = Number(process.env.AI_CONFIDENCE_THRESHOLD);
-  return value > 0 && value < 1 ? value : DEFAULT_CONFIDENCE_THRESHOLD;
-}
-
 /** URL ที่ FastAPI ใช้ดาวน์โหลดไฟล์โมเดล (GET /api/models/[id]) */
 export function modelDownloadUrl(modelId: string) {
   const appUrl =
@@ -66,10 +60,9 @@ export async function callFastApiForPrediction(
     imageUrl?: string | null;
     imageProvider: string;
   },
-  activeModel: { id: string; useTta: boolean },
+  activeModel: { id: string; useTta: boolean; confidence: number },
 ): Promise<AnalysisResult> {
   const { url: fastApiUrl, apiKey } = getAiServiceConfig();
-  const confidence = confidenceThreshold();
 
   const apiFormData = new FormData();
 
@@ -90,8 +83,8 @@ export async function callFastApiForPrediction(
   const activeModelPath = modelDownloadUrl(activeModel.id);
 
   apiFormData.append("model_url_or_path", activeModelPath);
-  apiFormData.append("confidence", confidence.toString());
-  // Test-Time Augmentation ตั้งรายโมเดลในหน้าแอดมิน (AiModel.useTta)
+  // ความมั่นใจขั้นต่ำและ Test-Time Augmentation ตั้งรายโมเดลในหน้าแก้ไขโมเดล
+  apiFormData.append("confidence", activeModel.confidence.toString());
   apiFormData.append("augment", activeModel.useTta ? "true" : "false");
 
   const response = await fetch(`${fastApiUrl}/predict`, {

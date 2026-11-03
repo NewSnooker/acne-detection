@@ -30,7 +30,7 @@
    3. หา active model (AiModel.isActive)
    4. uploadImage()  → ดิสก์ (uuid.ext) หรือ Vercel Blob
    5. callFastApiForPrediction()  → POST {AI_SERVICE_URL}/predict
-        form: image_url_or_path, model_url_or_path = {appUrl}/api/models/{id}, confidence (0.25)
+        form: image_url_or_path, model_url_or_path = {appUrl}/api/models/{id}, confidence (AiModel.confidence, default 0.2), augment (AiModel.useTta)
         header: X-API-Key
    ▼
 [FastAPI] /predict  (apps/ai/app/main.py)

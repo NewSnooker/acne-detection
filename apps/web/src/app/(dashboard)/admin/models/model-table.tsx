@@ -160,6 +160,11 @@ export function ModelTable({ models }: ModelTableProps) {
             ไม่ใช้งาน
           </span>
         )}
+        {props.data && (
+          <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2 py-1 font-mono text-xs">
+            conf {props.data.confidence.toFixed(2)}
+          </span>
+        )}
         {props.data?.useTta && (
           <span className="inline-flex items-center rounded-full bg-violet-500/10 px-2 py-1 text-xs font-medium text-violet-600 dark:text-violet-400">
             TTA

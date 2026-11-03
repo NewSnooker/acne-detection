@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     // ใช้แค่ id — ห้ามดึง modelData (ไฟล์ .pt หลาย MB) มาทุกครั้งที่วิเคราะห์
     const activeModel = await prisma.aiModel.findFirst({
       where: { isActive: true },
-      select: { id: true, useTta: true },
+      select: { id: true, useTta: true, confidence: true },
     });
 
     if (!activeModel) {
@@ -100,6 +100,7 @@ export async function POST(req: NextRequest) {
           total: result.total,
           severity: severity,
           usedTta: activeModel.useTta,
+          confidence: activeModel.confidence,
         },
       });
     } catch (error) {

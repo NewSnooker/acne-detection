@@ -102,7 +102,7 @@ type: `Detection { type, confidence, bbox{x1,y1,x2,y2} }`, `AnalysisResult`
 | `AUTH_SECRET`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `AUTH_TRUST_HOST` | Auth.js |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `lib/auth.ts` |
 | `DATABASE_URL` | Prisma |
-| `AI_SERVICE_URL`, `AI_SERVICE_API_KEY` (บังคับ ไม่มีค่าสำรองในโค้ด), `AI_CONFIDENCE_THRESHOLD` (optional, default 0.25) | `analyze-logic.ts`, `api/models/[id]/route.ts` |
+| `AI_SERVICE_URL`, `AI_SERVICE_API_KEY` (บังคับ ไม่มีค่าสำรองในโค้ด), confidence/TTA ตั้งรายโมเดลใน DB ไม่ใช่ env | `server/analyze.ts`, `api/models/[id]/route.ts` |
 | `NEXT_PUBLIC_APP_URL`, `INTERNAL_APP_URL` | URL ที่ FastAPI ใช้โหลดโมเดล |
 | `APP_ENV` | `"hosted"` = Vercel Blob |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob |

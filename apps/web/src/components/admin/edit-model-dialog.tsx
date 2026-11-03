@@ -14,6 +14,21 @@ import {
 import { AiModel } from "@prisma/client";
 import { createPortal } from "react-dom";
 import { MODEL_METRICS } from "@/types/analyze";
+import {
+  MAX_MODEL_CONFIDENCE,
+  MIN_MODEL_CONFIDENCE,
+} from "@/lib/validation/api-input";
+import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function EditModelDialog({ model }: { model: AiModel }) {
   const router = useRouter();
@@ -27,6 +42,10 @@ export function EditModelDialog({ model }: { model: AiModel }) {
       MODEL_METRICS.map(({ key }) => [key, model[key]?.toString() ?? ""]),
     ),
   );
+
+  const [confidence, setConfidence] = useState(model.confidence.toString());
+  const [useTta, setUseTta] = useState(model.useTta);
+  const [ttaConfirmOpen, setTtaConfirmOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -66,6 +85,8 @@ export function EditModelDialog({ model }: { model: AiModel }) {
       version,
       description,
       ...metrics,
+      confidence: Number(confidence),
+      useTta,
     });
 
     if (result.error) {
@@ -151,6 +172,69 @@ export function EditModelDialog({ model }: { model: AiModel }) {
                         className="bg-background h-20 w-full resize-none rounded-md border px-3 py-2 text-sm"
                       />
                     </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label
+                          htmlFor="model-confidence"
+                          className="mb-1 block text-sm font-medium"
+                        >
+                          ความมั่นใจขั้นต่ำ
+                        </label>
+                        <input
+                          id="model-confidence"
+                          type="number"
+                          min={MIN_MODEL_CONFIDENCE}
+                          max={MAX_MODEL_CONFIDENCE}
+                          step={0.01}
+                          value={confidence}
+                          onChange={(e) => setConfidence(e.target.value)}
+                          required
+                          aria-describedby="model-confidence-hint"
+                          className="bg-background h-10 w-full rounded-md border px-3 py-2 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <span
+                          id="model-tta-label"
+                          className="mb-1 block text-sm font-medium"
+                        >
+                          TTA
+                        </span>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={useTta}
+                          aria-labelledby="model-tta-label"
+                          onClick={() =>
+                            useTta ? setUseTta(false) : setTtaConfirmOpen(true)
+                          }
+                          className="flex h-10 items-center gap-2 text-sm"
+                        >
+                          <span
+                            className={cn(
+                              "relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors",
+                              useTta ? "bg-violet-500" : "bg-muted",
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                "bg-background absolute top-0.5 left-0.5 h-5 w-5 rounded-full shadow transition-transform",
+                                useTta && "translate-x-5",
+                              )}
+                            />
+                          </span>
+                          {useTta ? "เปิด" : "ปิด"}
+                        </button>
+                      </div>
+                      <p
+                        id="model-confidence-hint"
+                        className="text-muted-foreground col-span-2 text-xs"
+                      >
+                        กรอบที่โมเดลมั่นใจน้อยกว่าค่านี้จะไม่แสดง (0.05–0.95)
+                        แนะนำใช้ค่าที่ F1 สูงสุดจากกราฟ F1-Confidence
+                        ของโมเดลนี้
+                      </p>
+                    </div>
                     <fieldset>
                       <legend className="mb-1 flex w-full items-center justify-between gap-2 text-sm font-medium">
                         <span>ค่าประเมินโมเดล (%) — เว้นว่างได้</span>
@@ -221,6 +305,59 @@ export function EditModelDialog({ model }: { model: AiModel }) {
             document.body,
           )
         : null}
+
+      <AlertDialog open={ttaConfirmOpen} onOpenChange={setTtaConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ยืนยันการเปิดใช้ TTA</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  คุณต้องการเปิด Test-Time Augmentation ให้โมเดล{" "}
+                  <span className="text-foreground font-semibold">
+                    {model.name}
+                  </span>{" "}
+                  ใช่หรือไม่?
+                </p>
+                <ul className="list-disc space-y-1 pl-5">
+                  <li>
+                    <span className="text-foreground font-medium">
+                      คืออะไร:
+                    </span>{" "}
+                    ระบบจะวิเคราะห์ภาพ 3 แบบ (ภาพเดิม, ย่อและพลิกภาพ, ย่อ)
+                    แล้วเลือกกรอบที่มั่นใจที่สุด
+                  </li>
+                  <li>
+                    <span className="text-foreground font-medium">
+                      ความแม่นยำ:
+                    </span>{" "}
+                    ไม่แน่นอน อาจเพิ่มหรือลดเล็กน้อย ขึ้นอยู่กับโมเดล
+                  </li>
+                  <li>
+                    <span className="text-foreground font-medium">เวลา:</span>{" "}
+                    วิเคราะห์ช้าลงประมาณ 2–3 เท่า
+                  </li>
+                  <li>
+                    <span className="text-foreground font-medium">
+                      ทรัพยากร:
+                    </span>{" "}
+                    ใช้ CPU/GPU และหน่วยความจำมากขึ้น เซิร์ฟเวอร์ที่ RAM
+                    น้อยอาจล่ม
+                  </li>
+                  <li>ค่าประเมินที่แสดงเป็นค่าที่วัดแบบไม่ใช้ TTA</li>
+                </ul>
+                <p>มีผลเมื่อกด บันทึก ในหน้าแก้ไขโมเดล</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction onClick={() => setUseTta(true)}>
+              เปิดใช้ TTA
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
