@@ -1,7 +1,8 @@
 import "server-only";
 import { AnalysisResult } from "@/types/analyze";
 import path from "path";
-import { getStoragePath } from "@/lib/storage/image-provider";
+import { getStoragePath, imageUrlForAi } from "@/lib/storage/image-provider";
+import type { ImageStorage } from "@/lib/storage/config";
 
 // Heuristic for Severity (AAD / ALADIN)
 export function calculateSeverity(
@@ -58,7 +59,7 @@ export async function callFastApiForPrediction(
   imageResult: {
     originalImage: string;
     imageUrl?: string | null;
-    imageProvider: string;
+    imageProvider: ImageStorage;
   },
   activeModel: { id: string; useTta: boolean; confidence: number },
 ): Promise<AnalysisResult> {
@@ -66,9 +67,10 @@ export async function callFastApiForPrediction(
 
   const apiFormData = new FormData();
 
-  if (imageResult.imageUrl) {
-    // Hosted (Vercel Blob): ส่ง Public URL ให้ FastAPI ดาวน์โหลด
-    apiFormData.append("image_url_or_path", imageResult.imageUrl);
+  const imageUrl = await imageUrlForAi(imageResult);
+  if (imageUrl) {
+    // Vercel Blob: URL สาธารณะ / Azure Blob: ลิงก์ SAS อายุสั้น — FastAPI ดาวน์โหลดเอง
+    apiFormData.append("image_url_or_path", imageUrl);
   } else {
     // Local/Docker: ส่ง Absolute Path ของไฟล์ใน Shared Volume
     // ใช้โฟลเดอร์เดียวกับตอนเซฟรูป (ถ้าไม่ได้ตั้ง STORAGE_PATH จะเป็น apps/images)

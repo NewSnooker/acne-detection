@@ -85,9 +85,9 @@ model AiModel {
   name        String
   version     String
   description String?
-  filePath    String   // provider "file" = ชื่อไฟล์ในโฟลเดอร์ MODEL_STORAGE_PATH, "mongodb" = ""
+  filePath    String   // provider "file" = ชื่อไฟล์ในโฟลเดอร์ MODEL_STORAGE_PATH, "azure-blob" = ชื่อ blob, "mongodb" = ""
   modelData   Bytes?   // ไฟล์ .pt ทั้งไฟล์ (เฉพาะ provider "mongodb" ไม่เกิน 15 MB)
-  provider    String   @default("local") // "file" หรือ "mongodb" ("local" เป็นค่าเก่า ไม่ได้ใช้แล้ว)
+  provider    String   @default("local") // "file", "mongodb" หรือ "azure-blob" ("local" เป็นค่าเก่า ไม่ได้ใช้แล้ว)
   fileName    String
   sizeMb      Float
   isActive    Boolean  @default(true)
@@ -112,7 +112,7 @@ model Image {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   fileName    String   // ชื่อไฟล์ (local) หรือ pathname (vercel-blob)
   url         String?  // Public URL ของ Vercel Blob (local = null)
-  provider    String   @default("local") // "local" หรือ "vercel-blob"
+  provider    String   @default("local") // "local", "vercel-blob" หรือ "azure-blob"
   createdAt   DateTime @default(now())
 
   analysis    Analysis?

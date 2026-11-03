@@ -24,8 +24,8 @@ VerificationToken                (Auth.js)
 |---|---|---|
 | name, version, description? | String | |
 | modelData | Bytes? | ไฟล์ `.pt` ทั้งไฟล์ (provider `"mongodb"` ≤ 15 MB) |
-| provider | String | `"file"` = โฟลเดอร์ `MODEL_STORAGE_PATH` ของเครื่องที่อัปโหลด, `"mongodb"` = `modelData` (เลือกด้วย `MODEL_STORAGE` ดู `environments.md`; default ใน schema ยังเป็น `"local"` ที่ไม่ได้ใช้แล้ว; `"chunks"` เป็นแบบที่เลิกใช้ ล้างด้วย `npm run db:cleanup`) |
-| filePath | String | provider `"file"` = ชื่อไฟล์ในโฟลเดอร์, `"mongodb"` = `""` |
+| provider | String | `"file"` = โฟลเดอร์ `MODEL_STORAGE_PATH` ของเครื่องที่อัปโหลด, `"mongodb"` = `modelData`, `"azure-blob"` = container `models` บน Azure Blob (เลือกด้วย `MODEL_STORAGE` ดู `environments.md`; default ใน schema ยังเป็น `"local"` ที่ไม่ได้ใช้แล้ว; `"chunks"` เป็นแบบที่เลิกใช้ ล้างด้วย `npm run db:cleanup`) |
+| filePath | String | provider `"file"` = ชื่อไฟล์ในโฟลเดอร์, `"azure-blob"` = ชื่อ blob, `"mongodb"` = `""` |
 | fileName | String | `<hex>_<ชื่อไฟล์>` |
 | sizeMb | Float | |
 | isActive | Boolean | ควรมี true ได้ตัวเดียว (บังคับด้วยโค้ด ไม่ใช่ DB) |
@@ -36,7 +36,7 @@ VerificationToken                (Auth.js)
 ค่าประเมินโมเดล (ข้อ 1.3.3.3): `mAP50`, `precision`, `recall`, `f1Score`, `accuracy` — `Float?` เก็บเป็นร้อยละ 0–100 แอดมินกรอกในหน้าแก้ไขโมเดล (`parseModelMetrics` ตรวจช่วงค่า) ไม่ได้อ่านจากไฟล์ `.pt`
 
 ### Image
-`id, fileName, url?, provider ("local" | "vercel-blob"), createdAt`
+`id, fileName, url?, provider ("local" | "vercel-blob" | "azure-blob"), createdAt`
 
 ### Analysis
 | field | type | หมายเหตุ |
@@ -64,7 +64,7 @@ VerificationToken                (Auth.js)
 
 ## ข้อจำกัดที่ต้องรู้
 
-- เอกสาร BSON ใหญ่สุด 16 MB → `modelData` รับได้ไม่เกิน 15 MB โมเดลใหญ่ต้องใช้ `MODEL_STORAGE=file` (Docker) หรือที่เก็บบนคลาวด์ (Azure Blob — กำลังทำ)
+- เอกสาร BSON ใหญ่สุด 16 MB → `modelData` รับได้ไม่เกิน 15 MB โมเดลใหญ่ต้องใช้ `MODEL_STORAGE=file` (Docker) หรือที่เก็บบนคลาวด์ (`MODEL_STORAGE=azure-blob`)
 - Atlas ฟรีมีพื้นที่รวม 512 MB
 - ไม่มี index เพิ่มเติมบน `Analysis.userId`, `Analysis.createdAt`
 - `counts`/`detections` เป็น Json จึง query/aggregate ใน DB ไม่ได้ตรง ๆ ปัจจุบันคำนวณใน JS

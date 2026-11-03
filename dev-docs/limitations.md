@@ -9,7 +9,7 @@
 | --- | --- | --- | --- |
 | Docker | volume `model_files` (`MODEL_STORAGE=file`) | ไม่จำกัด | — |
 | Vercel + Render | `modelData` ใน MongoDB | ประมาณ 4.5 MB | Vercel รับ body ของคำขอได้ไม่เกินประมาณ 4.5 MB (ตั้งค่าแก้ไม่ได้) และเอกสาร MongoDB ใหญ่ได้ไม่เกิน 16 MB |
-| Azure | Azure Blob (กำลังทำ) | ไม่จำกัด | — |
+| Azure | Azure Blob (`azure-blob`) | ไม่จำกัด | — |
 
 หน้าอัปโหลดบอกเพดานของระบบนั้นตั้งแต่เลือกไฟล์ โมเดลใหญ่ (เช่น L) ให้อัปโหลดผ่าน Docker หรือ Azure
 

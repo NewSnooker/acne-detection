@@ -1,6 +1,6 @@
 # Environments — ระบบแต่ละชุดและที่เก็บไฟล์
 
-อัปเดตล่าสุด 2026-11-01
+อัปเดตล่าสุด 2026-11-03
 
 ## หลักการ (อ่านก่อนแก้เรื่อง deploy / ที่เก็บไฟล์)
 
@@ -19,7 +19,7 @@
 |---|---|---|---|---|---|
 | **Docker** | ผู้ใช้ดาวน์โหลดไปติดตั้งเอง + พัฒนาในเครื่อง | container `web` / `ai` | container `mongodb` (volume `mongodb_data`) | `local` → volume `image_files` | `file` → volume `model_files` (ไม่จำกัดขนาด) |
 | **Vercel + Render** | เว็บตัวอย่างบนบริการฟรี (เก็บไว้อ้างอิงในเล่ม) | Vercel / Render | Atlas database เดิม | `vercel-blob` | `mongodb` (`modelData`) อัปโหลดได้ ≤ 4.5 MB (เพดานของ Vercel) |
-| **Azure** (กำลังทำ) | ระบบหลัก วัดผลในเล่ม | Container Apps / Container Apps | Atlas database ใหม่ (`acne_azure`) | `azure-blob` (ยังไม่มีในโค้ด) | `azure-blob` (ยังไม่มีในโค้ด) |
+| **Azure** | ระบบหลัก วัดผลในเล่ม | Container Apps / Container Apps (scale 0–1) | Atlas database ใหม่ (`acne_azure`) | `azure-blob` → container `images` (private) | `azure-blob` → container `models` ไม่จำกัดขนาด |
 
 `npm run dev` ในเครื่อง (ไม่ใช้ Docker) = ชุด dev: ใช้ **MongoDB ของ Docker** (`localhost:27018`) แต่ database **`acne_dev`** แยกจาก `acne_db` ของ Docker web + โฟลเดอร์ในโปรเจค ไม่ใช่ Atlas ของเว็บจริง — วิธีเปิดและดูใน Compass: `manual/06-developer-guide.md`
 
@@ -27,19 +27,22 @@
 
 | ตัวแปร | ค่า | ไม่ตั้ง = |
 |---|---|---|
-| `IMAGE_STORAGE` | `local` (โฟลเดอร์ `STORAGE_PATH`) · `vercel-blob` | `APP_ENV=hosted` → `vercel-blob` อื่น ๆ → `local` |
-| `MODEL_STORAGE` | `file` (โฟลเดอร์ `MODEL_STORAGE_PATH`) · `mongodb` (`AiModel.modelData` ≤ 15 MB) | มี `MODEL_STORAGE_PATH` → `file` อื่น ๆ → `mongodb` |
+| `IMAGE_STORAGE` | `local` (โฟลเดอร์ `STORAGE_PATH`) · `vercel-blob` · `azure-blob` | `APP_ENV=hosted` → `vercel-blob` อื่น ๆ → `local` |
+| `MODEL_STORAGE` | `file` (โฟลเดอร์ `MODEL_STORAGE_PATH`) · `mongodb` (`AiModel.modelData` ≤ 15 MB) · `azure-blob` | มี `MODEL_STORAGE_PATH` → `file` อื่น ๆ → `mongodb` |
 | `ENV_NAME` | ชื่อที่แสดงบนหัวหน้าแอดมิน เช่น `docker`, `vercel`, `azure` | เดาจาก `VERCEL` / `APP_ENV` |
+| `AZURE_STORAGE_CONNECTION_STRING` | connection string ของ storage account (ต้องมีเมื่อใช้ `azure-blob`) | — |
+| `AZURE_STORAGE_IMAGE_CONTAINER` / `AZURE_STORAGE_MODEL_CONTAINER` | ชื่อ container | `images` / `models` |
 | `ALLOW_SHARED_DB` | `true` = ยอมให้ที่เก็บบนดิสก์ใช้คู่กับ Atlas | ไม่ยอม |
 
 - ของที่บันทึกแล้วจำ `provider` ของตัวเองไว้ (`Image.provider`, `AiModel.provider`) — เปลี่ยนตัวแปรมีผลกับ**ของที่อัปโหลดใหม่**เท่านั้น ของเก่ายังอ่านจากที่เดิม
-- ขนาดโมเดลสูงสุด: `maxModelUploadBytes()` — `file` ไม่จำกัด, `mongodb` 15 MB, บน Vercel 4.5 MB หน้าอัปโหลดบอกตั้งแต่เลือกไฟล์
+- `azure-blob` (`lib/storage/azure-blob.ts`): container เป็น private — เบราว์เซอร์ดูรูปผ่าน `/api/images/<ชื่อไฟล์>` (เช็คเจ้าของรูป), ai โหลดรูปด้วยลิงก์ SAS อ่านอย่างเดียวอายุ 10 นาที (`imageUrlForAi`) จึงต้องตั้ง `ALLOWED_IMAGE_HOSTS=.blob.core.windows.net` ฝั่ง ai, โมเดลส่งต่อผ่าน `GET /api/models/[id]` แบบ stream เหมือน `file`
+- ขนาดโมเดลสูงสุด: `maxModelUploadBytes()` — `file` / `azure-blob` ไม่จำกัด, `mongodb` 15 MB, บน Vercel 4.5 MB หน้าอัปโหลดบอกตั้งแต่เลือกไฟล์
 
 ## การกันพลาด
 
 | จุด | ทำอะไร |
 |---|---|
-| `src/instrumentation.ts` | ตอนเซิร์ฟเวอร์เริ่ม: `DATABASE_URL` เป็น `mongodb+srv://` (Atlas) แต่ `IMAGE_STORAGE=local` หรือ `MODEL_STORAGE=file` → **ไม่ยอมเริ่ม** พร้อมข้อความบอกวิธีแก้ ค่าตัวแปรสะกดผิดก็แจ้งตั้งแต่เริ่ม |
+| `src/instrumentation.ts` | ตอนเซิร์ฟเวอร์เริ่ม: `DATABASE_URL` เป็น `mongodb+srv://` (Atlas) แต่ `IMAGE_STORAGE=local` หรือ `MODEL_STORAGE=file` → **ไม่ยอมเริ่ม** พร้อมข้อความบอกวิธีแก้ · ใช้ `azure-blob` แต่ไม่มี `AZURE_STORAGE_CONNECTION_STRING` ก็ไม่ยอมเริ่ม · ค่าตัวแปรสะกดผิดก็แจ้งตั้งแต่เริ่ม |
 | หัวหน้าแดชบอร์ด (แอดมิน) | ป้ายชื่อ environment เช่น `DOCKER` `VERCEL` — รู้ว่ากำลังแก้ข้อมูลของระบบไหน |
 | `npm run db:cleanup` | ล้างข้อมูลที่เคยปนใน Atlas (ประวัติที่รูปอยู่บนดิสก์เครื่องอื่น, โมเดล `file`/`chunks`, collection `AiModelChunk`) ค่าเริ่มต้นแค่แสดงรายการ ลบจริงต้อง `--apply` ไม่ยอมรันกับฐานข้อมูลที่ไม่ใช่ Atlas |
 
@@ -59,7 +62,9 @@ ENV_NAME=dev
 **Vercel** — Settings → Environment Variables: `APP_ENV=hosted` (หรือ `IMAGE_STORAGE=vercel-blob`), `MODEL_STORAGE=mongodb`, `ENV_NAME=vercel`, `BLOB_READ_WRITE_TOKEN`, `DATABASE_URL` (Atlas database เดิม)
 ฝั่ง Render ใช้โมเดลเล็ก (เช่น best.pt 5 MB) — RAM 512 MB รันโมเดล L ไม่ไหว (instance รีสตาร์ท)
 
-**Azure** — ขั้นตอนจะเพิ่มเมื่อเพิ่ม `azure-blob` ในโค้ด
+**Azure** — คลิกตั้งค่าทีละขั้นใน Portal: `dev-docs/azure-deploy.md` (image จาก ghcr.io ที่ `.github/workflows/docker-publish.yml` build ให้)
+web: `IMAGE_STORAGE=azure-blob`, `MODEL_STORAGE=azure-blob`, `AZURE_STORAGE_CONNECTION_STRING`, `ENV_NAME=azure`, `DATABASE_URL` (Atlas `acne_azure`), `AI_SERVICE_URL=http://acne-ai`, `INTERNAL_APP_URL` = ลิงก์เว็บ
+ai: `ALLOWED_IMAGE_HOSTS=.blob.core.windows.net`, `AI_SERVICE_API_KEY` ตรงกับเว็บ
 
 ## เมื่อแก้ `schema.prisma`
 

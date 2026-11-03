@@ -1,7 +1,7 @@
 import { createReadStream, createWriteStream } from "fs";
 import { mkdir, rm, stat } from "fs/promises";
 import path from "path";
-import { Readable, Transform } from "stream";
+import { PassThrough, Readable, Transform } from "stream";
 import { pipeline } from "stream/promises";
 import type { ReadableStream as WebReadableStream } from "stream/web";
 import { HttpError } from "@/lib/http-error";
@@ -10,10 +10,16 @@ import {
   modelStorage,
   type ModelStorage,
 } from "@/lib/storage/config";
+import {
+  deleteBlob,
+  openBlob,
+  uploadBlobStream,
+} from "@/lib/storage/azure-blob";
 
 // ที่เก็บไฟล์โมเดล .pt (เลือกด้วย MODEL_STORAGE ใน lib/storage/config.ts)
 // - "file": เขียนลงโฟลเดอร์ MODEL_STORAGE_PATH แบบ stream ไม่จำกัดขนาด (Docker volume)
 // - "mongodb": เก็บในฟิลด์ AiModel.modelData (เช่น Vercel) ไม่เกิน MONGODB_MODEL_LIMIT
+// - "azure-blob": stream ขึ้น container โมเดลบน Azure Blob ไม่จำกัดขนาด (filePath = ชื่อ blob)
 export type ModelProvider = ModelStorage;
 
 export type ModelUploadResult = {
@@ -80,6 +86,31 @@ export async function saveModel(
     };
   }
 
+  if (modelStorage() === "azure-blob") {
+    const { counter, size } = byteCounter(Number.POSITIVE_INFINITY);
+    const upload = new PassThrough();
+    try {
+      await Promise.all([
+        pipeline(source, counter, upload),
+        uploadBlobStream(
+          "models",
+          fileName,
+          upload,
+          "application/octet-stream",
+        ),
+      ]);
+    } catch (error) {
+      await deleteBlob("models", fileName).catch(() => {});
+      throw error;
+    }
+    return {
+      filePath: fileName,
+      modelData: null,
+      provider: "azure-blob",
+      sizeBytes: size(),
+    };
+  }
+
   const { counter, size } = byteCounter(MONGODB_MODEL_LIMIT);
   const chunks: Buffer[] = [];
   await pipeline(source, counter, async function* (input) {
@@ -93,10 +124,12 @@ export async function saveModel(
   };
 }
 
-/** เปิดไฟล์โมเดลที่เก็บแบบ "file" เพื่อส่งต่อ — คืน null ถ้าไม่พบไฟล์ */
+/** เปิดไฟล์โมเดลที่เก็บแบบ "file" หรือ "azure-blob" เพื่อส่งต่อ — คืน null ถ้าไม่พบไฟล์ */
 export async function openModelFile(
+  provider: string,
   filePath: string,
 ): Promise<{ stream: ReadableStream<Uint8Array>; size: number } | null> {
+  if (provider === "azure-blob") return openBlob("models", filePath);
   const full = resolveStoredFile(filePath);
   const info = await stat(full).catch(() => null);
   if (!info?.isFile()) return null;
@@ -110,8 +143,13 @@ export async function deleteModelFile(
   provider: string,
   filePath: string,
 ): Promise<void> {
+  if (!filePath) return;
+  if (provider === "azure-blob") {
+    await deleteBlob("models", filePath);
+    return;
+  }
   // แบบ mongodb: ลบ record = ลบข้อมูลไปด้วยแล้ว
-  if (provider !== "file" || !filePath) return;
+  if (provider !== "file") return;
   // ไฟล์อยู่ในเครื่องอื่น (เครื่องนี้ไม่ได้ตั้งโฟลเดอร์) — ลบจากที่นี่ไม่ได้ ข้ามไป
   if (!storageDir()) return;
   await rm(resolveStoredFile(filePath), { force: true });

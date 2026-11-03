@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   afterAll,
+  afterEach,
   beforeAll,
   beforeEach,
   describe,
@@ -14,10 +15,12 @@ import {
 
 // GET /api/images/<ชื่อไฟล์> — รูปใบหน้าเป็นข้อมูลส่วนตัว ดูได้เฉพาะเจ้าของรูปและผู้ดูแลระบบ
 // ใช้โฟลเดอร์ชั่วคราวจริงแทนโฟลเดอร์เก็บรูป จำลองเฉพาะการเข้าสู่ระบบและฐานข้อมูล
-const { auth, analysisFindFirst } = vi.hoisted(() => ({
+const { auth, analysisFindFirst, openBlob } = vi.hoisted(() => ({
   auth: vi.fn(),
   analysisFindFirst: vi.fn(),
+  openBlob: vi.fn(),
 }));
+vi.mock("@/lib/storage/azure-blob", () => ({ openBlob }));
 vi.mock("@/lib/auth", () => ({ auth }));
 vi.mock("@/lib/prisma", () => ({
   prisma: { analysis: { findFirst: analysisFindFirst } },
@@ -45,6 +48,7 @@ beforeEach(() => {
   vi.spyOn(console, "error").mockImplementation(() => {});
   auth.mockReset();
   analysisFindFirst.mockReset();
+  openBlob.mockReset();
 });
 
 const get = (...segments: string[]) =>
@@ -128,5 +132,44 @@ describe("GET /api/images/[...path]", () => {
     asAdmin();
 
     expect((await get()).status).toBe(404);
+  });
+
+  describe("IMAGE_STORAGE=azure-blob", () => {
+    beforeEach(() => vi.stubEnv("IMAGE_STORAGE", "azure-blob"));
+    afterEach(() => vi.stubEnv("IMAGE_STORAGE", ""));
+
+    const blobOf = (text: string) => ({
+      stream: new Response(text).body,
+      size: text.length,
+    });
+
+    it("เจ้าของรูปเปิดรูปจาก container images ได้", async () => {
+      asUser("u1");
+      analysisFindFirst.mockResolvedValue({ id: "analysis1" });
+      openBlob.mockResolvedValue(blobOf("AZUREJPEG"));
+
+      const res = await get("abc.jpg");
+
+      expect(res.status).toBe(200);
+      expect(res.headers.get("Content-Type")).toBe("image/jpeg");
+      expect(await res.text()).toBe("AZUREJPEG");
+      expect(openBlob).toHaveBeenCalledWith("images", "abc.jpg");
+    });
+
+    it("ไม่ใช่เจ้าของ ไม่ดึงไฟล์จาก Azure เลย", async () => {
+      asUser("u2");
+      analysisFindFirst.mockResolvedValue(null);
+
+      expect((await get("abc.jpg")).status).toBe(404);
+      expect(openBlob).not.toHaveBeenCalled();
+    });
+
+    it("ไม่มีไฟล์ใน Blob หรือขอแบบมีโฟลเดอร์ย่อย ตอบ 404", async () => {
+      asAdmin();
+      openBlob.mockResolvedValue(null);
+
+      expect((await get("none.jpg")).status).toBe(404);
+      expect((await get("a", "b.jpg")).status).toBe(404);
+    });
   });
 });

@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     STORAGE_PATH: str = "./storage"
     MODELS_PATH: str = "./models"
     # host ที่ยอมให้ดาวน์โหลดรูปผ่าน URL (คั่นด้วย , ; ขึ้นต้นด้วย . = รวม subdomain)
+    # Azure: ตั้ง ALLOWED_IMAGE_HOSTS=.blob.core.windows.net
     ALLOWED_IMAGE_HOSTS: str = ".public.blob.vercel-storage.com"
     # host ของเว็บที่ยอมให้ดาวน์โหลดไฟล์โมเดล (เว้นว่าง = ไม่จำกัด host)
     ALLOWED_MODEL_HOSTS: str = ""

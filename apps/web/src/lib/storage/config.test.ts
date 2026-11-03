@@ -27,9 +27,14 @@ describe("imageStorage / modelStorage", () => {
     expect(modelStorage({})).toBe("mongodb");
   });
 
+  it("รับ azure-blob ทั้งรูปและโมเดล", () => {
+    expect(imageStorage({ IMAGE_STORAGE: "azure-blob" })).toBe("azure-blob");
+    expect(modelStorage({ MODEL_STORAGE: "azure-blob" })).toBe("azure-blob");
+  });
+
   it("สะกดผิด แจ้ง error พร้อมค่าที่ใช้ได้", () => {
     expect(() => imageStorage({ IMAGE_STORAGE: "s3" })).toThrow(
-      "local, vercel-blob",
+      "local, vercel-blob, azure-blob",
     );
   });
 });
@@ -46,6 +51,8 @@ describe("maxModelUploadBytes", () => {
       expect(maxModelUploadBytes()).toBe(15 * 1024 * 1024);
       process.env.VERCEL = "1";
       expect(maxModelUploadBytes()).toBe(4.5 * 1024 * 1024);
+      process.env.MODEL_STORAGE = "azure-blob";
+      expect(maxModelUploadBytes()).toBeNull();
     } finally {
       process.env = original;
     }
@@ -81,6 +88,27 @@ describe("storageConfigProblem", () => {
         MODEL_STORAGE_PATH: "/m",
       }),
     ).toContain("MODEL_STORAGE=file");
+  });
+
+  it("Azure: Atlas + Azure Blob = ปลอดภัย", () => {
+    expect(
+      storageConfigProblem({
+        DATABASE_URL: ATLAS,
+        IMAGE_STORAGE: "azure-blob",
+        MODEL_STORAGE: "azure-blob",
+        AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=https;...",
+      }),
+    ).toBeNull();
+  });
+
+  it("azure-blob แต่ไม่ได้ตั้ง connection string = ไม่ยอมเริ่ม", () => {
+    expect(
+      storageConfigProblem({
+        DATABASE_URL: ATLAS,
+        IMAGE_STORAGE: "azure-blob",
+        MODEL_STORAGE: "azure-blob",
+      }),
+    ).toContain("AZURE_STORAGE_CONNECTION_STRING");
   });
 
   it("ตั้ง ALLOW_SHARED_DB=true ได้ถ้าตั้งใจ", () => {

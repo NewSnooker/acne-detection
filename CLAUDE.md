@@ -16,7 +16,7 @@ Browser ──► Next.js 16 (apps/web)  ──X-API-Key──►  FastAPI + YOL
               ▼                                        │  โหลดโมเดลจาก GET /api/models/[id] (cache ลงดิสก์)
            MongoDB (User, AiModel+ไฟล์ .pt, Image, Analysis)
               ▲
-        รูป/โมเดล: Docker volume (image_files, model_files) | Vercel Blob + modelData | Azure Blob (กำลังทำ)
+        รูป/โมเดล: Docker volume (image_files, model_files) | Vercel Blob + modelData | Azure Blob
 ```
 
 - Next.js เป็นทั้ง Frontend และ Backend หลัก (auth, CRUD, คำนวณ severity, บันทึกผล)
@@ -44,7 +44,7 @@ acne-ai-v1/
 │   │       ├── app/api/              ← Route Handlers (backend)
 │   │       ├── app/actions/          ← Server Actions (เฉพาะ login)
 │   │       ├── server/               ← business logic ฝั่ง server (Prisma, import "server-only") แยกไฟล์ตาม feature
-│   │       ├── lib/storage/          ← config.ts (เลือกที่เก็บจาก env), image-provider, model-provider
+│   │       ├── lib/storage/          ← config.ts (เลือกที่เก็บจาก env), image-provider, model-provider, azure-blob
 │   │       ├── lib/auth*.ts          ← Auth.js config
 │   │       ├── lib/api-client/       ← fetch wrapper ฝั่ง client (เรียก /api/*)
 │   │       ├── components/           ← admin, analyze, auth, history, layout, statistics, ui
@@ -64,6 +64,7 @@ acne-ai-v1/
 | ไฟล์ | อ่านเมื่อ |
 |---|---|
 | `dev-docs/environments.md` | **แก้เรื่อง deploy / ที่เก็บรูปและโมเดล / env** — ระบบแต่ละชุด, ตัวแปร, การกันพลาด |
+| `dev-docs/azure-deploy.md` | ขึ้นระบบบน Azure (Container Apps + Blob + Atlas) คลิกทีละขั้นใน Portal |
 | `dev-docs/architecture.md` | ต้องเข้าใจ flow วิเคราะห์สิว, การเก็บรูป/โมเดล |
 | `dev-docs/web-app.md` | แก้โค้ด Next.js — route, layer, component, auth |
 | `dev-docs/api-reference.md` | แก้/เพิ่ม endpoint ทั้งฝั่ง Next.js และ FastAPI |
