@@ -34,9 +34,11 @@ export async function GET(
       "Content-Type": "application/octet-stream",
     };
 
-    // เก็บเป็นไฟล์: ส่งแบบ stream ไม่โหลดทั้งไฟล์เข้าหน่วยความจำ
-    if (model.provider === "file") {
-      const stored = await openModelFile(model.filePath).catch(() => null);
+    // เก็บเป็นไฟล์ (ดิสก์ / Azure Blob): ส่งแบบ stream ไม่โหลดทั้งไฟล์เข้าหน่วยความจำ
+    if (model.provider === "file" || model.provider === "azure-blob") {
+      const stored = await openModelFile(model.provider, model.filePath).catch(
+        () => null,
+      );
       if (!stored) {
         // ไฟล์อยู่บนดิสก์ของเครื่องที่อัปโหลด (แบบเก่า) — เซิร์ฟเวอร์นี้ไม่มีไฟล์
         throw new HttpError(

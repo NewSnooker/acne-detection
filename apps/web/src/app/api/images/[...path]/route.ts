@@ -3,7 +3,8 @@ import path from "path";
 import { readFile, stat } from "fs/promises";
 import { prisma } from "@/lib/prisma";
 import { requireUserApi } from "@/lib/auth/guards";
-import { getStoragePath } from "@/lib/storage/image-provider";
+import { imageStorage } from "@/lib/storage/config";
+import { getStoragePath, openAzureImage } from "@/lib/storage/image-provider";
 
 const CONTENT_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg",
@@ -48,22 +49,35 @@ export async function GET(
       }
     }
 
+    const ext = path.extname(absoluteFilePath).toLowerCase();
+    const headers = {
+      "Content-Type": CONTENT_TYPES[ext] || "application/octet-stream",
+      // private: รูปเป็นข้อมูลส่วนตัว ห้าม cache ที่ตัวกลาง (proxy/CDN)
+      "Cache-Control": "private, max-age=31536000, immutable",
+      "X-Content-Type-Options": "nosniff",
+    };
+
+    // Azure Blob (container private): เว็บดึงมาส่งต่อ ชื่อไฟล์ต้องไม่มีโฟลเดอร์ย่อย
+    if (imageStorage() === "azure-blob") {
+      if (filePathArray.length !== 1) {
+        return new NextResponse("File not found", { status: 404 });
+      }
+      const stored = await openAzureImage(filePathArray[0]);
+      if (!stored) {
+        return new NextResponse("File not found", { status: 404 });
+      }
+      return new NextResponse(stored.stream, {
+        headers: { ...headers, "Content-Length": stored.size.toString() },
+      });
+    }
+
     const fileStat = await stat(absoluteFilePath);
     if (!fileStat.isFile()) {
       return new NextResponse("Not a file", { status: 404 });
     }
 
     const fileBuffer = await readFile(absoluteFilePath);
-    const ext = path.extname(absoluteFilePath).toLowerCase();
-
-    return new NextResponse(fileBuffer, {
-      headers: {
-        "Content-Type": CONTENT_TYPES[ext] || "application/octet-stream",
-        // private: รูปเป็นข้อมูลส่วนตัว ห้าม cache ที่ตัวกลาง (proxy/CDN)
-        "Cache-Control": "private, max-age=31536000, immutable",
-        "X-Content-Type-Options": "nosniff",
-      },
-    });
+    return new NextResponse(fileBuffer, { headers });
   } catch (error) {
     if (error instanceof Error) {
       console.error(error.message);
