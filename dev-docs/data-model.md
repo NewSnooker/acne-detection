@@ -64,7 +64,7 @@ VerificationToken                (Auth.js)
 
 ## ข้อจำกัดที่ต้องรู้
 
-- เอกสาร BSON ใหญ่สุด 16 MB → `modelData` รับได้ไม่เกิน 15 MB โมเดลใหญ่ต้องใช้ `MODEL_STORAGE=file` (Docker) หรือที่เก็บบนคลาวด์ (Azure Blob — กำลังทำ)
+- เอกสาร BSON ใหญ่สุด 16 MB → `modelData` รับได้ไม่เกิน 15 MB โมเดลใหญ่ต้องใช้ `MODEL_STORAGE=file` (Docker) หรือที่เก็บบนคลาวด์ (`MODEL_STORAGE=azure-blob`)
 - Atlas ฟรีมีพื้นที่รวม 512 MB
 - ไม่มี index เพิ่มเติมบน `Analysis.userId`, `Analysis.createdAt`
 - `counts`/`detections` เป็น Json จึง query/aggregate ใน DB ไม่ได้ตรง ๆ ปัจจุบันคำนวณใน JS
