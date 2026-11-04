@@ -8,6 +8,8 @@
 
 ## TTA ของ Ultralytics ทำอะไร
 
+![TTA ส่งภาพเข้าโมเดล 3 รอบ](../images/tta-passes.png)
+
 อ้างอิงโค้ด ultralytics 8.4.198 `nn/tasks.py` → `DetectionModel._predict_augment()`, `_descale_pred()`, `_clip_augmented()`, `utils/torch_utils.py` → `scale_img()`
 
 1. ปรับภาพเป็นขนาดที่โมเดลใช้ (960) เหมือนการทำนายปกติ

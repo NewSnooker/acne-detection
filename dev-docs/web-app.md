@@ -26,6 +26,8 @@ Layout: `app/(dashboard)/layout.tsx` (Sidebar + Header, เช็ค session), `
 
 ## ชั้นของโค้ด (ปัจจุบัน)
 
+![ชั้นของโค้ดเว็บ](images/web-layers.png)
+
 ```
 Client component
    └─ src/lib/api-client/*-api.ts   fetch wrapper (AnalyzeService, AuthService, ModelService, UserService) ผ่าน apiRequest
@@ -48,8 +50,8 @@ Server component (page.tsx)
 | `lib/http-error.ts` | `HttpError`, `errorResponse`, `parseBody`, `readJson` | service โยน `HttpError(status, ข้อความไทย)` แล้ว route แปลงเป็น response; error อื่นตอบ 500 โดยไม่เปิดเผยข้อความภายใน |
 | `lib/validation/api-input.ts` | `modelInfoSchema`, `editModelSchema`, `idListSchema` | zod schema ของ body |
 | `lib/acne-counts.ts` | `readCounts` | อ่าน `Analysis.counts` (Json) ใช้ได้ทั้ง server และ client |
-| `lib/storage/image-provider.ts` | `uploadImage`, `deleteImage` | local / vercel-blob |
-| `lib/storage/model-provider.ts` | `saveModel`, `deleteModelFile` | คืน Buffer เก็บลง Mongo |
+| `lib/storage/image-provider.ts` | `uploadImage`, `deleteImage` | local / vercel-blob / azure-blob (เลือกใน `lib/storage/config.ts`) |
+| `lib/storage/model-provider.ts` | `saveModel`, `deleteModelFile` | file / mongodb (Buffer ลง `modelData`) / azure-blob |
 | `lib/auth/guards.ts` | `requireUserPage`, `requireAdminPage` (หน้าเว็บ: redirect), `requireUserApi`, `requireAdminApi` (API: ตอบ 401/403) | จุดเดียวสำหรับตรวจสิทธิ์ ทุกหน้าและทุก route ใช้ชุดนี้ |
 | `lib/auth/credentials.ts` | `authorizeCredentials` | ตรวจอีเมลและรหัสผ่านตอนเข้าสู่ระบบ ใช้ใน `auth.ts` |
 | `lib/auth/route-access.ts` | `resolveRedirect`, `PUBLIC_ROUTES`, `ADMIN_ROUTES` | กติกากันหน้าเว็บ ใช้ใน `proxy.ts` |
@@ -89,6 +91,8 @@ type: `Detection { type, confidence, bbox{x1,y1,x2,y2} }`, `AnalysisResult`
 
 ## proxy.ts (middleware)
 
+![role อยู่ใน JWT และถูกตรวจ 2 ชั้น](images/auth-roles.png)
+
 - `PUBLIC_ROUTES`: `/login`, `/register`, `/api/auth`, `/api/account`, `/api/models`
 - ไม่ login + ไม่ public → redirect `/login`
 - path ขึ้นต้น `/admin` + role ไม่ใช่ ADMIN → redirect `/analyze`
@@ -99,11 +103,13 @@ type: `Detection { type, confidence, bbox{x1,y1,x2,y2} }`, `AnalysisResult`
 
 | ตัวแปร | ใช้ที่ |
 |---|---|
-| `AUTH_SECRET`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `AUTH_TRUST_HOST` | Auth.js |
+| `AUTH_SECRET`, `AUTH_URL` (ลิงก์เว็บจริง — ไม่ตั้งแล้ว logout/Google เด้งไป localhost; ใช้ตั้ง `metadataBase` ด้วย), `AUTH_TRUST_HOST` | Auth.js (`NEXTAUTH_URL`, `NEXTAUTH_SECRET` คือชื่อเก่าของ v4) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `lib/auth.ts` |
 | `DATABASE_URL` | Prisma |
 | `AI_SERVICE_URL`, `AI_SERVICE_API_KEY` (บังคับ ไม่มีค่าสำรองในโค้ด), confidence/TTA ตั้งรายโมเดลใน DB ไม่ใช่ env | `server/analyze.ts`, `api/models/[id]/route.ts` |
 | `NEXT_PUBLIC_APP_URL`, `INTERNAL_APP_URL` | URL ที่ FastAPI ใช้โหลดโมเดล |
-| `APP_ENV` | `"hosted"` = Vercel Blob |
+| `IMAGE_STORAGE`, `MODEL_STORAGE`, `ENV_NAME`, `AZURE_STORAGE_*`, `ALLOW_SHARED_DB` | เลือกที่เก็บรูป/โมเดล — ตารางเต็มใน `environments.md` |
+| `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD` | `prisma/seed.mjs` — บน Atlas ไม่ตั้ง = ไม่สร้างแอดมินเริ่มต้น |
+| `APP_ENV` | `"hosted"` = Vercel Blob (ค่าเดิม ถ้าไม่ตั้ง `IMAGE_STORAGE`) |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob |
 | `STORAGE_PATH` | โฟลเดอร์รูป (absolute) ถ้าไม่ตั้งจะเดาจาก cwd |
