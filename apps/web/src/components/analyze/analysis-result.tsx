@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { AlertCircle, CircleCheck, Info, Loader2 } from "lucide-react";
+import {
+  AlertCircle,
+  CircleCheck,
+  Info,
+  Lightbulb,
+  Loader2,
+} from "lucide-react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
   AnalysisResult,
@@ -30,11 +36,17 @@ interface AnalysisResultPanelProps {
   onHoverGroup?: (group: AcneGroupId | null) => void;
 }
 
-// กรอบของกลุ่มที่มีผลต่อการประเมิน ใช้สีเดียวกับป้ายระดับ
+// กลุ่มที่มีผลต่อการประเมิน: พื้นสีอ่อน + จุดสีตามระดับ (ไม่ใช้เส้นขอบ ให้การ์ดระดับเด่นที่สุด)
 const DECISIVE_STYLE: Record<SeverityLevel, string> = {
-  MILD: "border-2 border-emerald-500 bg-emerald-500/10",
-  MODERATE: "border-2 border-amber-500 bg-amber-500/10",
-  SEVERE: "border-2 border-destructive bg-destructive/10",
+  MILD: "bg-emerald-500/10",
+  MODERATE: "bg-amber-500/10",
+  SEVERE: "bg-destructive/10",
+};
+
+const DECISIVE_DOT: Record<SeverityLevel, string> = {
+  MILD: "bg-emerald-500",
+  MODERATE: "bg-amber-500",
+  SEVERE: "bg-destructive",
 };
 
 // เกณฑ์ตามเล่มข้อ 1.3.3.5 (ตรงกับ calculateSeverity)
@@ -271,10 +283,14 @@ export function AnalysisResultPanel({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-primary/10 border-primary/40 rounded-xl border-2 p-4"
+                className="bg-muted/60 rounded-xl p-4"
               >
-                <h3 className="text-primary mb-2 flex items-center gap-2 font-semibold">
-                  <span className="text-lg">💡</span> คำแนะนำการดูแลผิว
+                <h3 className="mb-2 flex items-center gap-2 font-semibold">
+                  <Lightbulb
+                    className="h-4 w-4 text-amber-500"
+                    aria-hidden="true"
+                  />
+                  คำแนะนำการดูแลผิว
                 </h3>
                 <p className="text-foreground text-sm leading-relaxed">
                   {ACNE_CARE_ADVICE[result.severity] ||
@@ -284,7 +300,7 @@ export function AnalysisResultPanel({
             )}
 
             {result.total === 0 && (
-              <div className="bg-muted/50 space-y-1 rounded-xl border p-4">
+              <div className="bg-muted/60 space-y-1 rounded-xl p-4">
                 <p className="font-semibold">
                   ตรวจครบทั้ง 6 ชนิด ไม่พบสิวในภาพนี้
                 </p>
@@ -339,7 +355,7 @@ export function AnalysisResultPanel({
                   variants={listContainerVariants}
                   initial="hidden"
                   animate="show"
-                  className="space-y-3"
+                  className="divide-border/60 divide-y"
                 >
                   {explanation.groups.map((g) => (
                     <motion.section
@@ -348,7 +364,7 @@ export function AnalysisResultPanel({
                       onPointerEnter={() => onHoverGroup?.(g.id)}
                       onPointerLeave={() => onHoverGroup?.(null)}
                       className={cn(
-                        "space-y-1.5 rounded-xl border px-3 py-2.5 transition-opacity",
+                        "space-y-1.5 rounded-lg px-3 py-2.5 transition-[opacity,background-color]",
                         g.decisive && DECISIVE_STYLE[g.level],
                         hoveredGroup === g.id && !g.decisive && "bg-muted/60",
                         hoveredGroup !== null &&
@@ -357,7 +373,16 @@ export function AnalysisResultPanel({
                       )}
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <p className="flex flex-wrap items-baseline gap-x-2">
+                        <p className="flex flex-wrap items-center gap-x-2">
+                          <span
+                            className={cn(
+                              "h-2 w-2 shrink-0 rounded-full",
+                              g.decisive
+                                ? DECISIVE_DOT[g.level]
+                                : "bg-muted-foreground/30",
+                            )}
+                            aria-hidden="true"
+                          />
                           <span className="font-bold">{g.name}</span>
                           <span className="text-muted-foreground text-xs">
                             (
