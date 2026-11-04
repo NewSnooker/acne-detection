@@ -41,7 +41,7 @@ async function seedAdmin() {
   if (IS_HOSTED_DB && !HAS_OWN_ADMIN) {
     console.warn(
       "[seed] ยังไม่มีผู้ดูแลระบบ แต่ไม่สร้างแอดมินเริ่มต้นบนเว็บจริง (ไม่ได้ตั้ง SEED_ADMIN_EMAIL + SEED_ADMIN_PASSWORD) — " +
-        "สมัครสมาชิกผ่านหน้าเว็บ แล้วแก้ role ของบัญชีเป็น ADMIN ในฐานข้อมูล (collection User) จากนั้นรีสตาร์ทเว็บ",
+        "สมัครสมาชิกผ่านหน้าเว็บ แล้วแก้ role ของบัญชีเป็น ADMIN ในฐานข้อมูล (collection User) จากนั้นออกจากระบบแล้วเข้าใหม่ (สิทธิ์ถูกเก็บใน session ตอนเข้าสู่ระบบ)",
     );
     return null;
   }
