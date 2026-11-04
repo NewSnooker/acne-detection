@@ -45,13 +45,14 @@ class FakeModel:
         self.results = results
         self.called_with = None
 
-    def __call__(self, image_path, conf, verbose, augment=False, agnostic_nms=False):
+    def __call__(self, image_path, conf, verbose, augment=False, agnostic_nms=False, iou=0.7):
         self.called_with = {
             "image": image_path,
             "conf": conf,
             "verbose": verbose,
             "augment": augment,
             "agnostic_nms": agnostic_nms,
+            "iou": iou,
         }
         return self.results
 
@@ -146,6 +147,7 @@ def test_confidence_threshold_is_passed_to_model(use_model):
         "verbose": False,
         "augment": False,
         "agnostic_nms": True,
+        "iou": 0.5,
     }
 
 
@@ -225,3 +227,14 @@ def test_agnostic_nms_can_be_turned_off(use_model, monkeypatch):
     YoloService().predict("face.jpg", "model.pt", 0.25)
 
     assert model.called_with["agnostic_nms"] is False
+
+
+def test_nms_iou_comes_from_settings(use_model, monkeypatch):
+    # ค่าเริ่มต้น 0.5 ตัดกรอบเล็กที่ซ้อนในกรอบใหญ่ — ตั้ง AI_NMS_IOU=0.7 เพื่อกลับเป็นค่าของ Ultralytics
+    model = use_model([])
+    YoloService().predict("face.jpg", "model.pt", 0.25)
+    assert model.called_with["iou"] == 0.5
+
+    monkeypatch.setattr(yolo_service.settings, "AI_NMS_IOU", 0.7)
+    YoloService().predict("face.jpg", "model.pt", 0.25)
+    assert model.called_with["iou"] == 0.7
