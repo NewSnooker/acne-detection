@@ -1,13 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import React, {
-  useMemo,
-  useState,
-  useRef,
-  useCallback,
-  useEffect,
-} from "react";
+import React, { useMemo, useState, useRef, useCallback } from "react";
 import type { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
 import type { CustomCellRendererProps } from "ag-grid-react";
@@ -81,10 +75,13 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
   const [selectedUsers, setSelectedUsers] = useState<UserItem[]>([]);
   const gridRef = useRef<AgGridReact>(null);
 
-  const handleDeleteUser = (userId: string, userName: string) => {
-    if (userId === currentUserId) return; // Safeguard
-    setUserToDelete({ id: userId, name: userName });
-  };
+  const handleDeleteUser = useCallback(
+    (userId: string, userName: string) => {
+      if (userId === currentUserId) return; // Safeguard
+      setUserToDelete({ id: userId, name: userName });
+    },
+    [currentUserId],
+  );
 
   const handleBatchDeleteClick = () => {
     if (!gridRef.current) return;
@@ -239,45 +236,49 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
     );
   };
 
-  const ActionCellRenderer = (props: CustomCellRendererProps<UserItem>) => {
-    const user = props.data;
-    if (!user) return null;
-    if (user.id === currentUserId) return null;
+  // useCallback: ตารางสร้างคอลัมน์ใหม่เฉพาะเมื่อสถานะที่ปุ่มลบใช้เปลี่ยน
+  const ActionCellRenderer = useCallback(
+    (props: CustomCellRendererProps<UserItem>) => {
+      const user = props.data;
+      if (!user) return null;
+      if (user.id === currentUserId) return null;
 
-    return (
-      <div className="flex h-full items-center justify-center">
-        <TooltipProvider delayDuration={150}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className={`hover:text-destructive h-8 w-8 rounded-md`}
-                onClick={() =>
-                  handleDeleteUser(user.id, user.name || user.email)
-                }
-                disabled={
-                  isDeleting === user.id ||
-                  isBatchDeleting ||
-                  user.id === currentUserId ||
-                  user.role === "ADMIN"
-                }
-              >
-                {isDeleting === user.id ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Trash2 className="h-3.5 w-3.5" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>ลบบัญชีผู้ใช้</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    );
-  };
+      return (
+        <div className="flex h-full items-center justify-center">
+          <TooltipProvider delayDuration={150}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={`hover:text-destructive h-8 w-8 rounded-md`}
+                  onClick={() =>
+                    handleDeleteUser(user.id, user.name || user.email)
+                  }
+                  disabled={
+                    isDeleting === user.id ||
+                    isBatchDeleting ||
+                    user.id === currentUserId ||
+                    user.role === "ADMIN"
+                  }
+                >
+                  {isDeleting === user.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>ลบบัญชีผู้ใช้</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      );
+    },
+    [currentUserId, isDeleting, isBatchDeleting, handleDeleteUser],
+  );
 
   // Column Definitions
   const colDefs = useMemo<ColDef<UserItem>[]>(
@@ -367,17 +368,7 @@ export function UserTable({ users, currentUserId }: UserTableProps) {
         filter: false,
       },
     ],
-    [currentUserId, isDeleting, isBatchDeleting],
-  );
-
-  const defaultColDef = useMemo(
-    () => ({
-      sortable: true,
-      filter: true,
-      floatingFilter: false,
-      resizable: true,
-    }),
-    [],
+    [ActionCellRenderer],
   );
 
   return (

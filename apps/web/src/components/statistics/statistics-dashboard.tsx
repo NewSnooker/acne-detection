@@ -2,14 +2,7 @@
 
 import { EmptyState } from "@/components/ui/empty-state";
 import { useState, useMemo } from "react";
-import {
-  subDays,
-  startOfDay,
-  endOfDay,
-  parseISO,
-  format,
-  startOfMonth,
-} from "date-fns";
+import { subDays, startOfDay, endOfDay, format, startOfMonth } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { PersonalStatsChart } from "./personal-stats-chart";
 import { SeverityDonutChart } from "./severity-donut-chart";
@@ -129,11 +122,9 @@ export function StatisticsDashboard({ data }: StatisticsDashboardProps) {
   // Calculate summary metrics based on filteredData
   const totalScans = filteredData.length;
 
-  let totalAcne = 0;
   const severityCounts = { MILD: 0, MODERATE: 0, SEVERE: 0 };
 
   filteredData.forEach((item) => {
-    totalAcne += item.total;
     if (
       item.severity &&
       severityCounts[item.severity as keyof typeof severityCounts] !== undefined

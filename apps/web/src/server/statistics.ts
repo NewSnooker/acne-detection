@@ -9,7 +9,6 @@ export async function getAdminStatistics(
   endDateStr?: string,
   isAll?: boolean,
 ) {
-  const now = new Date();
   let startDate: Date | undefined;
   let endDate: Date | undefined;
 

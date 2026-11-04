@@ -7,7 +7,7 @@ import { Calendar, RotateCcw } from "lucide-react";
 
 type Preset = "todayHourly" | "7days" | "thisMonth" | "thisYear" | "all";
 
-function presetFromRange(start: string, end: string): Preset | "custom" {
+function presetFromRange(start: string, _end: string): Preset | "custom" {
   const today = new Date();
   const startDate = new Date(start);
   const diffDays = Math.round(

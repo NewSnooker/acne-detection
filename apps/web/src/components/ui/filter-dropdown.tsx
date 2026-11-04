@@ -1,14 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import {
-  Filter,
-  Search,
-  X,
-  Calendar as CalendarIcon,
-  ArrowDownUp,
-  Check,
-} from "lucide-react";
+import { Filter, Search, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ACNE_COLORS, ACNE_LABELS } from "@/types/analyze";
 import { Badge } from "@/components/ui/badge";
@@ -27,15 +20,12 @@ interface FilterDropdownProps {
 }
 
 export function FilterDropdown({
-  currentSort,
   currentSearch = "",
-  currentDate = "",
   currentTypes = [],
   typeCounts,
   onFilterChange,
   onReset,
   showSearch = true,
-  hideSort = false,
   className,
 }: FilterDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
