@@ -103,14 +103,12 @@ export const createStepTimer = (
   };
 };
 
-/** สรุปเวลาที่ ai รายงานมา + เวลาที่หายไประหว่างทาง (เครือข่าย + ai ตื่นจาก scale-to-zero) */
-export const describeAiTiming = (
+/** เวลาที่หายไประหว่างทาง = ai request (เว็บวัด) − total (ai วัด) = เครือข่าย + ai ตื่นจาก scale-to-zero */
+export const describeAiGap = (
   aiEntries: ServerTimingEntry[],
   requestMs: number,
 ): string | null => {
   const aiTotal = aiEntries.find((e) => e.name === "total");
   if (!aiTotal) return null;
-  const parts = aiEntries.map((e) => `${e.name} ${seconds(e.ms)}`);
-  const gap = Math.max(0, requestMs - aiTotal.ms);
-  return `ai: ${parts.join(", ")} · network/wake ${seconds(gap)}`;
+  return `network/wake ${seconds(Math.max(0, requestMs - aiTotal.ms))}`;
 };

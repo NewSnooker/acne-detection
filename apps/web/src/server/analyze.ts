@@ -4,7 +4,7 @@ import path from "path";
 import { getStoragePath, imageUrlForAi } from "@/lib/storage/image-provider";
 import type { ImageStorage } from "@/lib/storage/config";
 import {
-  describeAiTiming,
+  describeAiGap,
   parseServerTiming,
   type StepTimer,
 } from "@/lib/request-log";
@@ -73,11 +73,6 @@ export async function callFastApiForPrediction(
 
   const apiFormData = new FormData();
 
-  // azure-blob = สร้างลิงก์ SAS (คำนวณในเครื่อง), vercel-blob = URL เดิม, ดิสก์ = path ในเครื่อง
-  log?.timer.step(
-    imageResult.imageProvider === "azure-blob" ? "sign sas url" : "image url",
-  );
-
   const imageUrl = await imageUrlForAi(imageResult);
   if (imageUrl) {
     // Vercel Blob: URL สาธารณะ / Azure Blob: ลิงก์ SAS อายุสั้น — FastAPI ดาวน์โหลดเอง
@@ -120,9 +115,10 @@ export async function callFastApiForPrediction(
 
   const result: AnalysisResult = await response.json();
   if (log) {
-    // ai ส่งเวลาแต่ละขั้นมาใน Server-Timing → ใส่ในบรรทัด log ของเว็บด้วย จะได้เห็นที่เดียว
+    // ai ส่งเวลาแต่ละขั้นมาใน Server-Timing → log ของเว็บบอกแค่เวลาที่หายไประหว่างทาง
+    // (รายละเอียดขั้นของ ai ดูใน "predict timing [<id>]" ของ ai / DevTools)
     const aiTiming = parseServerTiming(response.headers.get("server-timing"));
-    const note = describeAiTiming(aiTiming, log.timer.elapsedInStep());
+    const note = describeAiGap(aiTiming, log.timer.elapsedInStep());
     if (note) log.timer.note(note);
     log.timer.addServerTiming(
       aiTiming.map((entry) => ({ ...entry, name: `ai-${entry.name}` })),

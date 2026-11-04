@@ -83,15 +83,15 @@ export async function POST(req: NextRequest) {
     // 4. อัปโหลดรูปภาพลงระบบ
     // - Local/Docker: เซฟลง Shared Volume → ส่ง path ให้ FastAPI โดยตรง (เร็วมาก)
     // - Hosted: Upload ขึ้น Vercel Blob / Azure Blob → ได้ชื่อไฟล์หรือ URL กลับมา
+    // (ที่เก็บดูได้จาก "web start: ... image=" — ขั้นนี้รวมการสร้างลิงก์ SAS ให้ ai ด้วย)
     timer.step("upload");
     const imageResult = await uploadImage(file, imageKind);
-    timer.note(imageResult.imageProvider);
 
     let result: Awaited<ReturnType<typeof callFastApiForPrediction>>;
     let severity: ReturnType<typeof calculateSeverity>;
     let analysisRecord: { id: string };
     try {
-      // 5. ส่งให้ AI วิเคราะห์ (ข้างในแยกขั้นสร้างลิงก์รูป กับขั้นเรียก ai)
+      // 5. ส่งให้ AI วิเคราะห์ (เริ่มขั้น "ai request" ตอนยิง fetch)
       result = await callFastApiForPrediction(imageResult, activeModel, {
         timer,
         requestId,

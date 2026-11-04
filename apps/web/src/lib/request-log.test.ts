@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createStepTimer,
-  describeAiTiming,
+  describeAiGap,
   parseServerTiming,
   requestIdFrom,
 } from "./request-log";
@@ -69,21 +69,21 @@ describe("parseServerTiming", () => {
   });
 });
 
-describe("describeAiTiming", () => {
+describe("describeAiGap", () => {
   it("บอกเวลาที่หายไประหว่างเว็บกับ ai", () => {
     expect(
-      describeAiTiming(
+      describeAiGap(
         [
           { name: "inference", ms: 1870 },
           { name: "total", ms: 1910 },
         ],
         2400,
       ),
-    ).toBe("ai: inference 1.87s, total 1.91s · network/wake 0.49s");
+    ).toBe("network/wake 0.49s");
   });
 
   it("ai ไม่ส่ง total มา → null", () => {
-    expect(describeAiTiming([], 2400)).toBeNull();
+    expect(describeAiGap([], 2400)).toBeNull();
   });
 });
 

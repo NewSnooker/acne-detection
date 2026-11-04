@@ -12,7 +12,7 @@
 
 ```
 # web (acne-web) — วิเคราะห์ 1 ครั้ง (ตัวอย่างบน Azure)
-analyze timing [3f9c0a1b2d4e5f60]: auth 0.05s | read form 0.10s | check file 0.00s | find model 0.03s | upload 0.30s (azure-blob) | sign sas url 0.00s | ai request 2.40s (ai: image 0.04s, model 0.00s, inference 1.87s, total 1.91s · network/wake 0.49s) | save db 0.08s | total 2.96s | 2 detections | tta=true
+analyze timing [3f9c0a1b2d4e5f60]: auth 0.05s | read form 0.10s | check file 0.00s | find model 0.03s | upload 0.30s | ai request 2.40s (network/wake 0.49s) | save db 0.08s | total 2.96s | 2 detections | tta=true
 # ai (acne-ai) — บรรทัดคู่กัน
 predict timing [3f9c0a1b2d4e5f60]: image 0.04s | model 0.00s | inference 1.87s | total 1.91s | 2 detections | tta=True
 # web — เปิดรูปในหน้าประวัติ (/api/images)
@@ -25,10 +25,9 @@ image timing [8a7b6c5d4e3f2a1b]: auth 0.05s | check owner 0.03s | read azure-blo
 | `read form` | รับไฟล์รูปจากเบราว์เซอร์จนครบ (เน็ตผู้ใช้ช้า/รูปใหญ่ = นาน) |
 | `check file` | ตรวจชนิด/ขนาด/เนื้อไฟล์ |
 | `find model` | หาโมเดลหลัก (Active) ใน DB |
-| `upload (<ที่เก็บ>)` | เก็บรูป — `azure-blob` / `vercel-blob` / `local` (ดิสก์) ส่งขึ้นอย่างเดียว ไม่ได้โหลดกลับ |
-| `sign sas url` / `image url` | สร้างลิงก์ให้ ai โหลดรูป — Azure สร้าง SAS (คำนวณในเครื่อง ไม่ติดต่อ Azure) ที่อื่นใช้ URL/path เดิม |
-| `ai request` | เรียก `POST /predict` จนได้ผล ในวงเล็บคือเวลาที่ ai รายงานกลับมา (header `Server-Timing`) |
-| `network/wake` | `ai request` − `total` ของ ai = เครือข่ายระหว่างเว็บกับ ai + เวลาที่ ai ตื่นจาก scale-to-zero — หลายวินาที = ai เพิ่งตื่น |
+| `upload` | เก็บรูป (ที่เก็บดูจาก `web start: ... image=` — `azure-blob` / `vercel-blob` / `local`) ส่งขึ้นอย่างเดียว ไม่ได้โหลดกลับ · รวมการสร้างลิงก์ SAS ให้ ai (คำนวณในเครื่อง ~0 วินาที) |
+| `ai request` | เรียก `POST /predict` จนได้ผล — เวลาแต่ละขั้นข้างใน ai ดูที่บรรทัด `predict timing` id เดียวกัน |
+| `network/wake` | `ai request` − `total` ของ ai (ai ส่งมาใน header `Server-Timing`) = เครือข่ายระหว่างเว็บกับ ai + เวลาที่ ai ตื่นจาก scale-to-zero — หลายวินาที = ai เพิ่งตื่น |
 | `save db` | คำนวณ severity + บันทึก `Analysis` + `Image` |
 | `total` | ตั้งแต่รับคำขอจนพร้อมตอบกลับ (ไม่นับเวลาส่งรูปจากเบราว์เซอร์ก่อนเว็บเริ่มอ่าน) |
 
