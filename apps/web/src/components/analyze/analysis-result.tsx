@@ -30,9 +30,9 @@ interface AnalysisResultPanelProps {
   onHoverGroup?: (group: AcneGroupId | null) => void;
 }
 
-// กรอบของกลุ่มที่เป็นเหตุผลของระดับ ใช้สีเดียวกับป้ายระดับ
+// กรอบของกลุ่มที่มีผลต่อการประเมิน ใช้สีเดียวกับป้ายระดับ
 const DECISIVE_STYLE: Record<SeverityLevel, string> = {
-  MILD: "",
+  MILD: "border-2 border-emerald-500 bg-emerald-500/10",
   MODERATE: "border-2 border-amber-500 bg-amber-500/10",
   SEVERE: "border-2 border-destructive bg-destructive/10",
 };

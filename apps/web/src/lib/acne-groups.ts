@@ -94,7 +94,8 @@ export function explainSeverity(
   const groups: GroupSummary[] = base
     .map(({ why: _why, ...g }) => ({
       ...g,
-      decisive: level !== "MILD" && g.level === level,
+      // ระดับเล็กน้อย: กลุ่มที่พบสิวคือกลุ่มที่มีผลต่อการประเมิน
+      decisive: g.level === level && (level !== "MILD" || g.count > 0),
     }))
     .sort((a, b) => {
       if (a.decisive !== b.decisive) return a.decisive ? -1 : 1;

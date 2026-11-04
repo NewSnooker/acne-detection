@@ -35,10 +35,16 @@ describe("explainSeverity", () => {
     expect(r.groups.filter((g) => g.decisive)).toHaveLength(2);
   });
 
-  it("ระดับเล็กน้อยไม่มีกลุ่มที่เป็นเหตุผล", () => {
+  it("ระดับเล็กน้อย: ไฮไลต์กลุ่มที่พบสิว", () => {
     const r = explainSeverity({ pustule: 2 });
     expect(r.level).toBe("MILD");
-    expect(r.groups.some((g) => g.decisive)).toBe(false);
+    expect(r.groups.filter((g) => g.decisive).map((g) => g.id)).toEqual([
+      "shallow",
+    ]);
+  });
+
+  it("ไม่พบสิว: ไม่มีกลุ่มที่ไฮไลต์", () => {
+    expect(explainSeverity({}).groups.some((g) => g.decisive)).toBe(false);
   });
 });
 
