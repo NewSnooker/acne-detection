@@ -205,6 +205,38 @@ export function HistoryTableView({
     );
   };
 
+  const ConfTtaCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
+    const item = props.data;
+    if (!item) return null;
+    return (
+      <div className="flex h-full items-center gap-1.5">
+        <Badge
+          variant="outline"
+          className="font-mono text-[11px]"
+          title={
+            item.confidence == null
+              ? "ผลเก่า ไม่ได้บันทึกค่า conf"
+              : "ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์"
+          }
+        >
+          {item.confidence?.toFixed(2) ?? "—"}
+        </Badge>
+        {item.usedTta ? (
+          <Badge
+            variant="outline"
+            className="border-violet-500/30 bg-violet-500/10 text-[11px] text-violet-600 dark:text-violet-400"
+          >
+            TTA
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground text-[11px]">TTA ปิด</span>
+        )}
+      </div>
+    );
+  };
+
   const ModelCellRenderer = (
     props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
   ) => {
@@ -381,6 +413,14 @@ export function HistoryTableView({
           flex: 1,
           minWidth: 150,
           cellRenderer: ModelCellRenderer,
+        },
+        {
+          colId: "confTta",
+          headerName: "conf / TTA",
+          width: 150,
+          sortable: false,
+          filter: false,
+          cellRenderer: ConfTtaCellRenderer,
         },
       );
     }

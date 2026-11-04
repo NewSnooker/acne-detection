@@ -153,7 +153,8 @@ export async function getHistory({
     usedTta: item.usedTta,
     createdAt: item.createdAt,
     model: item.model,
-    ...(isAllUsers && { user: item.user }),
+    // ค่าความมั่นใจขั้นต่ำที่ใช้ครั้งนั้น — แสดงเฉพาะมุมมองแอดมิน (ผลเก่า = null)
+    ...(isAllUsers && { user: item.user, confidence: item.confidence }),
   }));
 
   return { items, total: filtered.length, typeCounts };

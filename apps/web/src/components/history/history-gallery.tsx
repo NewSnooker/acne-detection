@@ -27,6 +27,8 @@ export interface HistoryItem extends Omit<AnalysisResult, "id"> {
     name: string;
     version: string;
   } | null;
+  /** ความมั่นใจขั้นต่ำที่ใช้ครั้งนั้น (มีเฉพาะมุมมองแอดมิน, ผลเก่า = null) */
+  confidence?: number | null;
 }
 
 interface HistoryGalleryProps {

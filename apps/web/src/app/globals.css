@@ -14,7 +14,7 @@
     --brand-l: 44%;
     --brand-l-dark: 56%;
 
-    --background: var(--brand-h) 30% 98%;
+    --background: var(--brand-h) 28% 95.5%;
     /* แสงไล่สีพื้นหลังทุกหน้า (ใช้ใน body) */
     --glow-1: var(--brand-h) var(--brand-s) 62% / 0.24;
     --glow-2: calc(var(--brand-h) + 35) var(--brand-s) 70% / 0.18;
@@ -26,16 +26,16 @@
     --popover-foreground: var(--brand-h) 35% 11%;
     --primary: var(--brand-h) var(--brand-s) var(--brand-l);
     --primary-foreground: 0 0% 100%;
-    --secondary: var(--brand-h) 25% 94%;
+    --secondary: var(--brand-h) 25% 92%;
     --secondary-foreground: var(--brand-h) 35% 16%;
-    --muted: var(--brand-h) 22% 94%;
+    --muted: var(--brand-h) 22% 92%;
     --muted-foreground: var(--brand-h) 10% 40%;
     --accent: var(--brand-h) 60% 95%;
     --accent-foreground: var(--brand-h) var(--brand-s) 28%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border: var(--brand-h) 22% 89%;
-    --input: var(--brand-h) 22% 86%;
+    --border: var(--brand-h) 20% 86%;
+    --input: var(--brand-h) 20% 83%;
     --ring: var(--brand-h) var(--brand-s) var(--brand-l);
     --radius: 0.75rem;
 
@@ -54,27 +54,27 @@
   }
 
   .dark {
-    --background: var(--brand-h) 30% 6%;
+    --background: var(--brand-h) 24% 9%;
     --glow-1: var(--brand-h) var(--brand-s) 45% / 0.22;
     --glow-2: calc(var(--brand-h) + 35) var(--brand-s) 45% / 0.14;
     --card-tint: var(--brand-h) var(--brand-s) 60% / 0.07;
     --foreground: var(--brand-h) 15% 95%;
-    --card: var(--brand-h) 25% 9%;
+    --card: var(--brand-h) 20% 12.5%;
     --card-foreground: var(--brand-h) 15% 95%;
-    --popover: var(--brand-h) 25% 9%;
+    --popover: var(--brand-h) 20% 12.5%;
     --popover-foreground: var(--brand-h) 15% 95%;
     --primary: var(--brand-h) var(--brand-s) var(--brand-l-dark);
     --primary-foreground: 0 0% 100%;
-    --secondary: var(--brand-h) 20% 15%;
+    --secondary: var(--brand-h) 18% 18%;
     --secondary-foreground: var(--brand-h) 15% 95%;
-    --muted: var(--brand-h) 20% 14%;
+    --muted: var(--brand-h) 18% 17%;
     --muted-foreground: var(--brand-h) 12% 66%;
-    --accent: var(--brand-h) 35% 18%;
+    --accent: var(--brand-h) 30% 21%;
     --accent-foreground: var(--brand-h) 70% 82%;
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 98%;
-    --border: var(--brand-h) 18% 17%;
-    --input: var(--brand-h) 18% 20%;
+    --border: var(--brand-h) 16% 21%;
+    --input: var(--brand-h) 16% 23%;
     --ring: var(--brand-h) var(--brand-s) var(--brand-l-dark);
   }
 
