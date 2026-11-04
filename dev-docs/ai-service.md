@@ -24,6 +24,8 @@ FastAPI 0.115.5 · Ultralytics 8.4.180 · PyTorch · Python 3.12 (Docker) / venv
 
 ## การทำงานของ `/predict`
 
+![ขั้นตอนใน /predict](images/predict-steps.png)
+
 1. ตรวจ `X-API-Key` เทียบ `settings.AI_SERVICE_API_KEY`
 2. `resolve_image()` — รูป (ไม่ผ่านเงื่อนไขตอบ 400)
    - URL: ต้องเป็น `https` และ host อยู่ใน `ALLOWED_IMAGE_HOSTS` (ค่าเริ่มต้นคือ Vercel Blob) → ดาวน์โหลดเป็น `STORAGE_PATH/tmp_<uuid>.<ext>` แล้วลบใน `finally`
@@ -46,6 +48,9 @@ ACNE_CLASSES = {0:"blackhead", 1:"cyst", 2:"nodule", 3:"papule", 4:"pustule", 5:
 - cache โมเดลตาม path ไม่มีการล้างเมื่อโมเดลถูกลบ/เปลี่ยนจากฝั่ง web
 - ไม่ได้กำหนด `imgsz`, `iou`, `device` → ใช้ค่า default ของ Ultralytics (`imgsz` จากไฟล์ `.pt`, `iou` 0.7)
 - `agnostic_nms=settings.AI_AGNOSTIC_NMS` (ค่าเริ่มต้น `true`) — คัดกรอบซ้ำโดยไม่แยกชนิด กันกรอบซ้อนกันคนละชนิดบนสิวเม็ดเดียว (เหตุผล: `experiments.md`)
+
+  ![NMS แยกชนิดกับไม่แยกชนิด](images/nms-agnostic.png)
+
 - ลำดับคลาส: ชื่อพหูพจน์/ตัวพิมพ์ต่างกันถือว่าตรง (`blackheads` = `blackhead`) เตือนเฉพาะเมื่อลำดับผิดจริง
 
 ## ค่า confidence และ TTA (รายโมเดล)
@@ -82,6 +87,8 @@ venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 Hosted บน Render free tier จะ sleep หลัง 15 นาที → ใช้ cron ping `/health`
 
 ## Test-Time Augmentation (TTA)
+
+![TTA ส่งภาพเข้าโมเดล 3 รอบ](images/tta-passes.png)
 
 เปิด/ปิดรายโมเดลในหน้าแอดมิน (`AiModel.useTta`) เว็บส่ง `augment` มากับ `/predict` ทุกครั้ง ไม่มี env ตั้งทั้งระบบ
 

@@ -39,44 +39,21 @@ Azure for Students (เครดิตฟรี 100 USD) แก้ได้ค�
 | ค่าใช้จ่าย | ค่าไฟ | ฟรี | เครดิตนักศึกษา (มีโควตาฟรีรายเดือน) |
 | เหมาะกับ | ลองใช้ / พัฒนา | อ้างอิงในเล่ม | ใช้งานจริง วัดผลในเล่ม |
 
+![เทียบ 3 ระบบ](images/compare-3-systems.png)
+
 ### ภาพแต่ละระบบ
 
 **Docker** — ทุกอย่างอยู่ในเครื่องเดียว ใช้ดิสก์ร่วมกัน
 
-```mermaid
-flowchart LR
-  U["ผู้ใช้<br/>เบราว์เซอร์"] -->|"http://localhost:3000"| W["web<br/>Next.js"]
-  W -->|"POST /predict<br/>path รูป + URL โมเดล"| A["ai<br/>FastAPI + YOLO"]
-  A -->|"ขอไฟล์โมเดล"| W
-  W --> DB[("mongodb<br/>ใน container")]
-  W --> V1[["volume image_files<br/>รูป"]]
-  W --> V2[["volume model_files<br/>โมเดล .pt"]]
-  A -->|"อ่านรูปจากดิสก์ร่วม"| V1
-```
+![ระบบ Docker](images/system-docker.png)
 
 **Vercel + Render** — บริการฟรีคนละเจ้า รูปเป็นลิงก์สาธารณะ โมเดลยัดลงฐานข้อมูล
 
-```mermaid
-flowchart LR
-  U["ผู้ใช้"] -->|HTTPS| W["Vercel<br/>Next.js"]
-  W -->|"POST /predict<br/>ผ่านอินเทอร์เน็ต"| A["Render ฟรี<br/>FastAPI + YOLO<br/>RAM 512 MB"]
-  A -->|"ขอไฟล์โมเดล"| W
-  W --> DB[("MongoDB Atlas<br/>database ของ Vercel<br/>+ ไฟล์โมเดล modelData")]
-  W --> B[["Vercel Blob<br/>รูป (public)"]]
-  A -->|"โหลดรูปจาก URL สาธารณะ"| B
-```
+![ระบบ Vercel + Render](images/system-vercel-render.png)
 
 **Azure** — เว็บเป็นทางเข้าเดียว ไฟล์ทั้งหมด private บน Blob
 
-```mermaid
-flowchart LR
-  U["ผู้ใช้"] -->|HTTPS| W["acne-web<br/>Next.js · 1 vCPU / 2 GB"]
-  W -->|"POST /predict + X-API-Key"| A["acne-ai<br/>FastAPI + YOLO · 4 vCPU / 8 GB"]
-  A -->|"ขอไฟล์โมเดล + X-API-Key"| W
-  W --> DB[("MongoDB Atlas<br/>database แยกของ Azure")]
-  W -->|"เก็บ/อ่านรูปและโมเดล"| BL[["Azure Blob Storage (private)<br/>images = รูป · models = .pt"]]
-  A -->|"อ่านรูปด้วยลิงก์ SAS"| BL
-```
+![ระบบ Azure](images/system-azure.png)
 
 <a id="storage"></a>
 
@@ -93,6 +70,8 @@ flowchart LR
 
 - **ตอนวิเคราะห์** — เว็บสร้าง *ลิงก์ SAS* (URL ของไฟล์ + ลายเซ็น, อ่านได้อย่างเดียว, หมดอายุใน 10 นาที) ส่งให้ ai โหลดรูปไปวิเคราะห์ ใช้ครั้งเดียว
 - **ตอนดูประวัติ** — เบราว์เซอร์ขอ `/api/images/<ชื่อไฟล์>` จากเว็บ → เว็บเช็คว่าเป็นเจ้าของรูป → ดึงจาก Blob ส่งต่อ ทางนี้ไม่มีวันหมดอายุ
+
+![ใครอ่านรูปใน Blob ได้บ้าง](images/azure-blob-access.png)
 
 Blob แบบ Standard/LRS/Hot ราคาประมาณ 0.02 USD ต่อ GB ต่อเดือน รูปหลายพันรูปยังไม่ถึง 1 GB
 
@@ -137,6 +116,8 @@ Blob แบบ Standard/LRS/Hot ราคาประมาณ 0.02 USD ต่�
 2. หน้าโปรไฟล์ GitHub → **Packages** → `acne-web` → **Package settings** → **Change visibility → Public** แล้วทำซ้ำกับ `acne-ai`
 
 > image เป็น public ได้ เพราะไม่มีรหัสลับใน image (รหัสทั้งหมดใส่ตอนตั้งค่า Container App)
+
+![ทางของ image จาก GitHub ถึง Azure](images/azure-image-update.png)
 
 ### 3. สุ่มรหัสลับ 2 ตัว
 
@@ -186,6 +167,8 @@ Cloud Shell (ไอคอน `>_` แถบบน) → Bash → รัน 2 ค�
 2. **Overview → Application Url** คัดลอกไว้ = ลิงก์ของ `acne-ai` (ขึ้นต้น `https://`)
 3. ทดสอบ: เปิดลิงก์ในเบราว์เซอร์ → `{"status":"ok","service":"acne-ai",...}` · ทดสอบ key จากเครื่องตัวเอง:
    `curl.exe -i -X POST <ลิงก์ acne-ai>/predict` → ต้องได้ **403** (ไม่มี key = ถูกปฏิเสธ) · เปิด `/predict` ในเบราว์เซอร์ได้ 405 ก็ปกติ (เบราว์เซอร์ส่ง GET)
+
+![acne-ai ปิดเองเมื่อว่าง (scale to zero)](images/azure-scale-to-zero.png)
 
 > **Environment แบบ express:** Portal บางบัญชีสร้าง environment แบบ express ให้ — ตั้ง *Insecure connections* ไม่ได้ (`'Allow Insecure' is not supported ... on express environments`) และลิงก์ของ ai อาจเปิดจากภายนอกได้แม้ตั้ง Limited ไว้ ใช้ได้ปกติเพราะ `/predict` และการโหลดโมเดลต้องมี `X-API-Key` เสมอ · ชื่อ revision เป็น `<แอป>--latest` ตลอด และแก้ค่าแล้วต้อง**รอสักครู่**กว่าเครื่องใหม่จะมาแทน
 
@@ -241,6 +224,10 @@ Environment variables:
 ถ้าไม่ตั้ง: **สมัครสมาชิกผ่านหน้าเว็บตามปกติ** → Atlas → database ของ Azure → collection `User` → บัญชีของตัวเอง แก้ `role` เป็น `"ADMIN"` → **ออกจากระบบแล้วเข้าใหม่** (สิทธิ์ถูกเก็บใน session ตอนเข้าสู่ระบบ ไม่เข้าใหม่จะยังเป็นผู้ใช้ทั่วไป) → ถ้าต้องการให้ seed ใส่โมเดลเริ่มต้น: `acne-web` → Revisions and replicas → **Restart** → log ต้องเป็น `[seed] มีผู้ดูแลระบบอยู่แล้ว (...) ข้าม`
 (ไม่ต้อง build ใหม่ — seed อยู่ในคำสั่งตอน container เริ่ม)
 
+ถ้าฐานข้อมูลยังไม่มีผู้ใช้เลย คนแรกที่สมัครด้วยฟอร์ม (ไม่ใช่ Google) ได้ `ADMIN` ทันที (`server/auth.ts`) ไม่ต้องแก้ `role`
+
+![ตั้งแอดมินคนแรก](images/first-admin.png)
+
 > ระบบที่เคยมี `admin@acne.local` อยู่แล้ว (ขึ้นก่อนมีกฎนี้) ลบได้ตามลำดับนี้: ตั้งบัญชีตัวเองเป็น `ADMIN` → collection `AiModel` แก้ `uploadedBy` ของโมเดลที่ seed ใส่ไว้เป็น `_id` ของบัญชีตัวเอง → ลบ `admin@acne.local` → Restart
 > ลบก่อนตั้งแอดมินใหม่ = ไม่มีแอดมินเหลือ · ลบก่อนย้าย `uploadedBy` = หน้าจัดการโมเดลอาจ error
 
@@ -251,6 +238,10 @@ Environment variables:
 3. **วิเคราะห์** รูป 1 รูป — ครั้งแรกหลัง ai ดับอาจรอ 30 วินาที–2 นาที (ai ตื่น + โหลดโมเดล)
 4. log ของ `acne-ai` ต้องเห็น `Downloading model ...` → `predict timing: ...` → `POST /predict 200 OK`
 5. เปิด **ประวัติ** → รูปต้องขึ้น · Storage account → **Containers** → ต้องเห็น `images` และ `models` มีไฟล์
+
+ถ้าวิเคราะห์ไม่ผ่าน ไล่ตามลำดับนี้ว่าติดขั้นไหน (ดู log ของแอปต้นลูกศรขั้นนั้น):
+
+![ลำดับการวิเคราะห์ 1 รูป](images/analyze-flow.png)
 
 ### 8. Google login (ไม่บังคับ)
 

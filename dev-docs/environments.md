@@ -15,6 +15,8 @@
 
 ## ระบบที่มี
 
+![4 ชุด ใช้ฐานข้อมูลและที่เก็บของตัวเอง](images/environments.png)
+
 | ชุด | ใช้ทำอะไร | เว็บ / AI | ฐานข้อมูล | รูป (`IMAGE_STORAGE`) | โมเดล (`MODEL_STORAGE`) |
 |---|---|---|---|---|---|
 | **Docker** | ผู้ใช้ดาวน์โหลดไปติดตั้งเอง + พัฒนาในเครื่อง | container `web` / `ai` | container `mongodb` (volume `mongodb_data`) | `local` → volume `image_files` | `file` → volume `model_files` (ไม่จำกัดขนาด) |
@@ -39,6 +41,8 @@
 - ขนาดโมเดลสูงสุด: `maxModelUploadBytes()` — `file` / `azure-blob` ไม่จำกัด, `mongodb` 15 MB, บน Vercel 4.5 MB หน้าอัปโหลดบอกตั้งแต่เลือกไฟล์
 
 ## การกันพลาด
+
+![ด่านกันพลาดตอนเว็บเริ่มทำงาน](images/startup-guard.png)
 
 | จุด | ทำอะไร |
 |---|---|

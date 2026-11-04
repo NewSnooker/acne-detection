@@ -4,6 +4,8 @@ MongoDB + Prisma 6 · id ทุกตัวเป็น `ObjectId` · ไม่�
 
 ## ความสัมพันธ์
 
+![ความสัมพันธ์ของตารางและลำดับการลบ](images/data-model.png)
+
 ```
 User 1 ──── * Account            (Auth.js, cascade)
 User 1 ──── * Session            (Auth.js, cascade — ไม่ถูกใช้จริงเพราะ session เป็น JWT)
