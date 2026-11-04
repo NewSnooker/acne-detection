@@ -188,5 +188,18 @@ def test_class_names_mismatch_reports_swapped_classes():
     }
 
 
+def test_class_names_plural_or_case_still_match():
+    # โมเดลที่เทรนจาก Acne14k ใช้ชื่อพหูพจน์ — ลำดับตรง ไม่ควรเตือน
+    plural = {i: f"{name}s" for i, name in ACNE_CLASSES.items()}
+    assert yolo_service.class_names_mismatch(plural) == {}
+    assert yolo_service.class_names_mismatch({0: "Blackheads", **{i: n for i, n in ACNE_CLASSES.items() if i}}) == {}
+
+
+def test_class_names_plural_swapped_still_reported():
+    plural = {i: f"{name}s" for i, name in ACNE_CLASSES.items()}
+    plural[1], plural[2] = plural[2], plural[1]
+    assert set(yolo_service.class_names_mismatch(plural)) == {1, 2}
+
+
 def test_class_names_unknown_format_is_ignored():
     assert yolo_service.class_names_mismatch(None) == {}

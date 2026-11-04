@@ -24,15 +24,22 @@ _cache: dict[str, YOLO] = {}
 _lock = threading.Lock()
 
 
+def _same_class_name(model_name, expected: str | None) -> bool:
+    """ชื่อเดียวกันถ้าต่างกันแค่ตัวพิมพ์หรือ s ท้ายคำ — dataset Acne14k ตั้งชื่อเป็นพหูพจน์ (blackheads)"""
+    if not isinstance(model_name, str) or expected is None:
+        return model_name == expected
+    return model_name.strip().lower().removesuffix("s") == expected.removesuffix("s")
+
+
 def class_names_mismatch(names) -> dict[int, tuple[str | None, str | None]]:
-    """เทียบชื่อคลาสในโมเดลกับ ACNE_CLASSES — คืน {index: (ในโมเดล, ที่ระบบคาด)} เฉพาะที่ไม่ตรง"""
+    """เทียบชื่อคลาสในโมเดลกับ ACNE_CLASSES — คืน {index: (ในโมเดล, ที่ระบบคาด)} เฉพาะที่ลำดับไม่ตรงจริง"""
     if not isinstance(names, dict):
         return {}
     model_names = {int(k): v for k, v in names.items()}
     return {
         i: (model_names.get(i), ACNE_CLASSES.get(i))
         for i in sorted(set(model_names) | set(ACNE_CLASSES))
-        if model_names.get(i) != ACNE_CLASSES.get(i)
+        if not _same_class_name(model_names.get(i), ACNE_CLASSES.get(i))
     }
 
 
