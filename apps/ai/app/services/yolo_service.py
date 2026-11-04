@@ -131,7 +131,12 @@ class YoloService:
                     },
                 })
 
+        before = len(detections)
         detections = drop_nested_boxes(detections, settings.AI_NESTED_BOX_RATIO)
+        logger.info(
+            "boxes after NMS %d -> after nested filter %d (agnostic=%s iou=%s nested=%s tta=%s)",
+            before, len(detections), settings.AI_AGNOSTIC_NMS, settings.AI_NMS_IOU, settings.AI_NESTED_BOX_RATIO, augment,
+        )
         counts = {v: 0 for v in ACNE_CLASSES.values()}
         for det in detections:
             counts[det["type"]] += 1

@@ -19,6 +19,10 @@ logging.basicConfig(
 async def lifespan(app: FastAPI):
     os.makedirs(settings.STORAGE_PATH, exist_ok=True)
     os.makedirs(settings.MODELS_PATH, exist_ok=True)
+    logging.getLogger(__name__).info(
+        "ai start: commit %s | agnostic_nms=%s iou=%s nested_box_ratio=%s",
+        os.getenv("GIT_SHA", "dev")[:7], settings.AI_AGNOSTIC_NMS, settings.AI_NMS_IOU, settings.AI_NESTED_BOX_RATIO,
+    )
     yield
 
 

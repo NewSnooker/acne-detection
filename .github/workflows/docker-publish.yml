@@ -21,6 +21,7 @@ concurrency:
 permissions:
   contents: read
   packages: write
+  id-token: write # ให้ azure/login ขอ token แบบ OIDC (ไม่ต้องเก็บรหัสผ่าน Azure ใน GitHub)
 
 jobs:
   changes:
@@ -48,6 +49,10 @@ jobs:
       fail-fast: false
       matrix:
         app: [web, ai]
+    env:
+      # ตั้งใน Settings → Secrets and variables → Actions (ดู dev-docs/azure-deploy.md → อัปเดตอัตโนมัติ)
+      # ไม่ได้ตั้ง = build อย่างเดียว ไม่ deploy
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
     steps:
       - name: ข้ามถ้าโค้ดของแอปนี้ไม่เปลี่ยน
         id: skip
@@ -79,6 +84,24 @@ jobs:
           tags: |
             ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:sha-${{ github.sha }}
+          build-args: GIT_SHA=${{ github.sha }}
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
           cache-from: type=gha,scope=${{ matrix.app }}
           cache-to: type=gha,mode=max,scope=${{ matrix.app }}
+
+      # อัปเดต Container App ให้ใช้ image ของ commit นี้ (tag sha-) — Azure ไม่ดึง latest ใหม่เอง
+      - uses: azure/login@v2
+        if: steps.skip.outputs.skip != 'true' && env.AZURE_CLIENT_ID != ''
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: deploy ขึ้น Azure Container Apps
+        if: steps.skip.outputs.skip != 'true' && env.AZURE_CLIENT_ID != ''
+        run: |
+          az containerapp update \
+            --name acne-${{ matrix.app }} \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --image "${{ env.IMAGE }}:sha-${{ github.sha }}" \
+            --query properties.template.containers[0].image -o tsv
