@@ -27,7 +27,7 @@ WEIGHTS_GLOB = "/kaggle/input/**/acne14k_l_960/weights/best.pt"
 
 TRAIN_IMG = 960                    # ขนาดที่เทรน = ค่าเริ่มต้น
 IMGSZ = [960, 1280]
-IOU = [0.45, 0.6, 0.7]             # 0.7 = ค่าเริ่มต้นของ Ultralytics
+IOU = [0.45, 0.5, 0.6, 0.7]        # 0.7 = ค่าเริ่มต้นของ Ultralytics, 0.5 = ค่าที่ระบบใช้
 AGNOSTIC = [False, True]
 CONF_REPORT = [0.15, 0.2, 0.25]    # ค่า conf ที่อยากเห็น F1 ด้วย
 DEFAULT = {"imgsz": TRAIN_IMG, "iou": 0.7, "agnostic": False, "conf": 0.25}

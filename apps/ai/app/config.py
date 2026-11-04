@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     # NMS แบบไม่แยกชนิด: สิวเม็ดเดียวที่โมเดลทายได้ 2 ชนิด (เช่น ตุ่มหนอง + ตุ่มแดง) เหลือกรอบที่มั่นใจสุดกรอบเดียว
     # false = แบบเดิมของ Ultralytics (คัดกรอบซ้ำแยกทีละชนิด) — ใช้ตอนวัดผลเทียบกับเล่ม ดู dev-docs/experiments.md
     AI_AGNOSTIC_NMS: bool = True
+    # IoU ของ NMS: กรอบที่ทับกันเกินค่านี้เหลือกรอบที่มั่นใจสุด (Ultralytics ใช้ 0.7)
+    # 0.5 = ตัดกรอบเล็กที่ซ้อนอยู่ในกรอบใหญ่บนสิวเม็ดเดียวด้วย — ดู dev-docs/experiments.md
+    AI_NMS_IOU: float = 0.5
     DEBUG: bool = False
 
     class Config:

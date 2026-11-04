@@ -156,6 +156,7 @@ Cloud Shell (ไอคอน `>_` แถบบน) → Bash → รัน 2 ค�
 | `STORAGE_PATH` | `/app/storage` |
 | `MODELS_PATH` | `/app/models` |
 | `AI_AGNOSTIC_NMS` | ไม่ต้องใส่ (ค่าเริ่มต้น `true`) — ใส่ `false` เฉพาะตอนวัดผลแบบเดิม (`experiments.md`) |
+| `AI_NMS_IOU` | ไม่ต้องใส่ (ค่าเริ่มต้น `0.5`) — ใส่ `0.7` ถ้าอยากได้แบบเดิมของ Ultralytics (`experiments.md`) |
 
 **Ingress:** Enabled · **Limited to Container Apps Environment** · HTTP · Target port **8000** · *Insecure connections* = **ไม่ติ๊ก**
 

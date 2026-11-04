@@ -68,12 +68,13 @@ def clear_cache(model_path: str | None = None):
 class YoloService:
     def predict(self, image_path: str, model_path: str, confidence: float, augment: bool = False) -> dict:
         model = _get_model(model_path)
-        # agnostic_nms: กันกรอบซ้อนกันคนละชนิดบนสิวเม็ดเดียว (ดูเหตุผลใน dev-docs/experiments.md)
+        # agnostic_nms + iou: กันกรอบซ้อนกันบนสิวเม็ดเดียว (ดูเหตุผลใน dev-docs/experiments.md)
         results = model(
             image_path,
             conf=confidence,
             augment=augment,
             agnostic_nms=settings.AI_AGNOSTIC_NMS,
+            iou=settings.AI_NMS_IOU,
             verbose=False,
         )
 
