@@ -1,6 +1,6 @@
 # Environments — ระบบแต่ละชุดและที่เก็บไฟล์
 
-อัปเดตล่าสุด 2026-11-03
+อัปเดตล่าสุด 2026-11-04
 
 ## หลักการ (อ่านก่อนแก้เรื่อง deploy / ที่เก็บไฟล์)
 
@@ -63,7 +63,8 @@ ENV_NAME=dev
 ฝั่ง Render ใช้โมเดลเล็ก (เช่น best.pt 5 MB) — RAM 512 MB รันโมเดล L ไม่ไหว (instance รีสตาร์ท)
 
 **Azure** — คลิกตั้งค่าทีละขั้นใน Portal: `dev-docs/azure-deploy.md` (image จาก ghcr.io ที่ `.github/workflows/docker-publish.yml` build ให้)
-web: `IMAGE_STORAGE=azure-blob`, `MODEL_STORAGE=azure-blob`, `AZURE_STORAGE_CONNECTION_STRING`, `ENV_NAME=azure`, `DATABASE_URL` (Atlas `acne_azure`), `AI_SERVICE_URL=http://acne-ai`, `INTERNAL_APP_URL` = ลิงก์เว็บ
+web: `IMAGE_STORAGE=azure-blob`, `MODEL_STORAGE=azure-blob`, `AZURE_STORAGE_CONNECTION_STRING`, `ENV_NAME=azure`, `DATABASE_URL` (Atlas `acne_azure`), `AI_SERVICE_URL=https://<ลิงก์ acne-ai>`, `AUTH_URL` + `INTERNAL_APP_URL` = ลิงก์เว็บ, `SEED_ADMIN_*` (ไม่ตั้ง = ไม่สร้างแอดมินเริ่มต้น)
+เทียบ 3 ระบบพร้อมภาพ และเหตุผลที่ย้ายมา Azure: `azure-deploy.md` → เทียบ 3 ระบบ
 ai: `ALLOWED_IMAGE_HOSTS=.blob.core.windows.net`, `AI_SERVICE_API_KEY` ตรงกับเว็บ
 
 ## เมื่อแก้ `schema.prisma`

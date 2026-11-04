@@ -16,7 +16,22 @@ const notoSansThai = Noto_Sans_Thai({
   variable: "--font-thai",
 });
 
+/**
+ * ที่อยู่จริงของเว็บ ใช้ทำลิงก์เต็มของรูป Open Graph — ไม่ตั้ง = Next.js ใช้ localhost และเตือนใน log
+ * อ่าน AUTH_URL ก่อน เพราะ NEXT_PUBLIC_* ถูกฝังค่าตอน build (image บน ghcr build โดยไม่มีค่านี้)
+ */
+function siteUrl(): URL | undefined {
+  const value = process.env.AUTH_URL || process.env.NEXT_PUBLIC_APP_URL;
+  if (!value) return undefined;
+  try {
+    return new URL(value);
+  } catch {
+    return undefined;
+  }
+}
+
 export const metadata: Metadata = {
+  metadataBase: siteUrl(),
   title: {
     default: `${siteConfig.name} — ${siteConfig.tagline}`,
     template: `%s | ${siteConfig.name}`,

@@ -5,6 +5,8 @@ from pathlib import Path
 import torch
 from ultralytics import YOLO
 
+from app.config import settings
+
 # ป้องกันปัญหา PyTorch สร้าง Thread มากเกินไปใน Container (ซึ่งทำให้เกิด CPU Throttling ช้า 20-30 วินาที)
 torch.set_num_threads(min(2, os.cpu_count() or 1))
 
@@ -24,15 +26,22 @@ _cache: dict[str, YOLO] = {}
 _lock = threading.Lock()
 
 
+def _same_class_name(model_name, expected: str | None) -> bool:
+    """ชื่อเดียวกันถ้าต่างกันแค่ตัวพิมพ์หรือ s ท้ายคำ — dataset Acne14k ตั้งชื่อเป็นพหูพจน์ (blackheads)"""
+    if not isinstance(model_name, str) or expected is None:
+        return model_name == expected
+    return model_name.strip().lower().removesuffix("s") == expected.removesuffix("s")
+
+
 def class_names_mismatch(names) -> dict[int, tuple[str | None, str | None]]:
-    """เทียบชื่อคลาสในโมเดลกับ ACNE_CLASSES — คืน {index: (ในโมเดล, ที่ระบบคาด)} เฉพาะที่ไม่ตรง"""
+    """เทียบชื่อคลาสในโมเดลกับ ACNE_CLASSES — คืน {index: (ในโมเดล, ที่ระบบคาด)} เฉพาะที่ลำดับไม่ตรงจริง"""
     if not isinstance(names, dict):
         return {}
     model_names = {int(k): v for k, v in names.items()}
     return {
         i: (model_names.get(i), ACNE_CLASSES.get(i))
         for i in sorted(set(model_names) | set(ACNE_CLASSES))
-        if model_names.get(i) != ACNE_CLASSES.get(i)
+        if not _same_class_name(model_names.get(i), ACNE_CLASSES.get(i))
     }
 
 
@@ -59,7 +68,14 @@ def clear_cache(model_path: str | None = None):
 class YoloService:
     def predict(self, image_path: str, model_path: str, confidence: float, augment: bool = False) -> dict:
         model = _get_model(model_path)
-        results = model(image_path, conf=confidence, augment=augment, verbose=False)
+        # agnostic_nms: กันกรอบซ้อนกันคนละชนิดบนสิวเม็ดเดียว (ดูเหตุผลใน dev-docs/experiments.md)
+        results = model(
+            image_path,
+            conf=confidence,
+            augment=augment,
+            agnostic_nms=settings.AI_AGNOSTIC_NMS,
+            verbose=False,
+        )
 
         counts = {v: 0 for v in ACNE_CLASSES.values()}
         detections = []

@@ -25,15 +25,7 @@ export default async function PublicLayout({
           <PublicNav />
           <div className="flex items-center gap-2">
             <ThemeControls />
-            {!session && (
-              <Button
-                asChild
-                variant="ghost"
-                className="hidden rounded-full sm:inline-flex"
-              >
-                <Link href="/login">เข้าสู่ระบบ</Link>
-              </Button>
-            )}
+            {/* ไม่มีปุ่ม "เข้าสู่ระบบ" แยก — "เริ่มวิเคราะห์ผิว" พาไปหน้า login อยู่แล้ว (ผู้ใช้ขอให้มีปุ่มเดียว) */}
             <Button asChild className="rounded-full">
               <Link href="/analyze">
                 {session ? "ไปที่แดชบอร์ด" : "เริ่มวิเคราะห์ผิว"}

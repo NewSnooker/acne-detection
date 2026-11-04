@@ -39,7 +39,6 @@ interface HistoryGalleryProps {
 
 export function HistoryGallery({
   items,
-  totalItems,
   currentSort,
   typeCounts,
   isAdminView = false,

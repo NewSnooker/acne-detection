@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableLoading } from "@/components/ui/table-loading";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
-import { Trash2, Loader2, Maximize2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -53,7 +53,6 @@ interface HistoryTableViewProps {
 
 export function HistoryTableView({
   items,
-  totalItems,
   isAdminView,
   onSelect,
 }: HistoryTableViewProps) {
@@ -140,27 +139,29 @@ export function HistoryTableView({
     [],
   );
 
-  const ImageCellRenderer = (
-    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
-  ) => {
-    if (!props.data) return null;
-    const imageUrl = props.data.imageUrl
-      ? props.data.imageUrl
-      : `/api/images/${props.data.imageName}`;
-    return (
-      <div
-        className="flex h-full items-center py-1"
-        onClick={(e) => {
-          e.stopPropagation();
-          if (props.data) onSelect(props.data.originalIndex);
-        }}
-      >
-        <div className="bg-muted ring-primary/20 relative h-10 w-10 cursor-pointer overflow-hidden rounded-md shadow-sm transition-all group-hover:ring-2">
-          <TableThumb src={imageUrl} />
+  // useCallback: ตารางสร้างคอลัมน์ใหม่เฉพาะเมื่อค่าที่ cell ใช้เปลี่ยน
+  const ImageCellRenderer = useCallback(
+    (props: CustomCellRendererProps<HistoryItemWithOriginalIndex>) => {
+      if (!props.data) return null;
+      const imageUrl = props.data.imageUrl
+        ? props.data.imageUrl
+        : `/api/images/${props.data.imageName}`;
+      return (
+        <div
+          className="flex h-full items-center py-1"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (props.data) onSelect(props.data.originalIndex);
+          }}
+        >
+          <div className="bg-muted ring-primary/20 relative h-10 w-10 cursor-pointer overflow-hidden rounded-md shadow-sm transition-all group-hover:ring-2">
+            <TableThumb src={imageUrl} />
+          </div>
         </div>
-      </div>
-    );
-  };
+      );
+    },
+    [onSelect],
+  );
 
   const UserCellRenderer = (
     props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
@@ -308,44 +309,45 @@ export function HistoryTableView({
     );
   };
 
-  const ActionCellRenderer = (
-    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
-  ) => {
-    if (!props.data) return null;
-    const item = props.data;
+  const ActionCellRenderer = useCallback(
+    (props: CustomCellRendererProps<HistoryItemWithOriginalIndex>) => {
+      if (!props.data) return null;
+      const item = props.data;
 
-    if (!isAdminView) return null;
+      if (!isAdminView) return null;
 
-    return (
-      <div className="flex h-full items-center justify-end gap-2 pr-2">
-        <TooltipProvider delayDuration={150}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className={`hover:text-destructive h-8 w-8 rounded-md`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setHistoryToDelete(item.id);
-                }}
-                disabled={isDeleting === item.id || isBatchDeleting}
-              >
-                {isDeleting === item.id ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Trash2 className="h-3.5 w-3.5" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>ลบประวัตินี้</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    );
-  };
+      return (
+        <div className="flex h-full items-center justify-end gap-2 pr-2">
+          <TooltipProvider delayDuration={150}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={`hover:text-destructive h-8 w-8 rounded-md`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setHistoryToDelete(item.id);
+                  }}
+                  disabled={isDeleting === item.id || isBatchDeleting}
+                >
+                  {isDeleting === item.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>ลบประวัตินี้</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      );
+    },
+    [isAdminView, isDeleting, isBatchDeleting],
+  );
 
   const colDefs = useMemo<ColDef<HistoryItemWithOriginalIndex>[]>(() => {
     const cols: ColDef<HistoryItemWithOriginalIndex>[] = [
@@ -422,7 +424,7 @@ export function HistoryTableView({
     }
 
     return cols;
-  }, [isAdminView, isDeleting, isBatchDeleting]);
+  }, [isAdminView, ImageCellRenderer, ActionCellRenderer]);
 
   return (
     <div className="flex h-full flex-col space-y-4">
@@ -488,7 +490,7 @@ export function HistoryTableView({
                   การกระทำนี้จะไม่สามารถกู้คืนข้อมูลและรูปภาพได้
                 </p>
                 <ul className="text-muted-foreground max-h-32 list-disc overflow-y-auto pl-5 text-sm">
-                  {selectedHistories.map((h, i) => (
+                  {selectedHistories.map((h) => (
                     <li key={h.id}>
                       {h.user?.name || h.user?.email || "ผู้ใช้ไม่ระบุชื่อ"} -{" "}
                       {new Date(h.createdAt).toLocaleDateString("th-TH")}

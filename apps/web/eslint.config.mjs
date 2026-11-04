@@ -8,6 +8,15 @@ const eslintConfig = defineConfig([
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "error",
+      // ตัวแปรที่ตั้งใจไม่ใช้ให้ขึ้นต้นด้วย _ เช่น const { modelData: _omit, ...rest } = obj
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+        },
+      ],
     },
   },
   // Override default ignores of eslint-config-next.

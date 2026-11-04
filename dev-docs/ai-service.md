@@ -15,7 +15,7 @@ FastAPI 0.115.5 · Ultralytics 8.4.180 · PyTorch · Python 3.12 (Docker) / venv
 | `app/services/model_files.py` | `resolve_image()` / `resolve_model()` จำกัดว่าอ่านไฟล์จากที่ไหนได้, `_download()` |
 | `app/services/yolo_service.py` | `ACNE_CLASSES`, cache โมเดลใน memory (`_cache` + lock), `YoloService.predict()`, `class_names_mismatch()` เตือนใน log ถ้าลำดับคลาสของโมเดลไม่ตรง |
 | `app/services/model_metrics.py` | `extract_metrics()` อ่าน `train_metrics` ของ Ultralytics (`metrics/mAP50(B)`, `precision(B)`, `recall(B)`) เป็นร้อยละ + คำนวณ F1; `read_model_metrics()` โหลดด้วย `torch.load(weights_only=False)` — ไฟล์มาจากแอดมินเท่านั้น |
-| `app/config.py` | `Settings` (pydantic-settings): `AI_SERVICE_API_KEY`, `STORAGE_PATH`, `MODELS_PATH`, `ALLOWED_IMAGE_HOSTS`, `ALLOWED_MODEL_HOSTS`, `AI_CONFIDENCE_THRESHOLD` (สำรอง 0.2), `DEBUG` |
+| `app/config.py` | `Settings` (pydantic-settings): `AI_SERVICE_API_KEY`, `STORAGE_PATH`, `MODELS_PATH`, `ALLOWED_IMAGE_HOSTS`, `ALLOWED_MODEL_HOSTS`, `AI_CONFIDENCE_THRESHOLD` (สำรอง 0.2), `AI_AGNOSTIC_NMS` (true), `DEBUG` |
 | `inspect_pt.py` | สคริปต์ดูข้างในไฟล์ `.pt` (keys, results_dict, names) — ไม่ได้อยู่ใน flow |
 | `requirements.txt` | pin เวอร์ชัน (ไม่มี torch — ติดมากับ ultralytics) |
 | `Dockerfile` | python:3.12-slim, ติดตั้ง PyTorch รุ่น CPU ก่อน `requirements.txt` |
@@ -45,6 +45,8 @@ ACNE_CLASSES = {0:"blackhead", 1:"cyst", 2:"nodule", 3:"papule", 4:"pustule", 5:
 - `torch.set_num_threads(min(2, cpu_count))` กัน CPU throttling ใน container
 - cache โมเดลตาม path ไม่มีการล้างเมื่อโมเดลถูกลบ/เปลี่ยนจากฝั่ง web
 - ไม่ได้กำหนด `imgsz`, `iou`, `device` → ใช้ค่า default ของ Ultralytics (`imgsz` จากไฟล์ `.pt`, `iou` 0.7)
+- `agnostic_nms=settings.AI_AGNOSTIC_NMS` (ค่าเริ่มต้น `true`) — คัดกรอบซ้ำโดยไม่แยกชนิด กันกรอบซ้อนกันคนละชนิดบนสิวเม็ดเดียว (เหตุผล: `experiments.md`)
+- ลำดับคลาส: ชื่อพหูพจน์/ตัวพิมพ์ต่างกันถือว่าตรง (`blackheads` = `blackhead`) เตือนเฉพาะเมื่อลำดับผิดจริง
 
 ## ค่า confidence และ TTA (รายโมเดล)
 

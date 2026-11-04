@@ -12,14 +12,7 @@ import { AiModel } from "@prisma/client";
 import { ModelActions } from "@/components/admin/model-actions";
 import { ModelService } from "@/lib/api-client/model-api";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
-import {
-  AlertCircle,
-  CheckCircle2,
-  Circle,
-  Cpu,
-  Trash2,
-  Loader2,
-} from "lucide-react";
+import { CheckCircle2, Circle, Cpu, Trash2, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { MODEL_METRICS } from "@/types/analyze";
