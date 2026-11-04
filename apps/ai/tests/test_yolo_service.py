@@ -97,7 +97,9 @@ def test_no_detection_returns_zero_for_all_six_types(use_model):
 
 
 def test_counts_each_acne_type_separately(use_model):
-    use_model([FakeBox(0), FakeBox(0), FakeBox(3), FakeBox(3), FakeBox(3), FakeBox(4), FakeBox(1), FakeBox(5)])
+    # กรอบแยกกันคนละที่ (กรอบซ้อนกันจะถูกตัด — ดูชุดทดสอบกรอบซ้อนด้านล่าง)
+    cls_ids = [0, 0, 3, 3, 3, 4, 1, 5]
+    use_model([FakeBox(c, xyxy=(i * 50.0, 0.0, i * 50.0 + 30.0, 30.0)) for i, c in enumerate(cls_ids)])
 
     result = YoloService().predict("img.jpg", "model.pt", 0.25)
 
@@ -238,3 +240,51 @@ def test_nms_iou_comes_from_settings(use_model, monkeypatch):
     monkeypatch.setattr(yolo_service.settings, "AI_NMS_IOU", 0.7)
     YoloService().predict("face.jpg", "model.pt", 0.25)
     assert model.called_with["iou"] == 0.7
+
+
+def test_small_box_inside_bigger_box_is_dropped(use_model):
+    # กรอบเล็กอยู่ในกรอบใหญ่ทั้งกรอบ (IoU แค่ 0.25 NMS ไม่ตัด) — เหลือกรอบที่มั่นใจกว่า
+    use_model([
+        FakeBox(4, conf=0.6, xyxy=(0, 0, 100, 100)),
+        FakeBox(4, conf=0.5, xyxy=(25, 25, 75, 75)),
+        FakeBox(3, conf=0.7, xyxy=(200, 200, 240, 240)),
+    ])
+
+    out = YoloService().predict("face.jpg", "model.pt", 0.25)
+
+    assert out["total"] == 2
+    assert out["counts"]["pustule"] == 1
+    assert out["counts"]["papule"] == 1
+    assert [d["confidence"] for d in out["detections"]] == [0.7, 0.6]
+
+
+def test_big_box_around_more_confident_small_box_is_dropped(use_model):
+    use_model([
+        FakeBox(3, conf=0.4, xyxy=(0, 0, 100, 100)),
+        FakeBox(4, conf=0.8, xyxy=(10, 10, 90, 90)),
+    ])
+
+    out = YoloService().predict("face.jpg", "model.pt", 0.25)
+
+    assert out["counts"]["pustule"] == 1
+    assert out["total"] == 1
+
+
+def test_partly_overlapping_boxes_are_kept(use_model):
+    # สิว 2 เม็ดติดกัน ทับกันแค่ขอบ — ต้องเหลือทั้งคู่
+    use_model([
+        FakeBox(3, conf=0.6, xyxy=(0, 0, 50, 50)),
+        FakeBox(3, conf=0.5, xyxy=(30, 0, 80, 50)),
+    ])
+
+    assert YoloService().predict("face.jpg", "model.pt", 0.25)["total"] == 2
+
+
+def test_nested_box_filter_can_be_turned_off(use_model, monkeypatch):
+    monkeypatch.setattr(yolo_service.settings, "AI_NESTED_BOX_RATIO", 0)
+    use_model([
+        FakeBox(4, conf=0.6, xyxy=(0, 0, 100, 100)),
+        FakeBox(4, conf=0.5, xyxy=(25, 25, 75, 75)),
+    ])
+
+    assert YoloService().predict("face.jpg", "model.pt", 0.25)["total"] == 2

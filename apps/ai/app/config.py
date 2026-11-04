@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     # IoU ของ NMS: กรอบที่ทับกันเกินค่านี้เหลือกรอบที่มั่นใจสุด (Ultralytics ใช้ 0.7)
     # 0.5 = ตัดกรอบเล็กที่ซ้อนอยู่ในกรอบใหญ่บนสิวเม็ดเดียวด้วย — ดู dev-docs/experiments.md
     AI_NMS_IOU: float = 0.5
+    # หลัง NMS: ตัดกรอบที่อยู่ในกรอบที่มั่นใจกว่าเกินสัดส่วนนี้ของพื้นที่ตัวเอง (กรอบเล็กซ้อนในกรอบใหญ่)
+    # 0 = ปิด — ดู dev-docs/experiments.md
+    AI_NESTED_BOX_RATIO: float = 0.8
     DEBUG: bool = False
 
     class Config:

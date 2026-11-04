@@ -15,7 +15,7 @@ FastAPI 0.115.5 · Ultralytics 8.4.180 · PyTorch · Python 3.12 (Docker) / venv
 | `app/services/model_files.py` | `resolve_image()` / `resolve_model()` จำกัดว่าอ่านไฟล์จากที่ไหนได้, `_download()` |
 | `app/services/yolo_service.py` | `ACNE_CLASSES`, cache โมเดลใน memory (`_cache` + lock), `YoloService.predict()`, `class_names_mismatch()` เตือนใน log ถ้าลำดับคลาสของโมเดลไม่ตรง |
 | `app/services/model_metrics.py` | `extract_metrics()` อ่าน `train_metrics` ของ Ultralytics (`metrics/mAP50(B)`, `precision(B)`, `recall(B)`) เป็นร้อยละ + คำนวณ F1; `read_model_metrics()` โหลดด้วย `torch.load(weights_only=False)` — ไฟล์มาจากแอดมินเท่านั้น |
-| `app/config.py` | `Settings` (pydantic-settings): `AI_SERVICE_API_KEY`, `STORAGE_PATH`, `MODELS_PATH`, `ALLOWED_IMAGE_HOSTS`, `ALLOWED_MODEL_HOSTS`, `AI_CONFIDENCE_THRESHOLD` (สำรอง 0.2), `AI_AGNOSTIC_NMS` (true), `AI_NMS_IOU` (0.5), `DEBUG` |
+| `app/config.py` | `Settings` (pydantic-settings): `AI_SERVICE_API_KEY`, `STORAGE_PATH`, `MODELS_PATH`, `ALLOWED_IMAGE_HOSTS`, `ALLOWED_MODEL_HOSTS`, `AI_CONFIDENCE_THRESHOLD` (สำรอง 0.2), `AI_AGNOSTIC_NMS` (true), `AI_NMS_IOU` (0.5), `AI_NESTED_BOX_RATIO` (0.8), `DEBUG` |
 | `inspect_pt.py` | สคริปต์ดูข้างในไฟล์ `.pt` (keys, results_dict, names) — ไม่ได้อยู่ใน flow |
 | `requirements.txt` | pin เวอร์ชัน (ไม่มี torch — ติดมากับ ultralytics) |
 | `Dockerfile` | python:3.12-slim, ติดตั้ง PyTorch รุ่น CPU ก่อน `requirements.txt` |
@@ -49,6 +49,7 @@ ACNE_CLASSES = {0:"blackhead", 1:"cyst", 2:"nodule", 3:"papule", 4:"pustule", 5:
 - ไม่ได้กำหนด `imgsz`, `iou`, `device` → ใช้ค่า default ของ Ultralytics (`imgsz` จากไฟล์ `.pt`, `iou` 0.7)
 - `agnostic_nms=settings.AI_AGNOSTIC_NMS` (ค่าเริ่มต้น `true`) — คัดกรอบซ้ำโดยไม่แยกชนิด กันกรอบซ้อนกันคนละชนิดบนสิวเม็ดเดียว (เหตุผล: `experiments.md`)
 - `iou=settings.AI_NMS_IOU` (ค่าเริ่มต้น `0.5`, Ultralytics ใช้ 0.7) — กรอบที่ทับกันเกินครึ่งเหลือกรอบเดียว กันกรอบเล็กซ้อนในกรอบใหญ่บนสิวเม็ดเดียว
+- หลัง NMS: `drop_nested_boxes()` ตัดกรอบที่อยู่ในกรอบซึ่งมั่นใจกว่าเกิน `AI_NESTED_BOX_RATIO` (0.8) ของพื้นที่ตัวเอง ไม่สนชนิด — NMS ใช้ IoU จึงไม่ตัดกรอบเล็กในกรอบใหญ่ที่ขนาดต่างกันมาก (`0` = ปิด) นับ `counts` หลังตัดแล้ว
 
   ![NMS แยกชนิดกับไม่แยกชนิด](images/nms-agnostic.png)
 
