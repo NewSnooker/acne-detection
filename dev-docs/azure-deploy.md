@@ -330,3 +330,4 @@ workflow `Docker images` build เสร็จแล้วจะสั่ง `az
 | `AADSTS700213` / `AADSTS70021: No matching federated identity record` | subject ในข้อ 3 ไม่ตรงกับที่ GitHub ส่งมา — คัดลอก `subject claim` จาก log ขั้น *azure/login* ไปสร้าง credential ใหม่ (`az identity federated-credential create ... --subject "<ค่านั้น>"`) |
 | `AuthorizationFailed` | ข้อ 2 ยังไม่ได้ให้ Contributor หรือให้ผิด resource group (รอ 1–2 นาทีหลังให้สิทธิ์) |
 | ขั้น deploy ถูกข้าม | ยังไม่ได้ใส่ `AZURE_CLIENT_ID` |
+| `The containerapp 'acne-ai' does not exist` หรือ `ยังไม่ได้ตั้ง Variable AZURE_RESOURCE_GROUP` | ใส่ `AZURE_RESOURCE_GROUP` ในแท็บ **Variables** (ไม่ใช่ Secrets) |
