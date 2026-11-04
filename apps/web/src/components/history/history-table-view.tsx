@@ -211,10 +211,9 @@ export function HistoryTableView({
     const item = props.data;
     if (!item) return null;
     return (
-      <div className="flex h-full items-center gap-1.5">
-        <Badge
-          variant="outline"
-          className="font-mono text-[11px]"
+      <div className="flex h-full items-center gap-2 text-sm whitespace-nowrap">
+        <span
+          className="font-mono tabular-nums"
           title={
             item.confidence == null
               ? "ผลเก่า ไม่ได้บันทึกค่า conf"
@@ -222,16 +221,16 @@ export function HistoryTableView({
           }
         >
           {item.confidence?.toFixed(2) ?? "—"}
-        </Badge>
+        </span>
+        <span className="text-muted-foreground" aria-hidden="true">
+          ·
+        </span>
         {item.usedTta ? (
-          <Badge
-            variant="outline"
-            className="border-violet-500/30 bg-violet-500/10 text-[11px] text-violet-600 dark:text-violet-400"
-          >
+          <span className="font-medium text-violet-600 dark:text-violet-400">
             TTA
-          </Badge>
+          </span>
         ) : (
-          <span className="text-muted-foreground text-[11px]">TTA ปิด</span>
+          <span className="text-muted-foreground">ไม่ใช้ TTA</span>
         )}
       </div>
     );
