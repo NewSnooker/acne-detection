@@ -4,7 +4,7 @@
 
 > เอกสารนี้ใช้ชื่อตัวอย่างเท่านั้น (`<ชื่อ storage>`, `<ลิงก์ acne-web>` ฯลฯ) **ห้ามใส่โดเมนจริง ชื่อ storage account รหัสผ่าน หรือ connection string ลงในไฟล์ใน repo**
 
-สารบัญ: [ทำไมย้ายมา Azure](#why) · [เทียบ 3 ระบบ](#compare) · [Azure เก็บอะไรไว้ที่ไหน](#storage) · [ขั้นตอน 1–8](#steps) · [เจอปัญหา](#troubleshoot) · [หลังจากนี้](#after)
+สารบัญ: [ทำไมย้ายมา Azure](#why) · [เทียบ 3 ระบบ](#compare) · [Azure เก็บอะไรไว้ที่ไหน](#storage) · [ขั้นตอน 1–8](#steps) · [เจอปัญหา](#troubleshoot) · [หลังจากนี้](#after) · [อัปเดตอัตโนมัติ](#auto-deploy)
 
 ---
 
@@ -280,7 +280,7 @@ Environment variables:
 
 | อยากทำ | วิธี |
 |---|---|
-| อัปเดตโค้ด | merge เข้า main → รอ Actions (Docker images) เขียว → Cloud Shell `>_` (Bash): `az containerapp update -n acne-ai -g <resource group> --image ghcr.io/<ชื่อผู้ใช้ GitHub ตัวเล็ก>/acne-ai:sha-<commit เต็มของ main>` (เว็บใช้ `acne-web` แทน) |
+| อัปเดตโค้ด | **ตั้งอัปเดตอัตโนมัติแล้ว** (หัวข้อถัดไป): merge เข้า main → รอ Actions (Docker images) เขียว จบ · **ยังไม่ได้ตั้ง**: merge → รอ Actions เขียว → Cloud Shell `>_` (Bash): `az containerapp update -n acne-ai -g <resource group> --image ghcr.io/<ชื่อผู้ใช้ GitHub ตัวเล็ก>/acne-ai:sha-<commit เต็มของ main>` (เว็บใช้ `acne-web` แทน) |
 | ย้อนกลับรุ่นเก่า | คำสั่งเดียวกัน ใส่ `sha-<commit>` ของรุ่นที่ต้องการ |
 
 > **ใช้ tag `sha-<commit>` เสมอ อย่าใช้ `latest` ตอนอัปเดต** — กด Create new revision กับ tag `latest` เดิม Azure อาจใช้ image เก่าที่ดึงไว้แล้ว (เจอจริง 2026-11-04: แก้โค้ด 3 รอบแต่ผลไม่เปลี่ยน จนเปลี่ยนเป็น `sha-` ถึงได้โค้ดใหม่) เช็คได้จาก log ตอน ai เริ่ม: `ai start: commit <7 ตัวแรก>`
@@ -296,3 +296,36 @@ Environment variables:
 - เว็บรัน `prisma db push --accept-data-loss` ทุกครั้งที่เริ่ม → `DATABASE_URL` ต้องเป็น database ของ Azure เท่านั้น
 - ตั้ง `azure-blob` แต่ไม่ตั้ง `AZURE_STORAGE_CONNECTION_STRING` → เว็บไม่ยอมเริ่ม (ดูข้อความใน Log stream)
 - `acne-ai` ตั้ง `torch.set_num_threads(min(2, cpu))` อยู่ — ใช้ 2 เธรดต่อการวิเคราะห์ 1 ครั้ง (เผื่อหลายคนพร้อมกัน)
+
+<a id="auto-deploy"></a>
+
+## อัปเดตอัตโนมัติหลัง merge (ตั้งครั้งเดียว)
+
+workflow `Docker images` build เสร็จแล้วจะสั่ง `az containerapp update --image ...:sha-<commit>` ให้เองถ้ามีค่าครบ — ไม่ตั้ง = build อย่างเดียวเหมือนเดิม
+ใช้ tag `sha-` เพราะ Microsoft แนะนำให้ใช้ tag ที่ไม่ซ้ำ (เช่น commit SHA) แทน `latest` ไม่งั้น revision ใหม่อาจไม่ได้ image ใหม่
+
+ล็อกอินแบบ OIDC ผ่าน Managed Identity: GitHub ขอ token ชั่วคราวจาก Azure ทุกครั้ง ไม่มีรหัสผ่านเก็บไว้ที่ไหน และไม่ต้องสร้าง App registration (บัญชีนักศึกษามักสร้างไม่ได้)
+
+**1. สร้าง identity** — ค้นหา *Managed Identities* → Create → resource group ของระบบ · Region เดียวกับแอป · Name `acne-github-deploy` → Create
+
+**2. ให้สิทธิ์** — resource group ของระบบ → Access control (IAM) → Add role assignment → Role **Contributor** → Members: *Managed identity* → เลือก `acne-github-deploy` → Review + assign
+
+**3. ผูกกับ GitHub** — `acne-github-deploy` → Settings → **Federated credentials** → Add credential
+- Scenario: *GitHub Actions deploying Azure resources*
+- Organization: `<ชื่อผู้ใช้ GitHub>` · Repository: `acne-detection` · Entity: **Branch** · Branch: `main`
+- Name: `github-main` → Add
+
+**4. ใส่ค่าใน GitHub** — repo → Settings → Secrets and variables → Actions
+- แท็บ **Secrets** → New repository secret 3 ตัว:
+  - `AZURE_CLIENT_ID` = *Client ID* ในหน้า Overview ของ `acne-github-deploy`
+  - `AZURE_TENANT_ID` = *Tenant ID* (Microsoft Entra ID → Overview)
+  - `AZURE_SUBSCRIPTION_ID` = *Subscription ID* (Subscriptions)
+- แท็บ **Variables** → New repository variable: `AZURE_RESOURCE_GROUP` = ชื่อ resource group
+
+**5. ทดสอบ** — Actions → Docker images → Run workflow (build + deploy ทั้งสองแอป) → ขั้น *deploy ขึ้น Azure Container Apps* ต้องพิมพ์ชื่อ image `...:sha-<commit>` → acne-ai → Log stream ต้องเห็น `ai start: commit <7 ตัวแรก>`
+
+| อาการ | แก้ |
+|---|---|
+| `AADSTS70021: No matching federated identity record` | ข้อ 3 ชื่อ repo/branch ไม่ตรง (ต้องเป็น `main` และรันจาก main) |
+| `AuthorizationFailed` | ข้อ 2 ยังไม่ได้ให้ Contributor หรือให้ผิด resource group (รอ 1–2 นาทีหลังให้สิทธิ์) |
+| ขั้น deploy ถูกข้าม | ยังไม่ได้ใส่ `AZURE_CLIENT_ID` |
