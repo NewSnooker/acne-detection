@@ -5,6 +5,8 @@ from pathlib import Path
 import torch
 from ultralytics import YOLO
 
+from app.config import settings
+
 # ป้องกันปัญหา PyTorch สร้าง Thread มากเกินไปใน Container (ซึ่งทำให้เกิด CPU Throttling ช้า 20-30 วินาที)
 torch.set_num_threads(min(2, os.cpu_count() or 1))
 
@@ -66,7 +68,14 @@ def clear_cache(model_path: str | None = None):
 class YoloService:
     def predict(self, image_path: str, model_path: str, confidence: float, augment: bool = False) -> dict:
         model = _get_model(model_path)
-        results = model(image_path, conf=confidence, augment=augment, verbose=False)
+        # agnostic_nms: กันกรอบซ้อนกันคนละชนิดบนสิวเม็ดเดียว (ดูเหตุผลใน dev-docs/experiments.md)
+        results = model(
+            image_path,
+            conf=confidence,
+            augment=augment,
+            agnostic_nms=settings.AI_AGNOSTIC_NMS,
+            verbose=False,
+        )
 
         counts = {v: 0 for v in ACNE_CLASSES.values()}
         detections = []

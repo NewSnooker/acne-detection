@@ -45,8 +45,14 @@ class FakeModel:
         self.results = results
         self.called_with = None
 
-    def __call__(self, image_path, conf, verbose, augment=False):
-        self.called_with = {"image": image_path, "conf": conf, "verbose": verbose, "augment": augment}
+    def __call__(self, image_path, conf, verbose, augment=False, agnostic_nms=False):
+        self.called_with = {
+            "image": image_path,
+            "conf": conf,
+            "verbose": verbose,
+            "augment": augment,
+            "agnostic_nms": agnostic_nms,
+        }
         return self.results
 
 
@@ -134,7 +140,13 @@ def test_confidence_threshold_is_passed_to_model(use_model):
 
     YoloService().predict("face.jpg", "model.pt", 0.4)
 
-    assert model.called_with == {"image": "face.jpg", "conf": 0.4, "verbose": False, "augment": False}
+    assert model.called_with == {
+        "image": "face.jpg",
+        "conf": 0.4,
+        "verbose": False,
+        "augment": False,
+        "agnostic_nms": True,
+    }
 
 
 def test_tta_is_passed_to_model(use_model):
@@ -203,3 +215,13 @@ def test_class_names_plural_swapped_still_reported():
 
 def test_class_names_unknown_format_is_ignored():
     assert yolo_service.class_names_mismatch(None) == {}
+
+
+def test_agnostic_nms_can_be_turned_off(use_model, monkeypatch):
+    # ปิดได้ด้วย AI_AGNOSTIC_NMS=false — ใช้ตอนวัดผลแบบเดิมเทียบกับเล่ม
+    monkeypatch.setattr(yolo_service.settings, "AI_AGNOSTIC_NMS", False)
+    model = use_model([])
+
+    YoloService().predict("face.jpg", "model.pt", 0.25)
+
+    assert model.called_with["agnostic_nms"] is False

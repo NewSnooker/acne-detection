@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     ALLOWED_MODEL_HOSTS: str = ""
     # ความมั่นใจขั้นต่ำสำรอง ใช้เมื่อคำขอไม่ได้ส่ง confidence มา (เว็บส่งตาม AiModel.confidence ทุกครั้ง)
     AI_CONFIDENCE_THRESHOLD: float = 0.2
+    # NMS แบบไม่แยกชนิด: สิวเม็ดเดียวที่โมเดลทายได้ 2 ชนิด (เช่น ตุ่มหนอง + ตุ่มแดง) เหลือกรอบที่มั่นใจสุดกรอบเดียว
+    # false = แบบเดิมของ Ultralytics (คัดกรอบซ้ำแยกทีละชนิด) — ใช้ตอนวัดผลเทียบกับเล่ม ดู dev-docs/experiments.md
+    AI_AGNOSTIC_NMS: bool = True
     DEBUG: bool = False
 
     class Config:
