@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,7 @@ import {
 import { ImagePreview } from "@/components/analyze/image-preview";
 import { AnalysisResultPanel } from "@/components/analyze/analysis-result";
 import { HistoryItem } from "./history-gallery";
+import type { AcneGroupId } from "@/lib/acne-groups";
 
 interface HistoryModalProps {
   selectedItem: HistoryItem | null;
@@ -31,6 +33,7 @@ export function HistoryModal({
   onNext,
   onPrev,
 }: HistoryModalProps) {
+  const [hoveredGroup, setHoveredGroup] = useState<AcneGroupId | null>(null);
   if (!selectedItem) return null;
 
   return (
@@ -203,6 +206,8 @@ export function HistoryModal({
                     loading={false}
                     readOnly={true}
                     fit
+                    hoveredGroup={hoveredGroup}
+                    onHoverGroup={setHoveredGroup}
                   />
                 );
               })()}
@@ -223,6 +228,8 @@ export function HistoryModal({
                     onAnalyze={() => {}}
                     onUploadNew={() => {}}
                     readOnly={true} // ซ่อนปุ่มอัปโหลดรูปใหม่
+                    hoveredGroup={hoveredGroup}
+                    onHoverGroup={setHoveredGroup}
                   />
                 );
               })()}
