@@ -65,6 +65,34 @@ def clear_cache(model_path: str | None = None):
             _cache.clear()
 
 
+def _inside_ratio(inner: dict, outer: dict) -> float:
+    """สัดส่วนพื้นที่ของกรอบ inner ที่อยู่ในกรอบ outer (0-1)"""
+    w = min(inner["x2"], outer["x2"]) - max(inner["x1"], outer["x1"])
+    h = min(inner["y2"], outer["y2"]) - max(inner["y1"], outer["y1"])
+    area = (inner["x2"] - inner["x1"]) * (inner["y2"] - inner["y1"])
+    if w <= 0 or h <= 0 or area <= 0:
+        return 0.0
+    return (w * h) / area
+
+
+def drop_nested_boxes(detections: list[dict], threshold: float) -> list[dict]:
+    """ตัดกรอบที่อยู่ในกรอบซึ่งมั่นใจกว่าเกิน threshold ของพื้นที่ตัวเอง (ไม่สนชนิด)
+
+    NMS ใช้ IoU จึงไม่ตัดกรอบเล็กที่ซ้อนอยู่ในกรอบใหญ่ (IoU ต่ำเพราะขนาดต่างกัน)
+    threshold <= 0 = ปิด
+    """
+    if threshold <= 0:
+        return detections
+    kept: list[dict] = []
+    for det in sorted(detections, key=lambda d: d["confidence"], reverse=True):
+        if all(
+            _inside_ratio(det["bbox"], k["bbox"]) < threshold and _inside_ratio(k["bbox"], det["bbox"]) < threshold
+            for k in kept
+        ):
+            kept.append(det)
+    return kept
+
+
 class YoloService:
     def predict(self, image_path: str, model_path: str, confidence: float, augment: bool = False) -> dict:
         model = _get_model(model_path)
@@ -78,7 +106,6 @@ class YoloService:
             verbose=False,
         )
 
-        counts = {v: 0 for v in ACNE_CLASSES.values()}
         detections = []
 
         for result in results:
@@ -93,7 +120,6 @@ class YoloService:
                 conf = round(float(box.conf[0].item()), 4)
                 x1, y1, x2, y2 = box.xyxy[0].tolist()
 
-                counts[acne_type] += 1
                 detections.append({
                     "type": acne_type,
                     "confidence": conf,
@@ -104,6 +130,11 @@ class YoloService:
                         "y2": round(y2, 1),
                     },
                 })
+
+        detections = drop_nested_boxes(detections, settings.AI_NESTED_BOX_RATIO)
+        counts = {v: 0 for v in ACNE_CLASSES.values()}
+        for det in detections:
+            counts[det["type"]] += 1
 
         return {
             "detections": detections,
