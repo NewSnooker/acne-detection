@@ -164,6 +164,7 @@ describe("POST /api/analyze", () => {
     expect(m.callFastApiForPrediction).toHaveBeenCalledWith(
       expect.objectContaining({ originalImage: "abc.jpg" }),
       { id: "model1", useTta: false, confidence: 0.2 },
+      expect.anything(), // ตัวจับเวลา log "analyze timing"
     );
     // บันทึกผลผูกกับผู้ใช้ โมเดล และรูป
     expect(m.analysisCreate).toHaveBeenCalledWith({
@@ -192,11 +193,11 @@ describe("POST /api/analyze", () => {
 
     expect(res.status).toBe(200);
     expect((await res.json()).data.usedTta).toBe(true);
-    expect(m.callFastApiForPrediction).toHaveBeenCalledWith(expect.anything(), {
-      id: "model1",
-      useTta: true,
-      confidence: 0.3,
-    });
+    expect(m.callFastApiForPrediction).toHaveBeenCalledWith(
+      expect.anything(),
+      { id: "model1", useTta: true, confidence: 0.3 },
+      expect.anything(),
+    );
     expect(m.analysisCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({ usedTta: true, confidence: 0.3 }),
     });

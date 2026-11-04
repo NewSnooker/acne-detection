@@ -4,16 +4,15 @@ import { prisma } from "@/lib/prisma";
 import { deleteImage, uploadImage } from "@/lib/storage/image-provider";
 import { callFastApiForPrediction, calculateSeverity } from "@/server/analyze";
 import { Prisma } from "@prisma/client";
+import { createStepTimer } from "@/lib/step-timer";
 import {
   detectImageKind,
   validateImageFile,
 } from "@/lib/validation/image-file";
 
-// เวลาเป็นวินาที ทศนิยม 2 ตำแหน่ง — รูปแบบเดียวกับ log "predict timing" ฝั่ง ai
-const seconds = (ms: number) => `${(ms / 1000).toFixed(2)}s`;
-
 export async function POST(req: NextRequest) {
-  const t0 = performance.now();
+  // log "analyze timing: ..." ทีละขั้น — ดูวิธีอ่านที่ dev-docs/performance/web.md
+  const timer = createStepTimer();
   try {
     // 1. เช็คสิทธิ์การเข้าใช้งาน และตรวจสอบว่ามี User อยู่จริงใน DB
     const guard = await requireUserApi();
@@ -34,9 +33,11 @@ export async function POST(req: NextRequest) {
         { status: 401 },
       );
     }
+    timer.mark("auth");
 
     // 2. รับไฟล์รูปภาพจาก Request
     const formData = await req.formData();
+    timer.mark("read form");
     const file = formData.get("image");
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "ไม่พบไฟล์รูปภาพ" }, { status: 400 });
@@ -57,6 +58,7 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
+    timer.mark("check file");
 
     // 3. หาโมเดลที่ทำงานอยู่ (Active Model)
     // ใช้แค่ id — ห้ามดึง modelData (ไฟล์ .pt หลาย MB) มาทุกครั้งที่วิเคราะห์
@@ -71,21 +73,20 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
+    timer.mark("find model");
 
     // 4. อัปโหลดรูปภาพลงระบบ
     // - Local/Docker: เซฟลง Shared Volume → ส่ง path ให้ FastAPI โดยตรง (เร็วมาก)
     // - Hosted: Upload ขึ้น Vercel Blob (Internal Network เร็วมาก) → ได้ URL กลับมาทันที
-    const tUpload = performance.now();
     const imageResult = await uploadImage(file, imageKind);
-    const tAi = performance.now();
+    timer.mark(`upload ${imageResult.imageProvider}`);
 
     let result: Awaited<ReturnType<typeof callFastApiForPrediction>>;
     let severity: ReturnType<typeof calculateSeverity>;
     let analysisRecord: { id: string };
     try {
       // 5. ส่งให้ AI วิเคราะห์
-      result = await callFastApiForPrediction(imageResult, activeModel);
-      const tDb = performance.now();
+      result = await callFastApiForPrediction(imageResult, activeModel, timer);
 
       // 6. ประเมินความรุนแรงของสิว
       severity = calculateSeverity(result.counts);
@@ -110,11 +111,9 @@ export async function POST(req: NextRequest) {
           confidence: activeModel.confidence,
         },
       });
-
-      // เทียบกับ "predict timing" ของ ai: ai (เว็บวัด) − total (ai วัด) = เวลาเครือข่าย + ai ตื่นจาก scale-to-zero
-      const tEnd = performance.now();
+      timer.mark("save db");
       console.log(
-        `analyze timing: prepare ${seconds(tUpload - t0)} | upload ${seconds(tAi - tUpload)} | ai ${seconds(tDb - tAi)} | save db ${seconds(tEnd - tDb)} | total ${seconds(tEnd - t0)} | ${result.total} detections | tta=${activeModel.useTta}`,
+        `analyze timing: ${timer.summary()} | ${result.total} detections | tta=${activeModel.useTta}`,
       );
     } catch (error) {
       // วิเคราะห์หรือบันทึกไม่สำเร็จ — ลบรูปที่อัปโหลดไปแล้ว ไม่ให้ค้างบนดิสก์/Blob

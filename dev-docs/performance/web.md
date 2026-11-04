@@ -7,24 +7,34 @@
 
 ## อ่านเวลาจาก log (ใช้วัดรอบต่อไป)
 
-ทุกครั้งที่วิเคราะห์สำเร็จ ทั้งสองฝั่งพิมพ์ log 1 บรรทัด:
+ทุกครั้งที่วิเคราะห์สำเร็จ ทั้งสองฝั่งพิมพ์ log 1 บรรทัด (ตัวอย่างบน Azure):
 
 ```
 # web (acne-web)
-analyze timing: prepare 0.15s | upload 0.30s | ai 2.40s | save db 0.08s | total 2.93s | 2 detections | tta=true
+analyze timing: auth 0.05s | read form 0.10s | check file 0.00s | find model 0.03s | upload azure-blob 0.30s | sign sas url 0.01s | ai request 2.40s | save db 0.08s | total 2.97s | 2 detections | tta=true
 # ai (acne-ai)
 predict timing: image 0.04s | model 0.00s | inference 1.87s | total 1.91s | 2 detections | tta=True
 ```
 
-| ค่า | ความหมาย |
+| ขั้น (เว็บ) | ทำอะไร |
 | --- | --- |
-| `prepare` | เช็ค login + ผู้ใช้ใน DB + อ่านไฟล์ + ตรวจไฟล์ + หาโมเดลหลัก |
-| `upload` | เก็บรูป (ดิสก์ / Vercel Blob / Azure Blob) |
-| `ai` | เรียก `POST /predict` จนได้ผล (รวมเวลาที่ ai ทำงานทั้งหมด) |
-| `save db` | บันทึก `Analysis` + `Image` |
-| `total` | ตั้งแต่รับ request จนพร้อมตอบกลับ (เวลาที่ผู้ใช้รอ ไม่นับส่งรูปจากเบราว์เซอร์) |
+| `auth` | เช็ค login + หา User ใน DB |
+| `read form` | รับไฟล์รูปจากเบราว์เซอร์ (อ่าน form data) |
+| `check file` | ตรวจชนิด/ขนาด/เนื้อไฟล์ |
+| `find model` | หาโมเดลหลัก (Active) ใน DB |
+| `upload <ที่เก็บ>` | เก็บรูป — `azure-blob` / `vercel-blob` / `local` (ดิสก์) |
+| `sign sas url` / `image url` | สร้างลิงก์ให้ ai โหลดรูป — Azure สร้าง SAS อายุสั้น, ที่อื่นใช้ URL/path เดิม |
+| `ai request` | เรียก `POST /predict` จนได้ผล (รวมทุกขั้นของ ai) |
+| `save db` | คำนวณ severity + บันทึก `Analysis` + `Image` |
+| `total` | ตั้งแต่รับ request จนพร้อมตอบกลับ (ไม่นับเวลาส่งรูปจากเบราว์เซอร์มาถึงเว็บ) |
 
-**`ai` (เว็บ) − `total` (ai)** = เวลาเครือข่ายระหว่างเว็บกับ ai + เวลาที่ ai ตื่นจาก scale-to-zero — ถ้าต่างกันหลายวินาทีแปลว่า ai เพิ่งตื่น
+| ขั้น (ai) | ทำอะไร |
+| --- | --- |
+| `image` | โหลดรูปจาก blob / ดิสก์ |
+| `model` | โหลดโมเดล (ครั้งแรกดาวน์โหลดจาก `GET /api/models/[id]`, ครั้งต่อไปใช้ cache = 0.00s) |
+| `inference` | YOLO ทำนาย |
+
+**`ai request` (เว็บ) − `total` (ai)** = เวลาเครือข่ายระหว่างเว็บกับ ai + เวลาที่ ai ตื่นจาก scale-to-zero — ถ้าต่างกันหลายวินาทีแปลว่า ai เพิ่งตื่น
 ตอนเริ่ม container ทั้งสองฝั่งพิมพ์ `web start: commit ...` / `ai start: commit ...` ไว้เช็คว่า deploy รุ่นเดียวกันแล้ว
 
 ## สภาพแวดล้อมที่ทดสอบ

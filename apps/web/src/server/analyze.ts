@@ -3,6 +3,7 @@ import { AnalysisResult } from "@/types/analyze";
 import path from "path";
 import { getStoragePath, imageUrlForAi } from "@/lib/storage/image-provider";
 import type { ImageStorage } from "@/lib/storage/config";
+import type { StepTimer } from "@/lib/step-timer";
 
 // Heuristic for Severity (AAD / ALADIN)
 export function calculateSeverity(
@@ -62,6 +63,7 @@ export async function callFastApiForPrediction(
     imageProvider: ImageStorage;
   },
   activeModel: { id: string; useTta: boolean; confidence: number },
+  timer?: StepTimer,
 ): Promise<AnalysisResult> {
   const { url: fastApiUrl, apiKey } = getAiServiceConfig();
 
@@ -80,6 +82,10 @@ export async function callFastApiForPrediction(
       path.join(storagePath, imageResult.originalImage),
     );
   }
+  // azure-blob = สร้างลิงก์ SAS, vercel-blob = URL เดิม, ดิสก์ = path ในเครื่อง
+  timer?.mark(
+    imageResult.imageProvider === "azure-blob" ? "sign sas url" : "image url",
+  );
 
   // ส่ง URL ไปให้ FastAPI ดาวน์โหลดโมเดล
   const activeModelPath = modelDownloadUrl(activeModel.id);
@@ -105,5 +111,7 @@ export async function callFastApiForPrediction(
   }
 
   const result: AnalysisResult = await response.json();
+  // รวมเวลาที่ ai ทำงานทั้งหมด (ดาวน์โหลดรูป + โมเดล + inference) + เครือข่าย + ai ตื่นจาก scale-to-zero
+  timer?.mark("ai request");
   return result;
 }
