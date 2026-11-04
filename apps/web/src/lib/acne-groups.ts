@@ -108,7 +108,7 @@ export function explainSeverity(
 
   const reason =
     level === "MILD"
-      ? "สิวยังมีจำนวนน้อย ไม่ถึงเกณฑ์ปานกลาง"
+      ? "ทุกกลุ่มอยู่ในเกณฑ์เล็กน้อย (ไม่อักเสบไม่เกิน 20 จุด และอักเสบตื้นไม่เกิน 5 จุด)"
       : `เพราะ${reasons.join(" และ")}`;
 
   return { level, reason, groups };
