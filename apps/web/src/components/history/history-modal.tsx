@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Percent, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { AnalysisResult } from "@/types/analyze";
 import {
@@ -35,6 +36,8 @@ export function HistoryModal({
   onPrev,
 }: HistoryModalProps) {
   const [hoveredGroup, setHoveredGroup] = useState<AcneGroupId | null>(null);
+  // แอดมินเปิดดู % ความมั่นใจบนกรอบ (ค่าเริ่มต้นปิด)
+  const [showConfidence, setShowConfidence] = useState(false);
   if (!selectedItem) return null;
 
   return (
@@ -121,16 +124,29 @@ export function HistoryModal({
                 </Badge>
               </>
             )}
-            {isAdminView && selectedItem.model && (
+            {isAdminView && (
               <>
                 <span className="bg-border mx-1 hidden h-1 w-1 rounded-full sm:inline-block"></span>
+                {selectedItem.model && (
+                  <Badge
+                    variant="outline"
+                    className="text-primary/70 bg-primary/5 font-mono text-[10px]"
+                  >
+                    {selectedItem.model.name} {selectedItem.model.version}
+                  </Badge>
+                )}
                 <Badge
                   variant="outline"
-                  className="text-primary/70 bg-primary/5 font-mono text-[10px]"
+                  className="font-mono text-[10px]"
+                  title={
+                    selectedItem.confidence == null
+                      ? "ผลเก่า ไม่ได้บันทึกค่า conf"
+                      : "ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์"
+                  }
                 >
-                  {selectedItem.model.name} {selectedItem.model.version}
+                  conf {selectedItem.confidence?.toFixed(2) ?? "—"}
                 </Badge>
-                {selectedItem.usedTta && (
+                {selectedItem.usedTta ? (
                   <TooltipProvider delayDuration={0}>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -151,7 +167,28 @@ export function HistoryModal({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="text-muted-foreground text-[10px]"
+                  >
+                    TTA ปิด
+                  </Badge>
                 )}
+                <button
+                  type="button"
+                  onClick={() => setShowConfidence((v) => !v)}
+                  aria-pressed={showConfidence}
+                  className={cn(
+                    "flex h-7 cursor-pointer items-center gap-1 rounded-full border px-2.5 text-[11px] transition-colors",
+                    showConfidence
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "hover:bg-muted",
+                  )}
+                >
+                  <Percent className="h-3 w-3" aria-hidden="true" />
+                  {showConfidence ? "ซ่อน % บนกรอบ" : "แสดง % บนกรอบ"}
+                </button>
               </>
             )}
           </div>
@@ -209,6 +246,7 @@ export function HistoryModal({
                     fit
                     hoveredGroup={hoveredGroup}
                     onHoverGroup={setHoveredGroup}
+                    showConfidence={isAdminView && showConfidence}
                   />
                 );
               })()}

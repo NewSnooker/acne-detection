@@ -20,6 +20,8 @@ interface ImagePreviewProps {
   hoveredGroup?: AcneGroupId | null;
   /** ชี้ที่กรอบในรูป → แจ้งกลุ่มของกรอบนั้น (null = ไม่ได้ชี้กรอบไหน) */
   onHoverGroup?: (group: AcneGroupId | null) => void;
+  /** แสดง % ความมั่นใจต่อท้ายชื่อบนกรอบ — ใช้เฉพาะมุมมองแอดมิน */
+  showConfidence?: boolean;
 }
 
 export function ImagePreview({
@@ -31,6 +33,7 @@ export function ImagePreview({
   fit = false,
   hoveredGroup = null,
   onHoverGroup,
+  showConfidence = false,
 }: ImagePreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // รูปโหลดไม่ได้ (ไฟล์หาย) — แสดงภาพแทนแทนกรอบว่าง
@@ -86,8 +89,11 @@ export function ImagePreview({
       // ป้ายชื่อชนิดสิวภาษาไทย ใช้ฟอนต์เดียวกับหน้าเว็บ (มีฟอนต์ไทย)
       ctx.font = `600 ${fontSize}px ${fontFamily}`;
       ctx.textBaseline = "middle";
-      // ไม่แสดงค่าความมั่นใจ (%) ให้ผู้ใช้ — ตกลงกันแล้วว่าจะทำให้กังวลโดยไม่จำเป็น
-      const text = ACNE_LABELS[det.type] ?? det.type;
+      // ผู้ใช้ไม่เห็น % ความมั่นใจ (ทำให้กังวลโดยไม่จำเป็น) แอดมินเปิดดูได้
+      const label = ACNE_LABELS[det.type] ?? det.type;
+      const text = showConfidence
+        ? `${label} ${Math.round(det.confidence * 100)}%`
+        : label;
       const padX = fontSize * 0.4;
       const labelH = fontSize * 1.5;
       const textWidth = ctx.measureText(text).width;
@@ -101,7 +107,7 @@ export function ImagePreview({
       ctx.fillText(text, x1 + padX, labelY + labelH / 2);
     });
     ctx.globalAlpha = 1;
-  }, [result, loadedImage, hoveredGroup]);
+  }, [result, loadedImage, hoveredGroup, showConfidence]);
 
   // แปลงตำแหน่งเมาส์เป็นพิกัดบนรูป (canvas ใช้ object-contain + padding) แล้วหากรอบที่ชี้อยู่
   const handlePointerMove = (e: PointerEvent<HTMLCanvasElement>) => {

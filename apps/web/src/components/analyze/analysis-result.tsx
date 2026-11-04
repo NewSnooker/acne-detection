@@ -355,7 +355,7 @@ export function AnalysisResultPanel({
                   variants={listContainerVariants}
                   initial="hidden"
                   animate="show"
-                  className="divide-border/60 divide-y"
+                  className="space-y-2.5"
                 >
                   {explanation.groups.map((g) => (
                     <motion.section
@@ -364,9 +364,9 @@ export function AnalysisResultPanel({
                       onPointerEnter={() => onHoverGroup?.(g.id)}
                       onPointerLeave={() => onHoverGroup?.(null)}
                       className={cn(
-                        "space-y-1.5 rounded-lg px-3 py-2.5 transition-[opacity,background-color]",
-                        g.decisive && DECISIVE_STYLE[g.level],
-                        hoveredGroup === g.id && !g.decisive && "bg-muted/60",
+                        "space-y-3 rounded-xl px-4 py-3.5 transition-[opacity,background-color]",
+                        g.decisive ? DECISIVE_STYLE[g.level] : "bg-muted/40",
+                        hoveredGroup === g.id && !g.decisive && "bg-muted/80",
                         hoveredGroup !== null &&
                           hoveredGroup !== g.id &&
                           "opacity-45",
@@ -397,16 +397,19 @@ export function AnalysisResultPanel({
                             )
                           </span>
                         </p>
-                        <span className="text-lg font-bold tabular-nums">
+                        <span className="shrink-0 text-lg font-bold tabular-nums">
                           {g.count}
+                          <span className="text-muted-foreground ml-1 text-xs font-normal">
+                            จุด
+                          </span>
                         </span>
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1.5 pl-4">
                         {g.types.map((t) => (
                           <div
                             key={t.type}
                             className={cn(
-                              "bg-muted/50 flex items-center justify-between gap-2 rounded-lg px-2.5 py-1 text-sm",
+                              "flex items-center justify-between gap-3 text-sm",
                               t.count === 0 && "opacity-40",
                             )}
                           >
