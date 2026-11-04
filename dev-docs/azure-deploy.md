@@ -311,9 +311,10 @@ workflow `Docker images` build เสร็จแล้วจะสั่ง `az
 **2. ให้สิทธิ์** — resource group ของระบบ → Access control (IAM) → Add role assignment → Role **Contributor** → Members: *Managed identity* → เลือก `acne-github-deploy` → Review + assign
 
 **3. ผูกกับ GitHub** — `acne-github-deploy` → Settings → **Federated credentials** → Add credential
-- Scenario: *GitHub Actions deploying Azure resources*
-- Organization: `<ชื่อผู้ใช้ GitHub>` · Repository: `acne-detection` · Entity: **Branch** · Branch: `main`
-- Name: `github-main` → Add
+- Scenario: **Other issuer** (ไม่ใช้ *GitHub Actions deploying Azure resources* เพราะช่องนั้นสร้าง subject รูปแบบเก่า)
+- Issuer: `https://token.actions.githubusercontent.com`
+- Subject identifier: `repo:<ชื่อผู้ใช้>@<user id>/acne-detection@<repo id>:ref:refs/heads/main` — GitHub ส่ง subject แบบมี ID ต่อท้าย วิธีที่ง่ายสุดคือรัน workflow ครั้งแรกให้ล้มก่อน แล้วคัดลอก `subject claim` จาก log ขั้น *azure/login* มาใส่ทั้งบรรทัด
+- Audience: `api://AzureADTokenExchange` · Name: `github-main` → Add
 
 **4. ใส่ค่าใน GitHub** — repo → Settings → Secrets and variables → Actions
 - แท็บ **Secrets** → New repository secret 3 ตัว:
@@ -326,6 +327,7 @@ workflow `Docker images` build เสร็จแล้วจะสั่ง `az
 
 | อาการ | แก้ |
 |---|---|
-| `AADSTS70021: No matching federated identity record` | ข้อ 3 ชื่อ repo/branch ไม่ตรง (ต้องเป็น `main` และรันจาก main) |
+| `AADSTS700213` / `AADSTS70021: No matching federated identity record` | subject ในข้อ 3 ไม่ตรงกับที่ GitHub ส่งมา — คัดลอก `subject claim` จาก log ขั้น *azure/login* ไปสร้าง credential ใหม่ (`az identity federated-credential create ... --subject "<ค่านั้น>"`) |
 | `AuthorizationFailed` | ข้อ 2 ยังไม่ได้ให้ Contributor หรือให้ผิด resource group (รอ 1–2 นาทีหลังให้สิทธิ์) |
 | ขั้น deploy ถูกข้าม | ยังไม่ได้ใส่ `AZURE_CLIENT_ID` |
+| `The containerapp 'acne-ai' does not exist` หรือ `ยังไม่ได้ตั้ง Variable AZURE_RESOURCE_GROUP` | ใส่ `AZURE_RESOURCE_GROUP` ในแท็บ **Variables** (ไม่ใช่ Secrets) |

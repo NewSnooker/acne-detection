@@ -99,9 +99,12 @@ jobs:
 
       - name: deploy ขึ้น Azure Container Apps
         if: steps.skip.outputs.skip != 'true' && env.AZURE_CLIENT_ID != ''
+        env:
+          RG: ${{ vars.AZURE_RESOURCE_GROUP }}
         run: |
+          : "${RG:?ยังไม่ได้ตั้ง Variable AZURE_RESOURCE_GROUP (Settings → Secrets and variables → Actions → แท็บ Variables)}"
           az containerapp update \
             --name acne-${{ matrix.app }} \
-            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --resource-group "$RG" \
             --image "${{ env.IMAGE }}:sha-${{ github.sha }}" \
             --query properties.template.containers[0].image -o tsv
