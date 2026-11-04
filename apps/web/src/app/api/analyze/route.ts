@@ -4,17 +4,23 @@ import { prisma } from "@/lib/prisma";
 import { deleteImage, uploadImage } from "@/lib/storage/image-provider";
 import { callFastApiForPrediction, calculateSeverity } from "@/server/analyze";
 import { Prisma } from "@prisma/client";
-import { createStepTimer } from "@/lib/step-timer";
+import {
+  SLOW_REQUEST_MS,
+  createStepTimer,
+  requestIdFrom,
+} from "@/lib/request-log";
 import {
   detectImageKind,
   validateImageFile,
 } from "@/lib/validation/image-file";
 
 export async function POST(req: NextRequest) {
-  // log "analyze timing: ..." ทีละขั้น — ดูวิธีอ่านที่ dev-docs/performance/web.md
+  // log "analyze timing [<id>]: ..." ทีละขั้น — ดูวิธีอ่านที่ dev-docs/performance/web.md
+  const requestId = requestIdFrom(req.headers);
   const timer = createStepTimer();
   try {
     // 1. เช็คสิทธิ์การเข้าใช้งาน และตรวจสอบว่ามี User อยู่จริงใน DB
+    timer.step("auth");
     const guard = await requireUserApi();
     if (!guard.ok) return guard.response;
     const { session } = guard;
@@ -33,17 +39,17 @@ export async function POST(req: NextRequest) {
         { status: 401 },
       );
     }
-    timer.mark("auth");
 
     // 2. รับไฟล์รูปภาพจาก Request
+    timer.step("read form");
     const formData = await req.formData();
-    timer.mark("read form");
     const file = formData.get("image");
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "ไม่พบไฟล์รูปภาพ" }, { status: 400 });
     }
 
     // 2.1 ตรวจชนิดและขนาดไฟล์ (รับเฉพาะ JPEG/PNG ตามขอบเขตข้อ 1.3.2.3)
+    timer.step("check file");
     const invalid = validateImageFile(file);
     if (invalid) {
       return NextResponse.json({ error: invalid }, { status: 400 });
@@ -58,10 +64,10 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
-    timer.mark("check file");
 
     // 3. หาโมเดลที่ทำงานอยู่ (Active Model)
     // ใช้แค่ id — ห้ามดึง modelData (ไฟล์ .pt หลาย MB) มาทุกครั้งที่วิเคราะห์
+    timer.step("find model");
     const activeModel = await prisma.aiModel.findFirst({
       where: { isActive: true },
       select: { id: true, useTta: true, confidence: true },
@@ -73,25 +79,27 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
-    timer.mark("find model");
 
     // 4. อัปโหลดรูปภาพลงระบบ
     // - Local/Docker: เซฟลง Shared Volume → ส่ง path ให้ FastAPI โดยตรง (เร็วมาก)
-    // - Hosted: Upload ขึ้น Vercel Blob (Internal Network เร็วมาก) → ได้ URL กลับมาทันที
+    // - Hosted: Upload ขึ้น Vercel Blob / Azure Blob → ได้ชื่อไฟล์หรือ URL กลับมา
+    timer.step("upload");
     const imageResult = await uploadImage(file, imageKind);
-    timer.mark(`upload ${imageResult.imageProvider}`);
+    timer.note(imageResult.imageProvider);
 
     let result: Awaited<ReturnType<typeof callFastApiForPrediction>>;
     let severity: ReturnType<typeof calculateSeverity>;
     let analysisRecord: { id: string };
     try {
-      // 5. ส่งให้ AI วิเคราะห์
-      result = await callFastApiForPrediction(imageResult, activeModel, timer);
+      // 5. ส่งให้ AI วิเคราะห์ (ข้างในแยกขั้นสร้างลิงก์รูป กับขั้นเรียก ai)
+      result = await callFastApiForPrediction(imageResult, activeModel, {
+        timer,
+        requestId,
+      });
 
-      // 6. ประเมินความรุนแรงของสิว
+      // 6. ประเมินความรุนแรงของสิว + 7. บันทึกผลลัพธ์ลงฐานข้อมูล
+      timer.step("save db");
       severity = calculateSeverity(result.counts);
-
-      // 7. บันทึกผลลัพธ์ลงฐานข้อมูล
       analysisRecord = await prisma.analysis.create({
         data: {
           user: { connect: { id: session.user.id } },
@@ -111,10 +119,7 @@ export async function POST(req: NextRequest) {
           confidence: activeModel.confidence,
         },
       });
-      timer.mark("save db");
-      console.log(
-        `analyze timing: ${timer.summary()} | ${result.total} detections | tta=${activeModel.useTta}`,
-      );
+      timer.done();
     } catch (error) {
       // วิเคราะห์หรือบันทึกไม่สำเร็จ — ลบรูปที่อัปโหลดไปแล้ว ไม่ให้ค้างบนดิสก์/Blob
       await deleteImage(
@@ -127,25 +132,40 @@ export async function POST(req: NextRequest) {
       throw error;
     }
 
-    // 8. ส่งผลลัพธ์กลับ
-    return NextResponse.json({
-      success: true,
-      data: {
-        ...result,
-        id: analysisRecord.id,
-        severity,
-        usedTta: activeModel.useTta,
-        imageName: imageResult.originalImage,
-        imageUrl: imageResult.imageUrl,
-        imageProvider: imageResult.imageProvider,
+    const line = `analyze timing [${requestId}]: ${timer.summary()} | ${result.total} detections | tta=${activeModel.useTta}`;
+    if (timer.totalMs() > SLOW_REQUEST_MS) console.warn(`${line} | slow`);
+    else console.info(line);
+
+    // 8. ส่งผลลัพธ์กลับ — Server-Timing ให้ดูเวลาแต่ละขั้นใน DevTools → Network → Timing
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          ...result,
+          id: analysisRecord.id,
+          severity,
+          usedTta: activeModel.useTta,
+          imageName: imageResult.originalImage,
+          imageUrl: imageResult.imageUrl,
+          imageProvider: imageResult.imageProvider,
+        },
       },
-    });
+      {
+        headers: {
+          "Server-Timing": timer.serverTiming(),
+          "X-Request-ID": requestId,
+        },
+      },
+    );
   } catch (error) {
-    console.error("API /api/analyze Error:", error);
     const message = error instanceof Error ? error.message : "";
+    console.error(
+      `analyze failed [${requestId}]: step=${timer.current() ?? "-"} error=${message || "unknown"} | ${timer.summary()}`,
+      error,
+    );
     return NextResponse.json(
       { error: message || "เกิดข้อผิดพลาดในการวิเคราะห์รูปภาพ" },
-      { status: 500 },
+      { status: 500, headers: { "X-Request-ID": requestId } },
     );
   }
 }

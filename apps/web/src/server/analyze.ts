@@ -3,7 +3,11 @@ import { AnalysisResult } from "@/types/analyze";
 import path from "path";
 import { getStoragePath, imageUrlForAi } from "@/lib/storage/image-provider";
 import type { ImageStorage } from "@/lib/storage/config";
-import type { StepTimer } from "@/lib/step-timer";
+import {
+  describeAiTiming,
+  parseServerTiming,
+  type StepTimer,
+} from "@/lib/request-log";
 
 // Heuristic for Severity (AAD / ALADIN)
 export function calculateSeverity(
@@ -63,11 +67,16 @@ export async function callFastApiForPrediction(
     imageProvider: ImageStorage;
   },
   activeModel: { id: string; useTta: boolean; confidence: number },
-  timer?: StepTimer,
+  log?: { timer: StepTimer; requestId: string },
 ): Promise<AnalysisResult> {
   const { url: fastApiUrl, apiKey } = getAiServiceConfig();
 
   const apiFormData = new FormData();
+
+  // azure-blob = สร้างลิงก์ SAS (คำนวณในเครื่อง), vercel-blob = URL เดิม, ดิสก์ = path ในเครื่อง
+  log?.timer.step(
+    imageResult.imageProvider === "azure-blob" ? "sign sas url" : "image url",
+  );
 
   const imageUrl = await imageUrlForAi(imageResult);
   if (imageUrl) {
@@ -82,11 +91,6 @@ export async function callFastApiForPrediction(
       path.join(storagePath, imageResult.originalImage),
     );
   }
-  // azure-blob = สร้างลิงก์ SAS, vercel-blob = URL เดิม, ดิสก์ = path ในเครื่อง
-  timer?.mark(
-    imageResult.imageProvider === "azure-blob" ? "sign sas url" : "image url",
-  );
-
   // ส่ง URL ไปให้ FastAPI ดาวน์โหลดโมเดล
   const activeModelPath = modelDownloadUrl(activeModel.id);
 
@@ -95,10 +99,14 @@ export async function callFastApiForPrediction(
   apiFormData.append("confidence", activeModel.confidence.toString());
   apiFormData.append("augment", activeModel.useTta ? "true" : "false");
 
+  // รวมเวลาที่ ai ทำงานทั้งหมด (โหลดรูป + โมเดล + inference) + เครือข่าย + ai ตื่นจาก scale-to-zero
+  log?.timer.step("ai request");
   const response = await fetch(`${fastApiUrl}/predict`, {
     method: "POST",
     headers: {
       "X-API-Key": apiKey,
+      // id เดียวกับ log ของเว็บ — ai พิมพ์ไว้ใน "predict timing [<id>]"
+      ...(log ? { "X-Request-ID": log.requestId } : {}),
     },
     body: apiFormData,
     cache: "no-store", // ป้องกัน Next.js Cache ผลลัพธ์
@@ -111,7 +119,14 @@ export async function callFastApiForPrediction(
   }
 
   const result: AnalysisResult = await response.json();
-  // รวมเวลาที่ ai ทำงานทั้งหมด (ดาวน์โหลดรูป + โมเดล + inference) + เครือข่าย + ai ตื่นจาก scale-to-zero
-  timer?.mark("ai request");
+  if (log) {
+    // ai ส่งเวลาแต่ละขั้นมาใน Server-Timing → ใส่ในบรรทัด log ของเว็บด้วย จะได้เห็นที่เดียว
+    const aiTiming = parseServerTiming(response.headers.get("server-timing"));
+    const note = describeAiTiming(aiTiming, log.timer.elapsedInStep());
+    if (note) log.timer.note(note);
+    log.timer.addServerTiming(
+      aiTiming.map((entry) => ({ ...entry, name: `ai-${entry.name}` })),
+    );
+  }
   return result;
 }

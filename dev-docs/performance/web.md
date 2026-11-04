@@ -7,34 +7,49 @@
 
 ## อ่านเวลาจาก log (ใช้วัดรอบต่อไป)
 
-ทุกครั้งที่วิเคราะห์สำเร็จ ทั้งสองฝั่งพิมพ์ log 1 บรรทัด (ตัวอย่างบน Azure):
+ทุกคำขอพิมพ์ log 1 บรรทัด มี **request id** ใน `[...]` — id เดียวกันทั้งเว็บและ ai (เว็บส่งให้ ai ทาง header `X-Request-ID`)
+ค้น id นั้นใน Log stream / Log Analytics จะเจอทั้งสองบรรทัดของการวิเคราะห์ครั้งเดียวกัน ถ้ามีคนใช้พร้อมกันก็ไม่สับสน
 
 ```
-# web (acne-web)
-analyze timing: auth 0.05s | read form 0.10s | check file 0.00s | find model 0.03s | upload azure-blob 0.30s | sign sas url 0.01s | ai request 2.40s | save db 0.08s | total 2.97s | 2 detections | tta=true
-# ai (acne-ai)
-predict timing: image 0.04s | model 0.00s | inference 1.87s | total 1.91s | 2 detections | tta=True
+# web (acne-web) — วิเคราะห์ 1 ครั้ง (ตัวอย่างบน Azure)
+analyze timing [3f9c0a1b2d4e5f60]: auth 0.05s | read form 0.10s | check file 0.00s | find model 0.03s | upload 0.30s (azure-blob) | sign sas url 0.00s | ai request 2.40s (ai: image 0.04s, model 0.00s, inference 1.87s, total 1.91s · network/wake 0.49s) | save db 0.08s | total 2.96s | 2 detections | tta=true
+# ai (acne-ai) — บรรทัดคู่กัน
+predict timing [3f9c0a1b2d4e5f60]: image 0.04s | model 0.00s | inference 1.87s | total 1.91s | 2 detections | tta=True
+# web — เปิดรูปในหน้าประวัติ (/api/images)
+image timing [8a7b6c5d4e3f2a1b]: auth 0.05s | check owner 0.03s | read azure-blob 0.10s | total 0.18s | 245 KB
 ```
 
-| ขั้น (เว็บ) | ทำอะไร |
+| ขั้น (`analyze timing`) | ทำอะไร |
 | --- | --- |
 | `auth` | เช็ค login + หา User ใน DB |
-| `read form` | รับไฟล์รูปจากเบราว์เซอร์ (อ่าน form data) |
+| `read form` | รับไฟล์รูปจากเบราว์เซอร์จนครบ (เน็ตผู้ใช้ช้า/รูปใหญ่ = นาน) |
 | `check file` | ตรวจชนิด/ขนาด/เนื้อไฟล์ |
 | `find model` | หาโมเดลหลัก (Active) ใน DB |
-| `upload <ที่เก็บ>` | เก็บรูป — `azure-blob` / `vercel-blob` / `local` (ดิสก์) |
-| `sign sas url` / `image url` | สร้างลิงก์ให้ ai โหลดรูป — Azure สร้าง SAS อายุสั้น, ที่อื่นใช้ URL/path เดิม |
-| `ai request` | เรียก `POST /predict` จนได้ผล (รวมทุกขั้นของ ai) |
+| `upload (<ที่เก็บ>)` | เก็บรูป — `azure-blob` / `vercel-blob` / `local` (ดิสก์) ส่งขึ้นอย่างเดียว ไม่ได้โหลดกลับ |
+| `sign sas url` / `image url` | สร้างลิงก์ให้ ai โหลดรูป — Azure สร้าง SAS (คำนวณในเครื่อง ไม่ติดต่อ Azure) ที่อื่นใช้ URL/path เดิม |
+| `ai request` | เรียก `POST /predict` จนได้ผล ในวงเล็บคือเวลาที่ ai รายงานกลับมา (header `Server-Timing`) |
+| `network/wake` | `ai request` − `total` ของ ai = เครือข่ายระหว่างเว็บกับ ai + เวลาที่ ai ตื่นจาก scale-to-zero — หลายวินาที = ai เพิ่งตื่น |
 | `save db` | คำนวณ severity + บันทึก `Analysis` + `Image` |
-| `total` | ตั้งแต่รับ request จนพร้อมตอบกลับ (ไม่นับเวลาส่งรูปจากเบราว์เซอร์มาถึงเว็บ) |
+| `total` | ตั้งแต่รับคำขอจนพร้อมตอบกลับ (ไม่นับเวลาส่งรูปจากเบราว์เซอร์ก่อนเว็บเริ่มอ่าน) |
 
-| ขั้น (ai) | ทำอะไร |
+| ขั้น (`predict timing` ของ ai) | ทำอะไร |
 | --- | --- |
-| `image` | โหลดรูปจาก blob / ดิสก์ |
-| `model` | โหลดโมเดล (ครั้งแรกดาวน์โหลดจาก `GET /api/models/[id]`, ครั้งต่อไปใช้ cache = 0.00s) |
+| `image` | โหลดรูปจาก blob (ลิงก์ SAS / URL) หรือเปิดจากดิสก์ |
+| `model` | โหลดโมเดล — ครั้งแรกดาวน์โหลดจาก `GET /api/models/[id]` ครั้งต่อไปใช้ cache (0.00s) |
 | `inference` | YOLO ทำนาย |
 
-**`ai request` (เว็บ) − `total` (ai)** = เวลาเครือข่ายระหว่างเว็บกับ ai + เวลาที่ ai ตื่นจาก scale-to-zero — ถ้าต่างกันหลายวินาทีแปลว่า ai เพิ่งตื่น
+| ขั้น (`image timing`) | ทำอะไร |
+| --- | --- |
+| `auth` | เช็ค login |
+| `check owner` | ค้น DB ว่ารูปนี้เป็นของผู้ใช้คนนี้ (แอดมินข้าม) |
+| `read azure-blob` / `read local` | เปิดรูปจาก Blob จนได้ stream / อ่านจากดิสก์ (Azure ไม่นับเวลาส่งไฟล์ให้เบราว์เซอร์จนจบ) |
+
+**ระดับ log:** สำเร็จ = info · ช้ากว่า 10 วินาที = warn และต่อท้าย `| slow` · ล้มเหลว = error เช่น
+`analyze failed [<id>]: step=ai request error=... | auth 0.05s | ... | total 30.01s` / `predict failed [<id>]: step=image status=404 error=Image not found | total 0.01s`
+`step=` คือขั้นที่พัง
+
+**ดูในเบราว์เซอร์:** `/api/analyze` และ `/api/images` ตอบ header `Server-Timing` (มาตรฐาน W3C) — DevTools → Network → เลือกคำขอ → แท็บ Timing จะเห็นทุกขั้น รวมขั้นข้างใน ai (`ai-image`, `ai-inference` ...)
+
 ตอนเริ่ม container ทั้งสองฝั่งพิมพ์ `web start: commit ...` / `ai start: commit ...` ไว้เช็คว่า deploy รุ่นเดียวกันแล้ว
 
 ## สภาพแวดล้อมที่ทดสอบ
