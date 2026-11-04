@@ -34,8 +34,6 @@ export interface GroupSummary {
   level: SeverityLevel;
   /** กลุ่มนี้เป็นเหตุผลของระดับรวม */
   decisive: boolean;
-  /** เกณฑ์ข้อที่ตรงกับจำนวนตอนนี้ เช่น "6–20 จุด = ปานกลาง" */
-  rule: string;
 }
 
 export interface SeverityExplanation {
@@ -49,38 +47,34 @@ export interface SeverityExplanation {
 function groupLevelAndRule(
   id: AcneGroupId,
   n: number,
-): { level: SeverityLevel; rule: string; why: string } {
+): { level: SeverityLevel; why: string } {
   if (id === "deep") {
     return n >= 1
       ? {
           level: "SEVERE",
-          rule: "พบตั้งแต่ 1 จุด = รุนแรง",
           why: `พบสิวอักเสบลึก ${n} จุด (ตั้งแต่ 1 จุด = รุนแรง)`,
         }
-      : { level: "MILD", rule: "ไม่พบ", why: "" };
+      : { level: "MILD", why: "" };
   }
   if (id === "shallow") {
     if (n > 20)
       return {
         level: "SEVERE",
-        rule: "เกิน 20 จุด = รุนแรง",
         why: `พบสิวอักเสบตื้น ${n} จุด (เกิน 20 จุด = รุนแรง)`,
       };
     if (n >= 6)
       return {
         level: "MODERATE",
-        rule: "6–20 จุด = ปานกลาง",
         why: `พบสิวอักเสบตื้น ${n} จุด (6–20 จุด = ปานกลาง)`,
       };
-    return { level: "MILD", rule: "ไม่เกิน 5 จุด = เล็กน้อย", why: "" };
+    return { level: "MILD", why: "" };
   }
   return n > 20
     ? {
         level: "MODERATE",
-        rule: "เกิน 20 จุด = ปานกลาง",
         why: `พบสิวไม่อักเสบ ${n} จุด (เกิน 20 จุด = ปานกลาง)`,
       }
-    : { level: "MILD", rule: "ไม่เกิน 20 จุด = เล็กน้อย", why: "" };
+    : { level: "MILD", why: "" };
 }
 
 export function explainSeverity(
@@ -114,7 +108,7 @@ export function explainSeverity(
 
   const reason =
     level === "MILD"
-      ? "ทุกกลุ่มอยู่ในเกณฑ์เล็กน้อย (ไม่อักเสบไม่เกิน 20 จุด และอักเสบตื้นไม่เกิน 5 จุด)"
+      ? "สิวยังมีจำนวนน้อย ไม่ถึงเกณฑ์ปานกลาง"
       : `เพราะ${reasons.join(" และ")}`;
 
   return { level, reason, groups };

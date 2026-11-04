@@ -35,12 +35,6 @@ const DECISIVE_STYLE: Record<SeverityLevel, string> = {
   SEVERE: "border-2 border-destructive bg-destructive/10",
 };
 
-const RULE_COLOR: Record<SeverityLevel, string> = {
-  MILD: "text-muted-foreground",
-  MODERATE: "text-amber-600",
-  SEVERE: "text-destructive",
-};
-
 // เกณฑ์ตามเล่มข้อ 1.3.3.5 (ตรงกับ calculateSeverity)
 const SEVERITY_CRITERIA: { level: SeverityLevel; text: string }[] = [
   {
@@ -265,11 +259,26 @@ export function AnalysisResultPanel({
                 </div>
               </div>
               {result.total > 0 && explanation && (
-                <p className="text-sm leading-relaxed">
-                  {SEVERITY_LABELS[result.severity]?.label} {explanation.reason}
-                </p>
+                <p className="text-sm leading-relaxed">{explanation.reason}</p>
               )}
             </motion.div>
+
+            {result.total > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-primary/5 border-primary/20 rounded-xl border p-4"
+              >
+                <h3 className="text-primary mb-2 flex items-center gap-2 font-semibold">
+                  <span className="text-lg">💡</span> คำแนะนำการดูแลผิว
+                </h3>
+                <p className="text-foreground/80 text-sm leading-relaxed">
+                  {ACNE_CARE_ADVICE[result.severity] ||
+                    "แนะนำให้ปรึกษาแพทย์ผู้เชี่ยวชาญด้านผิวหนัง"}
+                </p>
+              </motion.div>
+            )}
 
             {result.total === 0 ? (
               <div className="bg-muted/50 space-y-1 rounded-xl border p-4">
@@ -337,7 +346,7 @@ export function AnalysisResultPanel({
                         onPointerEnter={() => onHoverGroup?.(g.id)}
                         onPointerLeave={() => onHoverGroup?.(null)}
                         className={cn(
-                          "space-y-2 rounded-xl border p-3 transition-opacity",
+                          "space-y-1.5 rounded-xl border px-3 py-2.5 transition-opacity",
                           g.decisive && DECISIVE_STYLE[g.level],
                           hoveredGroup === g.id && !g.decisive && "bg-muted/60",
                           hoveredGroup !== null &&
@@ -361,26 +370,16 @@ export function AnalysisResultPanel({
                               )
                             </span>
                           </p>
-                          <span className="text-xl font-bold tabular-nums">
+                          <span className="text-lg font-bold tabular-nums">
                             {g.count}
                           </span>
                         </div>
-                        <p
-                          className={cn(
-                            "text-xs",
-                            g.decisive
-                              ? RULE_COLOR[g.level]
-                              : "text-muted-foreground",
-                          )}
-                        >
-                          {g.rule}
-                        </p>
                         <div className="grid grid-cols-2 gap-2">
                           {g.types.map((t) => (
                             <div
                               key={t.type}
                               className={cn(
-                                "bg-muted/50 flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-sm",
+                                "bg-muted/50 flex items-center justify-between gap-2 rounded-lg px-2.5 py-1 text-sm",
                                 t.count === 0 && "opacity-40",
                               )}
                             >
@@ -405,23 +404,6 @@ export function AnalysisResultPanel({
                   </motion.div>
                 </div>
               )
-            )}
-
-            {result.total > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="bg-primary/5 border-primary/20 mt-4 rounded-xl border p-4"
-              >
-                <h3 className="text-primary mb-2 flex items-center gap-2 font-semibold">
-                  <span className="text-lg">💡</span> คำแนะนำการดูแลผิว
-                </h3>
-                <p className="text-foreground/80 text-sm leading-relaxed">
-                  {ACNE_CARE_ADVICE[result.severity] ||
-                    "แนะนำให้ปรึกษาแพทย์ผู้เชี่ยวชาญด้านผิวหนัง"}
-                </p>
-              </motion.div>
             )}
 
             {/* แสดงทุกครั้งที่มีผลวิเคราะห์ รวมถึงหน้าประวัติ */}
