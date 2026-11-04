@@ -24,9 +24,12 @@ const MODEL_PATH =
   process.env.SEED_MODEL_PATH || path.join(here, "seed", "acne-default.pt");
 
 // ฐานข้อมูล Atlas = เว็บที่เปิดให้คนนอกเข้า (Docker / npm run dev ใช้ mongodb:// ในเครื่อง)
-const IS_HOSTED_DB = (process.env.DATABASE_URL ?? "").startsWith("mongodb+srv://");
+const IS_HOSTED_DB = (process.env.DATABASE_URL ?? "").startsWith(
+  "mongodb+srv://",
+);
 const HAS_OWN_ADMIN =
-  Boolean(process.env.SEED_ADMIN_EMAIL) && Boolean(process.env.SEED_ADMIN_PASSWORD);
+  Boolean(process.env.SEED_ADMIN_EMAIL) &&
+  Boolean(process.env.SEED_ADMIN_PASSWORD);
 
 async function seedAdmin() {
   const admin = await prisma.user.findFirst({ where: { role: "ADMIN" } });
