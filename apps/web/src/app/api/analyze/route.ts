@@ -9,7 +9,11 @@ import {
   validateImageFile,
 } from "@/lib/validation/image-file";
 
+// เวลาเป็นวินาที ทศนิยม 2 ตำแหน่ง — รูปแบบเดียวกับ log "predict timing" ฝั่ง ai
+const seconds = (ms: number) => `${(ms / 1000).toFixed(2)}s`;
+
 export async function POST(req: NextRequest) {
+  const t0 = performance.now();
   try {
     // 1. เช็คสิทธิ์การเข้าใช้งาน และตรวจสอบว่ามี User อยู่จริงใน DB
     const guard = await requireUserApi();
@@ -71,7 +75,9 @@ export async function POST(req: NextRequest) {
     // 4. อัปโหลดรูปภาพลงระบบ
     // - Local/Docker: เซฟลง Shared Volume → ส่ง path ให้ FastAPI โดยตรง (เร็วมาก)
     // - Hosted: Upload ขึ้น Vercel Blob (Internal Network เร็วมาก) → ได้ URL กลับมาทันที
+    const tUpload = performance.now();
     const imageResult = await uploadImage(file, imageKind);
+    const tAi = performance.now();
 
     let result: Awaited<ReturnType<typeof callFastApiForPrediction>>;
     let severity: ReturnType<typeof calculateSeverity>;
@@ -79,6 +85,7 @@ export async function POST(req: NextRequest) {
     try {
       // 5. ส่งให้ AI วิเคราะห์
       result = await callFastApiForPrediction(imageResult, activeModel);
+      const tDb = performance.now();
 
       // 6. ประเมินความรุนแรงของสิว
       severity = calculateSeverity(result.counts);
@@ -103,6 +110,12 @@ export async function POST(req: NextRequest) {
           confidence: activeModel.confidence,
         },
       });
+
+      // เทียบกับ "predict timing" ของ ai: ai (เว็บวัด) − total (ai วัด) = เวลาเครือข่าย + ai ตื่นจาก scale-to-zero
+      const tEnd = performance.now();
+      console.log(
+        `analyze timing: prepare ${seconds(tUpload - t0)} | upload ${seconds(tAi - tUpload)} | ai ${seconds(tDb - tAi)} | save db ${seconds(tEnd - tDb)} | total ${seconds(tEnd - t0)} | ${result.total} detections | tta=${activeModel.useTta}`,
+      );
     } catch (error) {
       // วิเคราะห์หรือบันทึกไม่สำเร็จ — ลบรูปที่อัปโหลดไปแล้ว ไม่ให้ค้างบนดิสก์/Blob
       await deleteImage(

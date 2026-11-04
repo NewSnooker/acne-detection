@@ -5,6 +5,28 @@
 วัดเมื่อ 2026-10-04 โมเดลเดียวกัน (ไฟล์ `.pt` ขนาด 5.15 MB) วิเคราะห์ 3 รูปต่อสภาพแวดล้อม
 ตัวเลขฝั่ง AI มาจาก log `[FastAPI Timing]` ของบริการ AI
 
+## อ่านเวลาจาก log (ใช้วัดรอบต่อไป)
+
+ทุกครั้งที่วิเคราะห์สำเร็จ ทั้งสองฝั่งพิมพ์ log 1 บรรทัด:
+
+```
+# web (acne-web)
+analyze timing: prepare 0.15s | upload 0.30s | ai 2.40s | save db 0.08s | total 2.93s | 2 detections | tta=true
+# ai (acne-ai)
+predict timing: image 0.04s | model 0.00s | inference 1.87s | total 1.91s | 2 detections | tta=True
+```
+
+| ค่า | ความหมาย |
+| --- | --- |
+| `prepare` | เช็ค login + ผู้ใช้ใน DB + อ่านไฟล์ + ตรวจไฟล์ + หาโมเดลหลัก |
+| `upload` | เก็บรูป (ดิสก์ / Vercel Blob / Azure Blob) |
+| `ai` | เรียก `POST /predict` จนได้ผล (รวมเวลาที่ ai ทำงานทั้งหมด) |
+| `save db` | บันทึก `Analysis` + `Image` |
+| `total` | ตั้งแต่รับ request จนพร้อมตอบกลับ (เวลาที่ผู้ใช้รอ ไม่นับส่งรูปจากเบราว์เซอร์) |
+
+**`ai` (เว็บ) − `total` (ai)** = เวลาเครือข่ายระหว่างเว็บกับ ai + เวลาที่ ai ตื่นจาก scale-to-zero — ถ้าต่างกันหลายวินาทีแปลว่า ai เพิ่งตื่น
+ตอนเริ่ม container ทั้งสองฝั่งพิมพ์ `web start: commit ...` / `ai start: commit ...` ไว้เช็คว่า deploy รุ่นเดียวกันแล้ว
+
 ## สภาพแวดล้อมที่ทดสอบ
 
 | สภาพแวดล้อม | เว็บ | บริการ AI | ฐานข้อมูล |
