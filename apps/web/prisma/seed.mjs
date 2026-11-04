@@ -4,6 +4,8 @@
 //
 // ทำซ้ำได้ ไม่สร้างข้อมูลซ้ำ:
 // 1) ถ้ายังไม่มีผู้ดูแลระบบ → สร้างบัญชีแอดมินเริ่มต้น
+//    ยกเว้นเว็บจริง (ฐานข้อมูล Atlas) ที่ไม่ได้ตั้ง SEED_ADMIN_EMAIL + SEED_ADMIN_PASSWORD
+//    → ไม่สร้าง admin@acne.local / Admin1234 (รหัสนี้อยู่ในคู่มือ ใครก็เดาได้)
 // 2) ถ้ายังไม่มีโมเดล AI   → ใส่โมเดลเริ่มต้นจาก prisma/seed/acne-default.pt
 // 3) เติมค่าเริ่มต้นให้ข้อมูลเก่าที่ยังไม่มีช่องใหม่ (MongoDB ไม่เติม @default ให้ document ที่มีอยู่แล้ว)
 import { PrismaClient } from "@prisma/client";
@@ -21,11 +23,24 @@ const ADMIN_NAME = process.env.SEED_ADMIN_NAME || "Administrator";
 const MODEL_PATH =
   process.env.SEED_MODEL_PATH || path.join(here, "seed", "acne-default.pt");
 
+// ฐานข้อมูล Atlas = เว็บที่เปิดให้คนนอกเข้า (Docker / npm run dev ใช้ mongodb:// ในเครื่อง)
+const IS_HOSTED_DB = (process.env.DATABASE_URL ?? "").startsWith("mongodb+srv://");
+const HAS_OWN_ADMIN =
+  Boolean(process.env.SEED_ADMIN_EMAIL) && Boolean(process.env.SEED_ADMIN_PASSWORD);
+
 async function seedAdmin() {
   const admin = await prisma.user.findFirst({ where: { role: "ADMIN" } });
   if (admin) {
     console.log(`[seed] มีผู้ดูแลระบบอยู่แล้ว (${admin.email}) ข้าม`);
     return admin;
+  }
+
+  if (IS_HOSTED_DB && !HAS_OWN_ADMIN) {
+    console.warn(
+      "[seed] ยังไม่มีผู้ดูแลระบบ แต่ไม่สร้างแอดมินเริ่มต้นบนเว็บจริง (ไม่ได้ตั้ง SEED_ADMIN_EMAIL + SEED_ADMIN_PASSWORD) — " +
+        "สมัครสมาชิกผ่านหน้าเว็บ แล้วแก้ role ของบัญชีเป็น ADMIN ในฐานข้อมูล (collection User) จากนั้นรีสตาร์ทเว็บ",
+    );
+    return null;
   }
 
   const sameEmail = await prisma.user.findUnique({
