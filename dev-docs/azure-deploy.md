@@ -265,6 +265,7 @@ Environment variables:
 | `The Deployment template validation field in this step is invalid` | ค่าในแท็บใดแท็บหนึ่งไม่ผ่าน มักเป็น region | ย้อนดูแต่ละแท็บ / เปลี่ยน region |
 | `'Allow Insecure' is not supported ... express environments` | environment แบบ express | ไม่ต้องติ๊ก Insecure ใช้ `AI_SERVICE_URL=https://...` |
 | เว็บขึ้น "เชื่อมต่อระบบ AI ไม่ได้" + log `Failed to parse URL from //acne-ai...` | `AI_SERVICE_URL` ขาด `https:` | แก้ค่าให้ขึ้นต้น `https://` → Create → รอ revision ใหม่ |
+| merge แล้วผลวิเคราะห์ไม่เปลี่ยน | ยังรัน image `latest` ตัวเก่า | อัปเดตด้วย tag `sha-<commit>` (หัวข้อ "หลังจากนี้") แล้วดู log `ai start: commit ...` |
 | แก้ env แล้ว log ยังเป็นค่าเดิม | revision ใหม่ยังไม่แทนตัวเก่า / กดแค่ Save ไม่ได้กด Create | Revisions and replicas ดูเวลาสร้าง, รอ 1–2 นาที, เปิด Log stream ใหม่ |
 | ออกจากระบบแล้วเด้ง `https://localhost:3000/login` | ไม่ได้ตั้ง `AUTH_URL` | ใส่ `AUTH_URL` = ลิงก์ของ acne-web |
 | Google login ขึ้น `?error=Configuration` | ไม่มี `AUTH_URL` / `GOOGLE_*` / `AUTH_SECRET` หรือ redirect URI ไม่ตรง | เช็คครบ 3 อย่างในขั้น 8 แล้วดู log บรรทัด `[auth][error]` |
@@ -279,8 +280,10 @@ Environment variables:
 
 | อยากทำ | วิธี |
 |---|---|
-| อัปเดตโค้ด | merge เข้า main → รอ Actions เขียว → Container App → **Revisions and replicas → Create new revision** → Create (ดึง `latest` ใหม่ — Azure ไม่ดึงเอง) |
-| ย้อนกลับรุ่นเก่า | Edit and deploy → เปลี่ยน tag เป็น `sha-<commit>` |
+| อัปเดตโค้ด | merge เข้า main → รอ Actions (Docker images) เขียว → Cloud Shell `>_` (Bash): `az containerapp update -n acne-ai -g <resource group> --image ghcr.io/<ชื่อผู้ใช้ GitHub ตัวเล็ก>/acne-ai:sha-<commit เต็มของ main>` (เว็บใช้ `acne-web` แทน) |
+| ย้อนกลับรุ่นเก่า | คำสั่งเดียวกัน ใส่ `sha-<commit>` ของรุ่นที่ต้องการ |
+
+> **ใช้ tag `sha-<commit>` เสมอ อย่าใช้ `latest` ตอนอัปเดต** — กด Create new revision กับ tag `latest` เดิม Azure อาจใช้ image เก่าที่ดึงไว้แล้ว (เจอจริง 2026-11-04: แก้โค้ด 3 รอบแต่ผลไม่เปลี่ยน จนเปลี่ยนเป็น `sha-` ถึงได้โค้ดใหม่) เช็คได้จาก log ตอน ai เริ่ม: `ai start: commit <7 ตัวแรก>`
 | ดู error | Container App → Monitoring → **Log stream** |
 | ดูเครดิตคงเหลือ | Cost Management + Billing → Overview (*Credits remaining*) |
 | ดูค่าใช้จ่ายแยกรายตัว | Cost analysis → Scope = subscription หรือ resource group → View = *Cost by resource* (ตัวเลขช้า ~1 วัน) |
