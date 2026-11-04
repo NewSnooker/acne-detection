@@ -1,4 +1,5 @@
-import { AlertCircle, CircleCheck, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { AlertCircle, CircleCheck, Info, Loader2 } from "lucide-react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
   AnalysisResult,
@@ -9,6 +10,7 @@ import {
 } from "@/types/analyze";
 import { cn } from "@/lib/utils";
 import { MedicalDisclaimer } from "./medical-disclaimer";
+import { AcneGroupId, explainSeverity, SeverityLevel } from "@/lib/acne-groups";
 
 interface AnalysisResultPanelProps {
   previewUrl: string | null;
@@ -21,7 +23,36 @@ interface AnalysisResultPanelProps {
   onUploadNew: () => void;
   readOnly?: boolean;
   isModelAvailable?: boolean;
+  /** กลุ่มที่ผู้ใช้ชี้อยู่ (ใช้ร่วมกับ ImagePreview) */
+  hoveredGroup?: AcneGroupId | null;
+  onHoverGroup?: (group: AcneGroupId | null) => void;
 }
+
+// กรอบของกลุ่มที่เป็นเหตุผลของระดับ ใช้สีเดียวกับป้ายระดับ
+const DECISIVE_STYLE: Record<SeverityLevel, string> = {
+  MILD: "",
+  MODERATE: "border-2 border-amber-500 bg-amber-500/10",
+  SEVERE: "border-2 border-destructive bg-destructive/10",
+};
+
+const RULE_COLOR: Record<SeverityLevel, string> = {
+  MILD: "text-muted-foreground",
+  MODERATE: "text-amber-600",
+  SEVERE: "text-destructive",
+};
+
+// เกณฑ์ตามเล่มข้อ 1.3.3.5 (ตรงกับ calculateSeverity)
+const SEVERITY_CRITERIA: { level: SeverityLevel; text: string }[] = [
+  {
+    level: "MILD",
+    text: "ไม่อักเสบไม่เกิน 20 จุด และอักเสบตื้นไม่เกิน 5 จุด",
+  },
+  { level: "MODERATE", text: "ไม่อักเสบเกิน 20 จุด หรืออักเสบตื้น 6–20 จุด" },
+  {
+    level: "SEVERE",
+    text: "อักเสบตื้นเกิน 20 จุด หรือพบอักเสบลึกตั้งแต่ 1 จุด",
+  },
+];
 
 const PHOTO_TIPS = [
   "ถ่ายหน้าตรงในที่แสงสว่างพอ",
@@ -55,7 +86,11 @@ export function AnalysisResultPanel({
   onUploadNew,
   readOnly = false,
   isModelAvailable = true,
+  hoveredGroup = null,
+  onHoverGroup,
 }: AnalysisResultPanelProps) {
+  const [showCriteria, setShowCriteria] = useState(false);
+  const explanation = result ? explainSeverity(result.counts) : null;
   return (
     <div className="bg-card relative overflow-hidden rounded-3xl border p-6 shadow-sm">
       <h2 className="mb-4 text-lg font-bold">สถานะการวิเคราะห์</h2>
@@ -187,94 +222,190 @@ export function AnalysisResultPanel({
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <div className="grid grid-cols-2 gap-4">
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.1, type: "spring" }}
-                className="bg-muted rounded-xl p-4"
-              >
-                <p className="text-muted-foreground mb-1 text-xs">
-                  พบสิวทั้งหมด
-                </p>
-                <p className="text-primary text-3xl font-black">
-                  {result.total}
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, type: "spring" }}
-                className={cn(
-                  "rounded-xl p-4",
-                  SEVERITY_LABELS[result.severity]?.bg || "bg-muted",
-                )}
-              >
-                <p className="text-muted-foreground mb-1 text-xs">
-                  ระดับความรุนแรง
-                </p>
-                <p
-                  className={cn(
-                    "mt-1 text-xl font-bold",
-                    SEVERITY_LABELS[result.severity]?.color || "text-primary",
-                  )}
-                >
-                  {SEVERITY_LABELS[result.severity]?.label || result.severity}
-                </p>
-              </motion.div>
-            </div>
-
-            <div>
-              <h3 className="mb-3 border-b pb-2 font-semibold">
-                สรุปตามประเภทสิว
-              </h3>
-              <motion.div
-                variants={listContainerVariants}
-                initial="hidden"
-                animate="show"
-                className="space-y-3"
-              >
-                {Object.entries(result.counts).map(([type, count]) => {
-                  if (count === 0) return null;
-                  const color = ACNE_COLORS[type] || "#3b82f6";
-                  const label = ACNE_LABELS[type] || type;
-
-                  return (
-                    <motion.div
-                      key={type}
-                      variants={listItemVariants}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="h-3 w-3 rounded-full shadow-sm"
-                          style={{ backgroundColor: color }}
-                        />
-                        <span className="text-sm font-medium">
-                          {label}{" "}
-                          <span className="text-muted-foreground ml-1 text-xs">
-                            ({type})
-                          </span>
-                        </span>
-                      </div>
-                      <span className="font-bold">{count}</span>
-                    </motion.div>
-                  );
-                })}
-
-                {result.total === 0 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                    className="rounded-lg bg-emerald-50 py-4 text-center font-medium text-emerald-600"
+            {/* ระดับความรุนแรง + จำนวน + เหตุผล */}
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1, type: "spring" }}
+              className={cn(
+                "space-y-2 rounded-xl p-4",
+                result.total === 0
+                  ? "bg-emerald-500/10"
+                  : SEVERITY_LABELS[result.severity]?.bg || "bg-muted",
+              )}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-muted-foreground text-xs">
+                    ระดับความรุนแรง
+                  </p>
+                  <p
+                    className={cn(
+                      "text-2xl font-bold",
+                      result.total === 0
+                        ? "text-emerald-600"
+                        : SEVERITY_LABELS[result.severity]?.color ||
+                            "text-primary",
+                    )}
                   >
-                    ยอดเยี่ยม! ผิวหน้าของคุณดูสุขภาพดี
+                    {result.total === 0
+                      ? "ไม่พบสิว"
+                      : SEVERITY_LABELS[result.severity]?.label ||
+                        result.severity}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-muted-foreground text-xs">พบทั้งหมด</p>
+                  <p className="text-2xl font-bold tabular-nums">
+                    {result.total}{" "}
+                    <span className="text-muted-foreground text-sm font-medium">
+                      จุด
+                    </span>
+                  </p>
+                </div>
+              </div>
+              {result.total > 0 && explanation && (
+                <p className="text-sm leading-relaxed">
+                  {SEVERITY_LABELS[result.severity]?.label} {explanation.reason}
+                </p>
+              )}
+            </motion.div>
+
+            {result.total === 0 ? (
+              <div className="bg-muted/50 space-y-1 rounded-xl border p-4">
+                <p className="font-semibold">
+                  ตรวจครบทั้ง 6 ชนิด ไม่พบสิวในภาพนี้
+                </p>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  ถ้าเห็นสิวแต่ระบบไม่พบ ลองถ่ายใหม่ในที่แสงสว่าง ไม่ย้อนแสง
+                  และให้บริเวณที่มีสิวเต็มภาพมากขึ้น
+                </p>
+              </div>
+            ) : (
+              explanation && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-semibold">แยกตามกลุ่มสิว</h3>
+                    <button
+                      type="button"
+                      onClick={() => setShowCriteria((v) => !v)}
+                      aria-expanded={showCriteria}
+                      className="text-primary hover:bg-primary/5 flex h-9 cursor-pointer items-center gap-1.5 rounded-lg px-2 text-sm"
+                    >
+                      <Info className="h-4 w-4" aria-hidden="true" />
+                      {showCriteria ? "ซ่อนเกณฑ์" : "ดูเกณฑ์ทั้งหมด"}
+                    </button>
+                  </div>
+
+                  {showCriteria && (
+                    <div className="overflow-hidden rounded-xl border text-sm">
+                      <div className="bg-muted/50 text-muted-foreground grid grid-cols-[5.5rem_1fr] px-3 py-2 text-xs font-semibold">
+                        <span>ระดับ</span>
+                        <span>เกณฑ์</span>
+                      </div>
+                      {SEVERITY_CRITERIA.map((c) => (
+                        <div
+                          key={c.level}
+                          className="grid grid-cols-[5.5rem_1fr] border-t px-3 py-2"
+                        >
+                          <span
+                            className={cn(
+                              "font-semibold",
+                              SEVERITY_LABELS[c.level].color,
+                            )}
+                          >
+                            {SEVERITY_LABELS[c.level].label}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {c.text}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <motion.div
+                    variants={listContainerVariants}
+                    initial="hidden"
+                    animate="show"
+                    className="space-y-3"
+                  >
+                    {explanation.groups.map((g) => (
+                      <motion.section
+                        key={g.id}
+                        variants={listItemVariants}
+                        onPointerEnter={() => onHoverGroup?.(g.id)}
+                        onPointerLeave={() => onHoverGroup?.(null)}
+                        className={cn(
+                          "space-y-2 rounded-xl border p-3 transition-opacity",
+                          g.decisive && DECISIVE_STYLE[g.level],
+                          hoveredGroup === g.id && !g.decisive && "bg-muted/60",
+                          hoveredGroup !== null &&
+                            hoveredGroup !== g.id &&
+                            "opacity-45",
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="flex flex-wrap items-baseline gap-x-2">
+                            <span className="font-bold">{g.name}</span>
+                            <span className="text-muted-foreground text-xs">
+                              (
+                              {g.types
+                                .map((t) =>
+                                  (ACNE_LABELS[t.type] ?? t.type).replace(
+                                    /^สิว/,
+                                    "",
+                                  ),
+                                )
+                                .join(" + ")}
+                              )
+                            </span>
+                          </p>
+                          <span className="text-xl font-bold tabular-nums">
+                            {g.count}
+                          </span>
+                        </div>
+                        <p
+                          className={cn(
+                            "text-xs",
+                            g.decisive
+                              ? RULE_COLOR[g.level]
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          {g.rule}
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {g.types.map((t) => (
+                            <div
+                              key={t.type}
+                              className={cn(
+                                "bg-muted/50 flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-sm",
+                                t.count === 0 && "opacity-40",
+                              )}
+                            >
+                              <span className="flex min-w-0 items-center gap-2">
+                                <span
+                                  className="h-2.5 w-2.5 shrink-0 rounded-full"
+                                  style={{
+                                    backgroundColor:
+                                      ACNE_COLORS[t.type] || "#3b82f6",
+                                  }}
+                                />
+                                {ACNE_LABELS[t.type] ?? t.type}
+                              </span>
+                              <span className="font-semibold tabular-nums">
+                                {t.count}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.section>
+                    ))}
                   </motion.div>
-                )}
-              </motion.div>
-            </div>
+                </div>
+              )
+            )}
 
             {result.total > 0 && (
               <motion.div

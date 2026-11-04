@@ -7,6 +7,7 @@ import { ImageUploader } from "./image-uploader";
 import { ImagePreview } from "./image-preview";
 import { AnalysisResultPanel } from "./analysis-result";
 import { AnalysisResult } from "@/types/analyze";
+import type { AcneGroupId } from "@/lib/acne-groups";
 import { IMAGE_ACCEPT, validateImageFile } from "@/lib/validation/image-file";
 
 const containerVariants: Variants = {
@@ -39,6 +40,7 @@ export function ImageAnalyzer({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredGroup, setHoveredGroup] = useState<AcneGroupId | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [loadingText, setLoadingText] = useState<string>("กำลังเตรียมการ...");
   const [progress, setProgress] = useState<number>(0);
@@ -180,6 +182,8 @@ export function ImageAnalyzer({
                 result={result}
                 loading={loading}
                 onChangeImage={handleReset}
+                hoveredGroup={hoveredGroup}
+                onHoverGroup={setHoveredGroup}
               />
             </motion.div>
           )}
@@ -198,6 +202,8 @@ export function ImageAnalyzer({
           onAnalyze={handleAnalyze}
           onUploadNew={triggerUpload}
           isModelAvailable={isModelAvailable}
+          hoveredGroup={hoveredGroup}
+          onHoverGroup={setHoveredGroup}
         />
       </motion.div>
     </motion.div>
