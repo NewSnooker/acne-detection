@@ -238,7 +238,7 @@ Environment variables:
 | ตั้ง `SEED_ADMIN_EMAIL` + `SEED_ADMIN_PASSWORD` (รหัสเดายาก) | สร้างแอดมินจากค่านี้ให้ตอนเริ่ม |
 | **ไม่ตั้ง** (ฐานข้อมูลเป็น Atlas) | **ไม่สร้าง**แอดมินเริ่มต้น (`admin@acne.local` / `Admin1234` อยู่ในคู่มือ ใครก็เดาได้) → log: `[seed] ยังไม่มีผู้ดูแลระบบ แต่ไม่สร้างแอดมินเริ่มต้นบนเว็บจริง` |
 
-ถ้าไม่ตั้ง: **สมัครสมาชิกผ่านหน้าเว็บตามปกติ** → Atlas → database ของ Azure → collection `User` → บัญชีของตัวเอง แก้ `role` เป็น `"ADMIN"` → `acne-web` → Revisions and replicas → **Restart** → log ต้องเป็น `[seed] มีผู้ดูแลระบบอยู่แล้ว (...) ข้าม`
+ถ้าไม่ตั้ง: **สมัครสมาชิกผ่านหน้าเว็บตามปกติ** → Atlas → database ของ Azure → collection `User` → บัญชีของตัวเอง แก้ `role` เป็น `"ADMIN"` → **ออกจากระบบแล้วเข้าใหม่** (สิทธิ์ถูกเก็บใน session ตอนเข้าสู่ระบบ ไม่เข้าใหม่จะยังเป็นผู้ใช้ทั่วไป) → ถ้าต้องการให้ seed ใส่โมเดลเริ่มต้น: `acne-web` → Revisions and replicas → **Restart** → log ต้องเป็น `[seed] มีผู้ดูแลระบบอยู่แล้ว (...) ข้าม`
 (ไม่ต้อง build ใหม่ — seed อยู่ในคำสั่งตอน container เริ่ม)
 
 > ระบบที่เคยมี `admin@acne.local` อยู่แล้ว (ขึ้นก่อนมีกฎนี้) ลบได้ตามลำดับนี้: ตั้งบัญชีตัวเองเป็น `ADMIN` → collection `AiModel` แก้ `uploadedBy` ของโมเดลที่ seed ใส่ไว้เป็น `_id` ของบัญชีตัวเอง → ลบ `admin@acne.local` → Restart
