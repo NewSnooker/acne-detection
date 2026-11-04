@@ -238,7 +238,7 @@ Environment variables:
 1. เปิดลิงก์ของ `acne-web` → login → ป้ายบนหัวหน้าแอดมินต้องเป็น **AZURE**
 2. **จัดการโมเดล → อัปโหลด** โมเดล L (`best.pt` ~53 MB) → ตั้งเป็นโมเดลหลัก → แก้ไข → ความมั่นใจขั้นต่ำ **0.26** (ค่าที่ F1 สูงสุด)
 3. **วิเคราะห์** รูป 1 รูป — ครั้งแรกหลัง ai ดับอาจรอ 30 วินาที–2 นาที (ai ตื่น + โหลดโมเดล)
-4. log ของ `acne-ai` ต้องเห็น `Downloading model ...` → `predict timing: ...` → `POST /predict 200 OK`
+4. log ของ `acne-ai` ต้องเห็น `Downloading model ...` → `predict timing [<id>]: ...` → `POST /predict 200 OK` และ log ของ `acne-web` ต้องเห็น `analyze timing [<id>]: ...` (id เดียวกัน) (อ่านค่าได้ที่ `performance/web.md` → อ่านเวลาจาก log)
 5. เปิด **ประวัติ** → รูปต้องขึ้น · Storage account → **Containers** → ต้องเห็น `images` และ `models` มีไฟล์
 
 ถ้าวิเคราะห์ไม่ผ่าน ไล่ตามลำดับนี้ว่าติดขั้นไหน (ดู log ของแอปต้นลูกศรขั้นนั้น):

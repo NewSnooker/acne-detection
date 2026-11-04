@@ -35,7 +35,7 @@ FastAPI 0.115.5 · Ultralytics 8.4.180 · PyTorch · Python 3.12 (Docker) / venv
    - path: ต้องเป็นไฟล์ `.pt` ที่อยู่ใต้ `MODELS_PATH` เท่านั้น
    - การดาวน์โหลดใช้ `urllib` timeout 120 วินาที โหลดลงไฟล์ `.tmp` แล้วค่อยย้าย
 4. `YoloService().predict(image_path, model_path, confidence, augment)` — `augment=True` = Test-Time Augmentation (Ultralytics ทายหลายขนาด/พลิกภาพแล้วรวมผล)
-5. `logging` บันทึกเวลาแต่ละขั้นและจำนวนกรอบ (`predict timing: ...`)
+5. `logging` บันทึกเวลาแต่ละขั้นและจำนวนกรอบ (`predict timing [<request id>]: ...`) และส่งเวลากลับใน header `Server-Timing` — request id มาจาก header `X-Request-ID` ของเว็บ (`app/request_log.py`, วิธีอ่านดู `performance/web.md`)
 
 ## yolo_service.py
 

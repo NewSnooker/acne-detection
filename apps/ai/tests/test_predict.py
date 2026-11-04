@@ -243,3 +243,49 @@ def test_model_host_allowlist(client, dirs, monkeypatch):
     assert predict(client, image, MODEL_URL).status_code == 200
     assert predict(client, image, f"https://my-app.vercel.app/api/models/{MODEL_ID}").status_code == 200
     assert predict(client, image, f"http://evil:3000/api/models/{MODEL_ID}").status_code == 400
+
+
+# ─── log เวลาและ request id ─────────────────────────────────
+
+
+def test_predict_returns_server_timing_and_request_id(client, dirs):
+    """ส่ง X-Request-ID มา → ตอบ id เดิม + Server-Timing ครบทุกขั้น (เว็บเอาไปรวมใน log ของตัวเอง)"""
+    res = predict(client, str(dirs / "images" / "face.jpg"), MODEL_URL, headers={**HEADERS, "X-Request-ID": "req-123"})
+
+    assert res.status_code == 200
+    assert res.headers["X-Request-ID"] == "req-123"
+    names = [part.split(";")[0] for part in res.headers["Server-Timing"].split(", ")]
+    assert names == ["image", "model", "inference", "total"]
+
+
+def test_predict_replaces_invalid_request_id(client, dirs):
+    """id ที่มีอักขระแปลก (เช่นขึ้นบรรทัดใหม่) ไม่เอาไปใส่ log — สร้างใหม่แทน"""
+    res = predict(client, str(dirs / "images" / "face.jpg"), MODEL_URL, headers={**HEADERS, "X-Request-ID": "bad id\n"})
+
+    assert res.status_code == 200
+    assert res.headers["X-Request-ID"] != "bad id\n"
+    assert len(res.headers["X-Request-ID"]) == 16
+
+
+def test_predict_logs_timing_with_request_id(client, dirs, caplog):
+    """สำเร็จ → 1 บรรทัด `predict timing [<id>]: image ... | total ...`"""
+    import logging
+
+    with caplog.at_level(logging.INFO, logger="app.routers.predict"):
+        predict(client, str(dirs / "images" / "face.jpg"), MODEL_URL, headers={**HEADERS, "X-Request-ID": "req-log"})
+
+    line = next(r.getMessage() for r in caplog.records if "predict timing" in r.getMessage())
+    assert line.startswith("predict timing [req-log]: image ")
+    assert "| inference " in line and "| total " in line
+
+
+def test_predict_failure_logs_failed_step(client, dirs, caplog):
+    """ล้มเหลว → log บอกขั้นที่พัง พร้อม request id"""
+    import logging
+
+    with caplog.at_level(logging.INFO, logger="app.routers.predict"):
+        res = predict(client, str(dirs / "images" / "missing.jpg"), MODEL_URL, headers={**HEADERS, "X-Request-ID": "req-bad"})
+
+    assert res.status_code >= 400
+    line = next(r.getMessage() for r in caplog.records if "predict failed" in r.getMessage())
+    assert line.startswith("predict failed [req-bad]: step=image status=")

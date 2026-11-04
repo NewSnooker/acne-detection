@@ -60,6 +60,7 @@ const aiResult = (counts: Record<string, number>) => ({
 
 beforeEach(() => {
   vi.spyOn(console, "error").mockImplementation(() => {});
+  vi.spyOn(console, "info").mockImplementation(() => {});
   Object.values(m).forEach((fn) => fn.mockReset());
   // ค่าเริ่มต้น: ผู้ใช้เข้าสู่ระบบแล้ว มีโมเดลหลัก ทุกอย่างพร้อม
   m.auth.mockResolvedValue({ user: { id: "u1", role: "USER" } });
@@ -164,6 +165,14 @@ describe("POST /api/analyze", () => {
     expect(m.callFastApiForPrediction).toHaveBeenCalledWith(
       expect.objectContaining({ originalImage: "abc.jpg" }),
       { id: "model1", useTta: false, confidence: 0.2 },
+      // ตัวจับเวลา + request id ที่ส่งต่อให้ ai (log สองฝั่งใช้ id เดียวกัน)
+      { timer: expect.anything(), requestId: res.headers.get("X-Request-ID") },
+    );
+    expect(res.headers.get("Server-Timing")).toContain("save-db;dur=");
+    expect(console.info).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /^analyze timing \[\w+\]: auth .* \| 7 detections \| tta=false$/,
+      ),
     );
     // บันทึกผลผูกกับผู้ใช้ โมเดล และรูป
     expect(m.analysisCreate).toHaveBeenCalledWith({
@@ -192,11 +201,11 @@ describe("POST /api/analyze", () => {
 
     expect(res.status).toBe(200);
     expect((await res.json()).data.usedTta).toBe(true);
-    expect(m.callFastApiForPrediction).toHaveBeenCalledWith(expect.anything(), {
-      id: "model1",
-      useTta: true,
-      confidence: 0.3,
-    });
+    expect(m.callFastApiForPrediction).toHaveBeenCalledWith(
+      expect.anything(),
+      { id: "model1", useTta: true, confidence: 0.3 },
+      expect.anything(),
+    );
     expect(m.analysisCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({ usedTta: true, confidence: 0.3 }),
     });

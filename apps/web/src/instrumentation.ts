@@ -5,7 +5,9 @@ export async function register() {
     await import("@/lib/storage/config");
   const problem = storageConfigProblem();
   if (problem) throw new Error(problem);
-  // เรียกเพื่อให้ค่า env ที่สะกดผิดแจ้ง error ตั้งแต่เริ่ม
-  imageStorage();
-  modelStorage();
+  // เรียก imageStorage()/modelStorage() ให้ค่า env ที่สะกดผิดแจ้ง error ตั้งแต่เริ่ม
+  // และบอกว่ารันโค้ด commit ไหน — เทียบกับ "ai start: commit ..." ของ ai ได้ว่า deploy ขึ้นครบทั้งคู่
+  console.log(
+    `web start: commit ${(process.env.GIT_SHA ?? "dev").slice(0, 7)} | image=${imageStorage()} model=${modelStorage()}`,
+  );
 }

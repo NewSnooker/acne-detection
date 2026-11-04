@@ -46,7 +46,7 @@ error ที่ไม่ได้ตั้งใจตอบ 500 พร้อม
 |---|---|---|---|---|
 | GET | `/` | — | ตัวตรวจสถานะของ Render / เปิด URL ตรง | `{status:"ok"}` |
 | GET | `/health` | — | ใช้ ping | `{status:"ok"}` |
-| POST | `/predict` | `X-API-Key` | **ใช่** | form: `image_url_or_path`, `model_url_or_path`, `confidence` (เว็บส่งตาม `AiModel.confidence`, ไม่ส่ง = 0.2), `augment` (TTA, ไม่ส่ง = false — เว็บส่งตาม `AiModel.useTta`) |
+| POST | `/predict` | `X-API-Key` | **ใช่** | form: `image_url_or_path`, `model_url_or_path`, `confidence` (เว็บส่งตาม `AiModel.confidence`, ไม่ส่ง = 0.2), `augment` (TTA, ไม่ส่ง = false — เว็บส่งตาม `AiModel.useTta`) · header `X-Request-ID` (ไม่บังคับ ใช้จับคู่ log) → ตอบ header `Server-Timing` (เวลาแต่ละขั้น ms) + `X-Request-ID` |
 | POST | `/model-metrics` | `X-API-Key` | ใช่ (หลังอัปโหลด/ปุ่มดึงค่า) | form: `model_url_or_path` → `{metrics:{mAP50,precision,recall,f1Score}}` เป็นร้อยละ จาก `checkpoint["train_metrics"]` (ไม่มีข้อมูล = `{}`) |
 | GET | `/docs` | — | เปิดเมื่อ `DEBUG=true` | Swagger |
 

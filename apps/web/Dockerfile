@@ -16,6 +16,10 @@ RUN npx prisma generate
 # ค่าจริงตอนรันมาจาก docker-compose.yml
 RUN DATABASE_URL="mongodb://localhost:27017/build" AUTH_SECRET="build-only" npm run build
 
+# commit ที่ build (GitHub Actions ส่งมา) — แสดงใน log "web start: commit ..."
+ARG GIT_SHA=dev
+ENV GIT_SHA=$GIT_SHA
+
 EXPOSE 3000
 
 # 1) sync index ขึ้น MongoDB (MongoDB ไม่มี migration; คำสั่งนี้ไม่ลบเอกสาร —
