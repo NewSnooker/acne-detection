@@ -6,6 +6,7 @@ import { AnalyzeService } from "@/lib/api-client/analyze-api";
 import { ImageUploader } from "./image-uploader";
 import { ImagePreview } from "./image-preview";
 import { AnalysisResultPanel } from "./analysis-result";
+import { MedicalDisclaimer } from "./medical-disclaimer";
 import { AnalysisResult } from "@/types/analyze";
 import type { AcneGroupId } from "@/lib/acne-groups";
 import { IMAGE_ACCEPT, validateImageFile } from "@/lib/validation/image-file";
@@ -153,7 +154,10 @@ export function ImageAnalyzer({
       />
 
       {/* Left: Image / Uploader */}
-      <motion.div className="space-y-4 lg:col-span-2" variants={itemVariants}>
+      <motion.div
+        className="space-y-4 self-start lg:sticky lg:top-24 lg:col-span-2"
+        variants={itemVariants}
+      >
         <AnimatePresence mode="wait">
           {!previewUrl ? (
             <motion.div
@@ -188,6 +192,7 @@ export function ImageAnalyzer({
             </motion.div>
           )}
         </AnimatePresence>
+        {result && <MedicalDisclaimer />}
       </motion.div>
 
       {/* Right: Actions & Results */}
@@ -202,6 +207,7 @@ export function ImageAnalyzer({
           onAnalyze={handleAnalyze}
           onUploadNew={triggerUpload}
           isModelAvailable={isModelAvailable}
+          hideDisclaimer
           hoveredGroup={hoveredGroup}
           onHoverGroup={setHoveredGroup}
         />

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ImagePreview } from "@/components/analyze/image-preview";
 import { AnalysisResultPanel } from "@/components/analyze/analysis-result";
+import { MedicalDisclaimer } from "@/components/analyze/medical-disclaimer";
 import { HistoryItem } from "./history-gallery";
 import type { AcneGroupId } from "@/lib/acne-groups";
 
@@ -172,7 +173,7 @@ export function HistoryModal({
             className="animate-in fade-in slide-in-from-right-4 grid grid-cols-1 items-start gap-6 duration-500 lg:grid-cols-5 lg:gap-8"
           >
             {/* Left: Image Canvas */}
-            <div className="group animate-in fade-in fill-mode-backwards relative flex items-start justify-center delay-100 duration-500 lg:sticky lg:top-0 lg:col-span-3">
+            <div className="group animate-in fade-in fill-mode-backwards relative flex flex-col items-center justify-center gap-4 delay-100 duration-500 lg:sticky lg:top-0 lg:col-span-3 lg:min-h-[calc(min(90vh,800px)-8rem)]">
               {/* Mobile Navigation (Overlay on Image) */}
               <button
                 onClick={(e) => {
@@ -211,6 +212,7 @@ export function HistoryModal({
                   />
                 );
               })()}
+              <MedicalDisclaimer className="w-full" />
             </div>
 
             {/* Right: Results Panel */}
@@ -228,6 +230,7 @@ export function HistoryModal({
                     onAnalyze={() => {}}
                     onUploadNew={() => {}}
                     readOnly={true} // ซ่อนปุ่มอัปโหลดรูปใหม่
+                    hideDisclaimer // อยู่ใต้รูปแทน
                     hoveredGroup={hoveredGroup}
                     onHoverGroup={setHoveredGroup}
                   />
