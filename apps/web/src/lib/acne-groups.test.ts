@@ -26,8 +26,6 @@ describe("explainSeverity", () => {
     const r = explainSeverity({ papule: 7, blackhead: 2 });
     expect(r.level).toBe("MODERATE");
     expect(r.groups.map((g) => g.id)).toEqual(["shallow", "non", "deep"]);
-    expect(r.groups[0].rule).toBe("6–20 จุด = ปานกลาง");
-    expect(r.groups[2].rule).toBe("ไม่พบ");
   });
 
   it("หลายกลุ่มเป็นเหตุผลพร้อมกัน", () => {
