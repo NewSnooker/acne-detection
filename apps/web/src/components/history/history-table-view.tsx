@@ -205,57 +205,44 @@ export function HistoryTableView({
     );
   };
 
-  // conf กับ TTA ที่ใช้ตอนวิเคราะห์ รวมในคอลัมน์เดียว
-  const ConfTtaCellRenderer = (
+  // โมเดล + ค่าที่ใช้ตอนวิเคราะห์ (conf · TTA) ในคอลัมน์เดียว
+  const ModelCellRenderer = (
     props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
   ) => {
     const item = props.data;
     if (!item) return null;
     return (
-      <div className="flex h-full items-center gap-2 text-sm whitespace-nowrap">
-        <span
-          className="font-mono tabular-nums"
-          title={
-            item.confidence == null
-              ? "ผลเก่า ไม่ได้บันทึกค่า conf"
-              : "ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์"
-          }
-        >
-          {item.confidence?.toFixed(2) ?? "—"}
-        </span>
-        <span className="text-muted-foreground" aria-hidden="true">
-          ·
-        </span>
-        {item.usedTta ? (
-          <span className="font-medium text-violet-600 dark:text-violet-400">
-            TTA
-          </span>
+      <div className="flex h-full flex-col justify-center gap-1 py-1.5">
+        {item.model ? (
+          <Badge
+            variant="outline"
+            className="text-primary/70 border-primary/20 bg-primary/5 flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-xs whitespace-nowrap"
+          >
+            {item.model.name} {item.model.version}
+          </Badge>
         ) : (
-          <span className="text-muted-foreground">ไม่ใช้ TTA</span>
-        )}
-      </div>
-    );
-  };
-
-  const ModelCellRenderer = (
-    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
-  ) => {
-    const model = props.data?.model;
-    if (!model) {
-      return (
-        <div className="flex h-full items-center">
           <span className="text-muted-foreground text-sm">-</span>
-        </div>
-      );
-    }
-    return (
-      <div className="flex h-full items-center">
-        <Badge
-          variant="outline"
-          className="text-primary/70 border-primary/20 bg-primary/5 flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-xs whitespace-nowrap"
-        >
-          {model.name} {model.version}
-        </Badge>
+        )}
+        <span className="text-muted-foreground flex items-center gap-1.5 pl-1 text-xs whitespace-nowrap">
+          <span
+            className="font-mono tabular-nums"
+            title={
+              item.confidence == null
+                ? "ผลเก่า ไม่ได้บันทึกค่า conf"
+                : "conf: ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์"
+            }
+          >
+            {item.confidence?.toFixed(2) ?? "—"}
+          </span>
+          <span aria-hidden="true">·</span>
+          {item.usedTta ? (
+            <span className="font-medium text-violet-600 dark:text-violet-400">
+              TTA
+            </span>
+          ) : (
+            <span>ไม่ใช้ TTA</span>
+          )}
+        </span>
       </div>
     );
   };
@@ -413,13 +400,7 @@ export function HistoryTableView({
           flex: 1,
           minWidth: 150,
           cellRenderer: ModelCellRenderer,
-        },
-        {
-          field: "confidence",
-          headerName: "conf / TTA",
-          width: 150,
-          filter: false,
-          cellRenderer: ConfTtaCellRenderer,
+          autoHeight: true,
         },
       );
     }
