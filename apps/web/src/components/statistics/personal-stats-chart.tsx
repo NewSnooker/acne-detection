@@ -3,6 +3,7 @@
 import { EmptyState } from "@/components/ui/empty-state";
 import { useTheme } from "next-themes";
 import { useMounted } from "@/hooks/use-mounted";
+import { usePrimaryColor } from "@/hooks/use-primary-color";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 
@@ -17,7 +18,8 @@ interface PersonalStatsChartProps {
 }
 
 export function PersonalStatsChart({ data }: PersonalStatsChartProps) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
+  const primary = usePrimaryColor(); // เส้นกราฟใช้สีหลักของธีม
   const mounted = useMounted();
 
   if (!mounted) {
@@ -49,7 +51,7 @@ export function PersonalStatsChart({ data }: PersonalStatsChartProps) {
     seriesData.unshift([(singlePoint[0] as number) - 86400000, singlePoint[1]]);
   }
 
-  const isDark = theme === "dark";
+  const isDark = resolvedTheme === "dark";
 
   const options: ApexOptions = {
     chart: {
@@ -67,7 +69,7 @@ export function PersonalStatsChart({ data }: PersonalStatsChartProps) {
       background: "transparent",
       fontFamily: "inherit",
     },
-    colors: ["#7c3aed"], // Primary color
+    colors: [primary],
     dataLabels: {
       enabled: true,
       offsetY: -10,
@@ -89,7 +91,7 @@ export function PersonalStatsChart({ data }: PersonalStatsChartProps) {
     markers: {
       size: 5,
       colors: ["#fff"],
-      strokeColors: "#7c3aed",
+      strokeColors: primary,
       strokeWidth: 2,
       hover: {
         size: 7,

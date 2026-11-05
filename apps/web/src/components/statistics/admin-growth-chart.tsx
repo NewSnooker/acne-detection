@@ -3,6 +3,7 @@
 import { EmptyState } from "@/components/ui/empty-state";
 import { useTheme } from "next-themes";
 import { useMounted } from "@/hooks/use-mounted";
+import { usePrimaryColor } from "@/hooks/use-primary-color";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 
@@ -18,7 +19,8 @@ interface AdminGrowthChartProps {
 }
 
 export function AdminGrowthChart({ data }: AdminGrowthChartProps) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
+  const primary = usePrimaryColor(); // เส้นกราฟใช้สีหลักของธีม
   const mounted = useMounted();
 
   if (!mounted) {
@@ -49,7 +51,7 @@ export function AdminGrowthChart({ data }: AdminGrowthChartProps) {
     },
   ];
 
-  const isDark = theme === "dark";
+  const isDark = resolvedTheme === "dark";
 
   const options: ApexOptions = {
     chart: {
@@ -66,7 +68,7 @@ export function AdminGrowthChart({ data }: AdminGrowthChartProps) {
       background: "transparent",
       fontFamily: "inherit",
     },
-    colors: ["#6366f1"], // Indigo for Growth
+    colors: [primary],
     stroke: {
       width: 3,
       curve: seriesData.length > 2 ? "smooth" : "straight",
@@ -86,7 +88,7 @@ export function AdminGrowthChart({ data }: AdminGrowthChartProps) {
     markers: {
       size: 4,
       colors: ["#fff"],
-      strokeColors: ["#6366f1"],
+      strokeColors: [primary],
       strokeWidth: 2,
       hover: {
         size: 6,
