@@ -155,7 +155,7 @@ export function ModelTable({ models }: ModelTableProps) {
         )}
         {props.data && (
           <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2 py-1 font-mono text-xs">
-            conf {props.data.confidence.toFixed(2)}
+            ความมั่นใจ {props.data.confidence.toFixed(2)}
           </span>
         )}
         {props.data?.useTta && (

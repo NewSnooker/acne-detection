@@ -7,9 +7,9 @@
 
 @layer base {
   /* พาเลทสี 60-30-10
-     60% พื้นหลัง = เทากลาง (ไม่อมสีธีม)   30% การ์ด/แถบเมนู = ขาว (มืด: เทาสว่างขึ้น 1 ขั้น) + เส้นขอบบาง
-     10% สีธีม (--brand-*) = ปุ่มหลัก ลิงก์ เมนูที่เลือก โฟกัส เท่านั้น
-     สีระดับความรุนแรง (เขียว/เหลือง/แดง) ใช้เฉพาะผลวิเคราะห์ ไม่ปนกับสีธีม
+     60% พื้นหลัง = เทาอมสีธีมจาง ๆ   30% โครง = เมนูข้างสีธีมโทนเข้ม (.sidebar-theme) + การ์ดขาว เส้นขอบบาง
+     10% สีธีม (--brand-*) = ปุ่มหลัก ลิงก์ โฟกัส เส้นกราฟ
+     สีรอง (--tip) = กล่องคำแนะนำ   สีระดับความรุนแรง (เขียว/เหลือง/แดง) ใช้เฉพาะผลวิเคราะห์ ไม่ปนกับสีธีม
      ค่าเริ่มต้น = ฟ้า, ชุดอื่นอยู่ด้านล่าง ([data-palette]) รายชื่ออยู่ใน lib/theme/palettes.ts */
   :root {
     --brand-h: 211;
@@ -17,27 +17,40 @@
     --brand-l: 44%;
     --brand-l-dark: 56%;
 
-    --background: 220 14% 96%;
-    --foreground: 222 30% 12%;
+    --background: var(--brand-h) 18% 95.5%;
+    --foreground: var(--brand-h) 30% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 222 30% 12%;
+    --card-foreground: var(--brand-h) 30% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 30% 12%;
+    --popover-foreground: var(--brand-h) 30% 12%;
     --primary: var(--brand-h) var(--brand-s) var(--brand-l);
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 13% 93%;
-    --secondary-foreground: 222 30% 16%;
-    --muted: 220 14% 95%;
-    --muted-foreground: 220 9% 40%;
+    --secondary: var(--brand-h) 16% 93%;
+    --secondary-foreground: var(--brand-h) 30% 16%;
+    --muted: var(--brand-h) 16% 95%;
+    --muted-foreground: var(--brand-h) 10% 40%;
     /* hover ของเมนู/ปุ่มรอง: สีธีมจาง ๆ พื้นที่เล็ก */
     --accent: var(--brand-h) 60% 95%;
     --accent-foreground: var(--brand-h) var(--brand-s) 28%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 13% 88%;
-    --input: 220 13% 84%;
+    --border: var(--brand-h) 16% 88%;
+    --input: var(--brand-h) 16% 84%;
     --ring: var(--brand-h) var(--brand-s) var(--brand-l);
     --radius: 0.75rem;
+
+    /* สีรอง: กล่องคำแนะนำ (ทราย) */
+    --tip: 40 55% 94%;
+    --tip-foreground: 32 40% 26%;
+    --tip-icon: 36 85% 45%;
+
+    /* เมนูข้าง (.sidebar-theme) */
+    --sidebar: var(--brand-h) 38% 15%;
+    --sidebar-foreground: var(--brand-h) 25% 96%;
+    --sidebar-muted: var(--brand-h) 15% 74%;
+    --sidebar-active: var(--brand-h) 35% 25%;
+    --sidebar-border: var(--brand-h) 30% 21%;
+    --sidebar-accent: var(--brand-h) 70% 74%;
 
     /* Acne severity colors */
     --mild: 142 76% 36%;
@@ -54,25 +67,33 @@
   }
 
   .dark {
-    --background: 220 13% 9%;
-    --foreground: 220 14% 95%;
-    --card: 220 12% 12.5%;
-    --card-foreground: 220 14% 95%;
-    --popover: 220 12% 14%;
-    --popover-foreground: 220 14% 95%;
+    --background: var(--brand-h) 16% 9.5%;
+    --foreground: var(--brand-h) 14% 95%;
+    --card: var(--brand-h) 14% 13%;
+    --card-foreground: var(--brand-h) 14% 95%;
+    --popover: var(--brand-h) 14% 14.5%;
+    --popover-foreground: var(--brand-h) 14% 95%;
     --primary: var(--brand-h) var(--brand-s) var(--brand-l-dark);
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 11% 18%;
-    --secondary-foreground: 220 14% 95%;
-    --muted: 220 11% 17%;
-    --muted-foreground: 220 9% 66%;
+    --secondary: var(--brand-h) 12% 18%;
+    --secondary-foreground: var(--brand-h) 14% 95%;
+    --muted: var(--brand-h) 12% 17.5%;
+    --muted-foreground: var(--brand-h) 9% 66%;
     --accent: var(--brand-h) 30% 20%;
     --accent-foreground: var(--brand-h) 70% 82%;
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 10% 21%;
-    --input: 220 10% 24%;
+    --border: var(--brand-h) 11% 21%;
+    --input: var(--brand-h) 11% 24%;
     --ring: var(--brand-h) var(--brand-s) var(--brand-l-dark);
+
+    --tip: 36 25% 16%;
+    --tip-foreground: 38 45% 84%;
+    --tip-icon: 38 85% 55%;
+
+    --sidebar: var(--brand-h) 35% 6.5%;
+    --sidebar-active: var(--brand-h) 30% 16%;
+    --sidebar-border: var(--brand-h) 25% 13%;
   }
 
   [data-palette="rose"] {
@@ -121,6 +142,9 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
+  --color-tip: hsl(var(--tip));
+  --color-tip-foreground: hsl(var(--tip-foreground));
+  --color-tip-icon: hsl(var(--tip-icon));
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
@@ -161,5 +185,26 @@
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background: hsl(var(--border));
     border-radius: 999px;
+  }
+}
+
+/* เมนูข้างสีธีมโทนเข้ม: เปลี่ยนตัวแปรสีเฉพาะในเมนู ให้ text-muted-foreground, bg-accent, text-primary ฯลฯ ข้างในใช้สีชุดนี้ */
+@layer components {
+  .sidebar-theme {
+    --foreground: var(--sidebar-foreground);
+    --muted-foreground: var(--sidebar-muted);
+    --accent: var(--sidebar-active);
+    --accent-foreground: 0 0% 100%;
+    --primary: var(--sidebar-accent);
+    --border: var(--sidebar-border);
+    /* utility ของ Tailwind อ่าน --color-* ซึ่งคำนวณไว้แล้วที่ :root ต้องตั้งใหม่ในนี้ด้วย */
+    --color-foreground: hsl(var(--foreground));
+    --color-muted-foreground: hsl(var(--muted-foreground));
+    --color-accent: hsl(var(--accent));
+    --color-accent-foreground: hsl(var(--accent-foreground));
+    --color-primary: hsl(var(--primary));
+    --color-border: hsl(var(--border));
+    background-color: hsl(var(--sidebar));
+    color: hsl(var(--sidebar-foreground));
   }
 }

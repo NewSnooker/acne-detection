@@ -20,7 +20,7 @@ export function SeverityDonutChart({
   data = [],
   preAggregated,
 }: SeverityDonutChartProps) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const mounted = useMounted();
 
   if (!mounted) {
@@ -64,7 +64,7 @@ export function SeverityDonutChart({
     SEVERITY_LABELS.SEVERE?.label || "รุนแรง",
   ];
 
-  const isDark = theme === "dark";
+  const isDark = resolvedTheme === "dark";
 
   const options: ApexOptions = {
     chart: {

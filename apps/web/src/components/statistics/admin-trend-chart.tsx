@@ -3,6 +3,7 @@
 import { EmptyState } from "@/components/ui/empty-state";
 import { useTheme } from "next-themes";
 import { useMounted } from "@/hooks/use-mounted";
+import { usePrimaryColor } from "@/hooks/use-primary-color";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 
@@ -17,7 +18,8 @@ interface AdminTrendChartProps {
 }
 
 export function AdminTrendChart({ data }: AdminTrendChartProps) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
+  const primary = usePrimaryColor(); // เส้นกราฟใช้สีหลักของธีม
   const mounted = useMounted();
 
   if (!mounted) {
@@ -47,7 +49,7 @@ export function AdminTrendChart({ data }: AdminTrendChartProps) {
     return [timestamp, item.count];
   });
 
-  const isDark = theme === "dark";
+  const isDark = resolvedTheme === "dark";
 
   const options: ApexOptions = {
     chart: {
@@ -65,7 +67,7 @@ export function AdminTrendChart({ data }: AdminTrendChartProps) {
       background: "transparent",
       fontFamily: "inherit",
     },
-    colors: ["#7c3aed"], // Primary color
+    colors: [primary],
     dataLabels: {
       enabled: true,
       offsetY: -10,
@@ -87,7 +89,7 @@ export function AdminTrendChart({ data }: AdminTrendChartProps) {
     markers: {
       size: 5,
       colors: ["#fff"],
-      strokeColors: "#7c3aed",
+      strokeColors: primary,
       strokeWidth: 2,
       hover: {
         size: 7,

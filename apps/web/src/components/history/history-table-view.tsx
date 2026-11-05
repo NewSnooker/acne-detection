@@ -205,62 +205,42 @@ export function HistoryTableView({
     );
   };
 
-  const ConfCellRenderer = (
-    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
-  ) => {
-    const item = props.data;
-    if (!item) return null;
-    return (
-      <div
-        className="flex h-full items-center font-mono text-sm tabular-nums"
-        title={
-          item.confidence == null
-            ? "ผลเก่า ไม่ได้บันทึกค่า conf"
-            : "ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์"
-        }
-      >
-        {item.confidence?.toFixed(2) ?? "—"}
-      </div>
-    );
-  };
-
-  const TtaCellRenderer = (
-    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
-  ) => {
-    const item = props.data;
-    if (!item) return null;
-    return (
-      <div className="flex h-full items-center text-sm">
-        {item.usedTta ? (
-          <span className="font-medium text-violet-600 dark:text-violet-400">
-            ใช้
-          </span>
-        ) : (
-          <span className="text-muted-foreground">ไม่ใช้</span>
-        )}
-      </div>
-    );
-  };
-
+  // โมเดล + ค่าที่ใช้ตอนวิเคราะห์ (conf, TTA) ในคอลัมน์เดียว
   const ModelCellRenderer = (
     props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
   ) => {
-    const model = props.data?.model;
-    if (!model) {
-      return (
-        <div className="flex h-full items-center">
-          <span className="text-muted-foreground text-sm">-</span>
-        </div>
-      );
-    }
+    const item = props.data;
+    if (!item) return null;
     return (
-      <div className="flex h-full items-center">
-        <Badge
-          variant="outline"
-          className="text-primary/70 border-primary/20 bg-primary/5 flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-xs whitespace-nowrap"
-        >
-          {model.name} {model.version}
-        </Badge>
+      <div className="flex h-full flex-col justify-center gap-1 py-1.5">
+        {item.model ? (
+          <Badge
+            variant="outline"
+            className="text-primary/70 border-primary/20 bg-primary/5 flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-xs whitespace-nowrap"
+          >
+            {item.model.name} {item.model.version}
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground text-sm">-</span>
+        )}
+        {/* แบบเดียวกับคอลัมน์สถานะในหน้าจัดการโมเดล */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span
+            className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2 py-1 font-mono text-xs"
+            title={
+              item.confidence == null
+                ? "ผลเก่า ไม่ได้บันทึกค่าความมั่นใจ"
+                : "ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์"
+            }
+          >
+            ความมั่นใจ {item.confidence?.toFixed(2) ?? "—"}
+          </span>
+          {item.usedTta && (
+            <span className="inline-flex items-center rounded-full bg-violet-500/10 px-2 py-1 text-xs font-medium text-violet-600 dark:text-violet-400">
+              TTA
+            </span>
+          )}
+        </div>
       </div>
     );
   };
@@ -418,20 +398,7 @@ export function HistoryTableView({
           flex: 1,
           minWidth: 150,
           cellRenderer: ModelCellRenderer,
-        },
-        {
-          field: "confidence",
-          headerName: "conf",
-          width: 100,
-          filter: false,
-          cellRenderer: ConfCellRenderer,
-        },
-        {
-          field: "usedTta",
-          headerName: "TTA",
-          width: 100,
-          filter: false,
-          cellRenderer: TtaCellRenderer,
+          autoHeight: true,
         },
       );
     }

@@ -41,7 +41,8 @@ export function SidebarContent({
   const isAdmin = role === "ADMIN";
 
   return (
-    <div className="flex h-full flex-col">
+    // sidebar-theme: เมนูข้างสีธีมโทนเข้ม (ค่าสีอยู่ใน globals.css)
+    <div className="sidebar-theme flex h-full flex-col">
       {/* Logo */}
       <div className="border-b px-6 py-5">
         <Link
@@ -67,8 +68,8 @@ export function SidebarContent({
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                 active
-                  ? "bg-primary/10 text-primary font-semibold"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  ? "bg-accent text-accent-foreground font-semibold"
+                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
               )}
             >
               <Icon className="h-4 w-4" />
@@ -94,8 +95,8 @@ export function SidebarContent({
                   className={cn(
                     "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                     active
-                      ? "bg-primary/10 text-primary font-semibold"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                      ? "bg-accent text-accent-foreground font-semibold"
+                      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -112,7 +113,7 @@ export function SidebarContent({
 
 export function Sidebar({ role }: { role: string }) {
   return (
-    <aside className="bg-card hidden w-64 shrink-0 flex-col border-r md:flex">
+    <aside className="hidden w-64 shrink-0 flex-col md:flex">
       <SidebarContent role={role} />
     </aside>
   );

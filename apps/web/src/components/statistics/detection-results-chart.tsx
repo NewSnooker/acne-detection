@@ -16,7 +16,7 @@ interface DetectionResultsChartProps {
 }
 
 export function DetectionResultsChart({ data }: DetectionResultsChartProps) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const mounted = useMounted();
 
   if (!mounted) {
@@ -32,7 +32,7 @@ export function DetectionResultsChart({ data }: DetectionResultsChartProps) {
     );
   }
 
-  const isDark = theme === "dark";
+  const isDark = resolvedTheme === "dark";
 
   const series = [data.ACNE, data.CLEAR];
   const labels = ["พบสิว", "หน้าใส (ไม่พบสิว)"];

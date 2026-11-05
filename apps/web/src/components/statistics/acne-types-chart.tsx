@@ -25,7 +25,7 @@ export function AcneTypesChart({
   preAggregated,
   clearSkinCount: passedClearSkinCount = 0,
 }: AcneTypesChartProps) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const mounted = useMounted();
 
   if (!mounted) {
@@ -90,7 +90,7 @@ export function AcneTypesChart({
     colors.push(ACNE_COLORS["no_acne"] || "#10b981");
   }
 
-  const isDark = theme === "dark";
+  const isDark = resolvedTheme === "dark";
 
   const options: ApexOptions = {
     chart: {

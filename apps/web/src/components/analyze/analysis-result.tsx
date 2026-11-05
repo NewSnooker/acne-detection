@@ -283,16 +283,16 @@ export function AnalysisResultPanel({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-muted/60 rounded-xl p-4"
+                className="bg-tip text-tip-foreground rounded-xl p-4"
               >
                 <h3 className="mb-2 flex items-center gap-2 font-semibold">
                   <Lightbulb
-                    className="h-4 w-4 text-amber-500"
+                    className="text-tip-icon h-4 w-4"
                     aria-hidden="true"
                   />
                   คำแนะนำการดูแลผิว
                 </h3>
-                <p className="text-foreground text-sm leading-relaxed">
+                <p className="text-sm leading-relaxed">
                   {ACNE_CARE_ADVICE[result.severity] ||
                     "แนะนำให้ปรึกษาแพทย์ผู้เชี่ยวชาญด้านผิวหนัง"}
                 </p>
