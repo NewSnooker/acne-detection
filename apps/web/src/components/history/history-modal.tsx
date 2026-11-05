@@ -141,7 +141,7 @@ export function HistoryModal({
                       : "ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์"
                   }
                 >
-                  ความมั่นใจ {selectedItem.confidence?.toFixed(2) ?? "—"}
+                  conf {selectedItem.confidence?.toFixed(2) ?? "—"}
                 </Badge>
                 {selectedItem.usedTta ? (
                   <TooltipProvider delayDuration={0}>

@@ -205,7 +205,7 @@ export function HistoryTableView({
     );
   };
 
-  // โมเดล + ค่าที่ใช้ตอนวิเคราะห์ (conf · TTA) ในคอลัมน์เดียว
+  // โมเดล + ค่าที่ใช้ตอนวิเคราะห์ (conf, TTA) ในคอลัมน์เดียว
   const ModelCellRenderer = (
     props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
   ) => {
@@ -223,26 +223,24 @@ export function HistoryTableView({
         ) : (
           <span className="text-muted-foreground text-sm">-</span>
         )}
-        <span className="text-muted-foreground flex items-center gap-1.5 pl-1 text-xs whitespace-nowrap">
+        {/* แบบเดียวกับคอลัมน์สถานะในหน้าจัดการโมเดล */}
+        <div className="flex flex-wrap items-center gap-1.5">
           <span
-            className="font-mono tabular-nums"
+            className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2 py-1 font-mono text-xs"
             title={
               item.confidence == null
                 ? "ผลเก่า ไม่ได้บันทึกค่าความมั่นใจ"
-                : "ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์ (conf)"
+                : "ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์"
             }
           >
-            ความมั่นใจ {item.confidence?.toFixed(2) ?? "—"}
+            conf {item.confidence?.toFixed(2) ?? "—"}
           </span>
-          <span aria-hidden="true">·</span>
-          {item.usedTta ? (
-            <span className="font-medium text-violet-600 dark:text-violet-400">
+          {item.usedTta && (
+            <span className="inline-flex items-center rounded-full bg-violet-500/10 px-2 py-1 text-xs font-medium text-violet-600 dark:text-violet-400">
               TTA
             </span>
-          ) : (
-            <span>ไม่ใช้ TTA</span>
           )}
-        </span>
+        </div>
       </div>
     );
   };
@@ -396,7 +394,7 @@ export function HistoryTableView({
         },
         {
           field: "model.name",
-          headerName: "โมเดล / ความมั่นใจ / TTA",
+          headerName: "โมเดลที่ใช้",
           flex: 1,
           minWidth: 150,
           cellRenderer: ModelCellRenderer,
