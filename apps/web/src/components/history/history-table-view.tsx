@@ -233,7 +233,7 @@ export function HistoryTableView({
                 : "ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์"
             }
           >
-            conf {item.confidence?.toFixed(2) ?? "—"}
+            ความมั่นใจ {item.confidence?.toFixed(2) ?? "—"}
           </span>
           {item.usedTta && (
             <span className="inline-flex items-center rounded-full bg-violet-500/10 px-2 py-1 text-xs font-medium text-violet-600 dark:text-violet-400">
