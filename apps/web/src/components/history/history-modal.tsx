@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Percent, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AnalysisResult } from "@/types/analyze";
 import {
@@ -36,8 +35,6 @@ export function HistoryModal({
   onPrev,
 }: HistoryModalProps) {
   const [hoveredGroup, setHoveredGroup] = useState<AcneGroupId | null>(null);
-  // แอดมินเปิดดู % ความมั่นใจบนกรอบ (ค่าเริ่มต้นปิด)
-  const [showConfidence, setShowConfidence] = useState(false);
   if (!selectedItem) return null;
 
   return (
@@ -175,20 +172,6 @@ export function HistoryModal({
                     TTA ปิด
                   </Badge>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setShowConfidence((v) => !v)}
-                  aria-pressed={showConfidence}
-                  className={cn(
-                    "flex h-7 cursor-pointer items-center gap-1 rounded-full border px-2.5 text-[11px] transition-colors",
-                    showConfidence
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "hover:bg-muted",
-                  )}
-                >
-                  <Percent className="h-3 w-3" aria-hidden="true" />
-                  {showConfidence ? "ซ่อน % บนกรอบ" : "แสดง % บนกรอบ"}
-                </button>
               </>
             )}
           </div>
@@ -246,7 +229,7 @@ export function HistoryModal({
                     fit
                     hoveredGroup={hoveredGroup}
                     onHoverGroup={setHoveredGroup}
-                    showConfidence={isAdminView && showConfidence}
+                    showConfidence={isAdminView} // แอดมินเห็น % บนกรอบเสมอ
                   />
                 );
               })()}

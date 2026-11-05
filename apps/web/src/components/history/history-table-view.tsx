@@ -205,33 +205,38 @@ export function HistoryTableView({
     );
   };
 
-  const ConfTtaCellRenderer = (
+  const ConfCellRenderer = (
     props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
   ) => {
     const item = props.data;
     if (!item) return null;
     return (
-      <div className="flex h-full items-center gap-1.5">
-        <Badge
-          variant="outline"
-          className="font-mono text-[11px]"
-          title={
-            item.confidence == null
-              ? "ผลเก่า ไม่ได้บันทึกค่า conf"
-              : "ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์"
-          }
-        >
-          {item.confidence?.toFixed(2) ?? "—"}
-        </Badge>
+      <div
+        className="flex h-full items-center font-mono text-sm tabular-nums"
+        title={
+          item.confidence == null
+            ? "ผลเก่า ไม่ได้บันทึกค่า conf"
+            : "ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์"
+        }
+      >
+        {item.confidence?.toFixed(2) ?? "—"}
+      </div>
+    );
+  };
+
+  const TtaCellRenderer = (
+    props: CustomCellRendererProps<HistoryItemWithOriginalIndex>,
+  ) => {
+    const item = props.data;
+    if (!item) return null;
+    return (
+      <div className="flex h-full items-center text-sm">
         {item.usedTta ? (
-          <Badge
-            variant="outline"
-            className="border-violet-500/30 bg-violet-500/10 text-[11px] text-violet-600 dark:text-violet-400"
-          >
-            TTA
-          </Badge>
+          <span className="font-medium text-violet-600 dark:text-violet-400">
+            ใช้
+          </span>
         ) : (
-          <span className="text-muted-foreground text-[11px]">TTA ปิด</span>
+          <span className="text-muted-foreground">ไม่ใช้</span>
         )}
       </div>
     );
@@ -415,12 +420,18 @@ export function HistoryTableView({
           cellRenderer: ModelCellRenderer,
         },
         {
-          colId: "confTta",
-          headerName: "conf / TTA",
-          width: 150,
-          sortable: false,
+          field: "confidence",
+          headerName: "conf",
+          width: 100,
           filter: false,
-          cellRenderer: ConfTtaCellRenderer,
+          cellRenderer: ConfCellRenderer,
+        },
+        {
+          field: "usedTta",
+          headerName: "TTA",
+          width: 100,
+          filter: false,
+          cellRenderer: TtaCellRenderer,
         },
       );
     }
