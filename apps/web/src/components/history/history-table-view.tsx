@@ -228,11 +228,11 @@ export function HistoryTableView({
             className="font-mono tabular-nums"
             title={
               item.confidence == null
-                ? "ผลเก่า ไม่ได้บันทึกค่า conf"
-                : "conf: ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์"
+                ? "ผลเก่า ไม่ได้บันทึกค่าความมั่นใจ"
+                : "ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์ (conf)"
             }
           >
-            {item.confidence?.toFixed(2) ?? "—"}
+            ความมั่นใจ {item.confidence?.toFixed(2) ?? "—"}
           </span>
           <span aria-hidden="true">·</span>
           {item.usedTta ? (
@@ -396,7 +396,7 @@ export function HistoryTableView({
         },
         {
           field: "model.name",
-          headerName: "โมเดลที่ใช้",
+          headerName: "โมเดล / ความมั่นใจ / TTA",
           flex: 1,
           minWidth: 150,
           cellRenderer: ModelCellRenderer,

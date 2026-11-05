@@ -137,11 +137,11 @@ export function HistoryModal({
                   className="font-mono text-[10px]"
                   title={
                     selectedItem.confidence == null
-                      ? "ผลเก่า ไม่ได้บันทึกค่า conf"
+                      ? "ผลเก่า ไม่ได้บันทึกค่าความมั่นใจ"
                       : "ความมั่นใจขั้นต่ำที่ใช้ตอนวิเคราะห์"
                   }
                 >
-                  conf {selectedItem.confidence?.toFixed(2) ?? "—"}
+                  ความมั่นใจ {selectedItem.confidence?.toFixed(2) ?? "—"}
                 </Badge>
                 {selectedItem.usedTta ? (
                   <TooltipProvider delayDuration={0}>
