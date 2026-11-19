@@ -11,21 +11,13 @@ import {
 } from "lucide-react";
 import { calculateSeverity } from "@/server/analyze";
 import { getActiveModelMetrics } from "@/server/active-model";
-import {
-  ACNE_CARE_ADVICE,
-  ACNE_COLORS,
-  ACNE_LABELS,
-  SEVERITY_LABELS,
-} from "@/types/analyze";
 import { Button } from "@/components/ui/button";
 import { MedicalDisclaimer } from "@/components/analyze/medical-disclaimer";
 import { SampleImage } from "@/components/knowledge/sample-image";
 import { ACNE_SAMPLES } from "@/components/knowledge/acne-samples";
 import {
   ACNE_CAUSES,
-  ACNE_GROUPS,
   SEE_DOCTOR_SIGNS,
-  SEVERITY_INFO,
   SKINCARE_BASICS,
 } from "@/components/knowledge/content";
 import { AcneTypeGrid } from "@/components/knowledge/acne-type-grid";
@@ -33,6 +25,7 @@ import { HolisticCare } from "@/components/knowledge/holistic-care";
 import { ModelMetrics } from "@/components/knowledge/model-metrics";
 import { SeverityLevels } from "@/components/knowledge/severity-levels";
 import { StartCta } from "@/components/public/start-cta";
+import { HeroResult } from "@/components/public/hero-result";
 import { siteConfig } from "@/config/site";
 
 const STEPS = [
@@ -97,7 +90,6 @@ export default async function HomePage() {
   const counts: Record<string, number> = {};
   for (const b of hero.boxes) counts[b.cls] = (counts[b.cls] ?? 0) + 1;
   const severity = calculateSeverity(counts);
-  const severityInfo = SEVERITY_INFO.find((s) => s.key === severity)!;
 
   return (
     <>
@@ -177,55 +169,12 @@ export default async function HomePage() {
               src={siteConfig.hero.src}
               boxes={hero.boxes}
               alt={siteConfig.hero.alt}
-              privacyBar={siteConfig.hero.privacyBar}
+              showLabels
               priority
               className="aspect-[4/3]"
             />
-            <figcaption className="flex flex-col gap-3 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-muted-foreground text-sm">
-                    ความรุนแรง
-                  </span>
-                  <span className="text-xl font-semibold">
-                    {SEVERITY_LABELS[severity].label}
-                  </span>
-                </div>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${severityInfo.tone}`}
-                >
-                  {severityInfo.en}
-                </span>
-              </div>
-              <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                {Object.entries(counts).map(([cls, n]) => (
-                  <li key={cls} className="flex items-center gap-1.5">
-                    <span
-                      aria-hidden="true"
-                      className="h-2.5 w-2.5 rounded-full ring-1 ring-black/10"
-                      style={{ backgroundColor: ACNE_COLORS[cls] }}
-                    />
-                    {ACNE_LABELS[cls]}
-                    <span className="text-muted-foreground tabular-nums">
-                      {n}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <dl className="grid grid-cols-3 gap-2 text-sm">
-                {ACNE_GROUPS.map((g) => (
-                  <div key={g.key} className="bg-muted/60 rounded-xl px-3 py-2">
-                    <dt className="text-muted-foreground text-xs">{g.label}</dt>
-                    <dd className="text-lg font-semibold tabular-nums">
-                      {g.types.reduce((sum, t) => sum + (counts[t] ?? 0), 0)}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-              <p className="text-foreground/80 border-t pt-3 text-xs leading-relaxed">
-                <span className="text-foreground font-semibold">คำแนะนำ: </span>
-                {ACNE_CARE_ADVICE[severity]}
-              </p>
+            <figcaption>
+              <HeroResult counts={counts} severity={severity} />
             </figcaption>
           </div>
         </figure>

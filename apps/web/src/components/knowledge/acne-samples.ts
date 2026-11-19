@@ -1,8 +1,10 @@
 // ภาพสิว 6 ชนิดจากชุดข้อมูล Acne14k (Roboflow, CC BY 4.0) — กรอบตาม label เดิมเก็บไว้ แต่หน้ารวมสิว 6 ชนิดแสดงภาพเปล่า
-// ภาพ hero มาจาก Roboflow "acne" v5 (CC BY 4.0) — ค่ากรอบเป็นร้อยละของขนาดภาพ
+// ภาพ hero เป็นภาพวาดประกอบ (ไม่ใช่คนจริง) — ค่ากรอบเป็นร้อยละของกรอบแสดงผล 4:3 (ภาพจัตุรัสถูกตัดบน-ล่างข้างละ 12.5%)
 
 export type SampleBox = {
   cls: string;
+  /** ตำแหน่งป้ายชื่อ — ค่าเริ่มต้นอยู่เหนือกรอบ ใช้ "left" เมื่อกรอบอยู่ชิดกันจนป้ายทับกัน */
+  labelSide?: "top" | "left";
   x: number;
   y: number;
   w: number;
@@ -156,14 +158,16 @@ export const ACNE_SAMPLES: Record<string, { src: string; boxes: SampleBox[] }> =
       ],
     },
     hero: {
-      src: "/landing/hero.jpg",
+      src: "/landing/hero.webp",
       boxes: [
-        { cls: "blackhead", x: 33.5, y: 54.5, w: 3.6, h: 2.7 },
-        { cls: "whitehead", x: 55.0, y: 59.0, w: 2.9, h: 2.7 },
-        { cls: "blackhead", x: 49.5, y: 61.8, w: 2.9, h: 3.8 },
-        { cls: "pustule", x: 66.4, y: 63.4, w: 2.4, h: 2.7 },
-        { cls: "papule", x: 56.2, y: 63.5, w: 3.6, h: 3.4 },
-        { cls: "papule", x: 48.2, y: 69.1, w: 4.5, h: 4.5 },
+        { cls: "blackhead", x: 33.4, y: 10.3, w: 3.0, h: 4.0 },
+        { cls: "cyst", x: 46.2, y: 14.8, w: 5.4, h: 7.2 },
+        { cls: "papule", x: 27.9, y: 48.5, w: 2.6, h: 3.5, labelSide: "left" },
+        { cls: "papule", x: 29.1, y: 54.1, w: 3.6, h: 4.8, labelSide: "left" },
+        { cls: "papule", x: 27.9, y: 60.9, w: 2.6, h: 3.5, labelSide: "left" },
+        { cls: "pustule", x: 69.7, y: 49.2, w: 4.1, h: 5.5 },
+        { cls: "nodule", x: 67.0, y: 64.1, w: 6.9, h: 9.2 },
+        { cls: "whitehead", x: 45.2, y: 88.5, w: 2.6, h: 3.5 },
       ],
     },
   };

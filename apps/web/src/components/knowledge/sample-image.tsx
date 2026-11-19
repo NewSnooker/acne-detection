@@ -2,7 +2,6 @@ import Image from "next/image";
 import { ACNE_COLORS, ACNE_LABELS } from "@/types/analyze";
 import { cn } from "@/lib/utils";
 import type { SampleBox } from "./acne-samples";
-import type { PrivacyBar } from "@/config/site";
 
 // ภาพตัวอย่างจากชุดข้อมูล พร้อมกรอบสีตามชนิดสิว (สีเดียวกับหน้าผลวิเคราะห์)
 export function SampleImage({
@@ -11,7 +10,6 @@ export function SampleImage({
   alt,
   showLabels = false,
   priority = false,
-  privacyBar,
   className,
 }: {
   src: string;
@@ -19,8 +17,6 @@ export function SampleImage({
   alt: string;
   showLabels?: boolean;
   priority?: boolean;
-  // แถบดำปิดตาเพื่อปกปิดตัวตนของเจ้าของภาพ
-  privacyBar?: PrivacyBar;
   className?: string;
 }) {
   return (
@@ -38,19 +34,6 @@ export function SampleImage({
         sizes="(min-width: 1024px) 40vw, 100vw"
         className="object-cover"
       />
-      {privacyBar && (
-        <div
-          aria-hidden="true"
-          className="absolute rounded-sm bg-black"
-          style={{
-            left: `${privacyBar.x}%`,
-            top: `${privacyBar.y}%`,
-            width: `${privacyBar.w}%`,
-            height: `${privacyBar.h}%`,
-            transform: `rotate(${privacyBar.rotate ?? 0}deg)`,
-          }}
-        />
-      )}
       {boxes.map((b, i) => (
         <div
           key={i}
@@ -67,7 +50,10 @@ export function SampleImage({
           {showLabels && (
             <span
               className={cn(
-                "absolute -top-5 left-[-2px] rounded-sm px-1 text-[10px] leading-4 font-medium whitespace-nowrap",
+                "absolute rounded-sm px-1 text-[10px] leading-4 font-medium whitespace-nowrap",
+                b.labelSide === "left"
+                  ? "top-1/2 right-[calc(100%+3px)] -translate-y-1/2"
+                  : "-top-5 left-[-2px]",
                 // สีอ่อนต้องใช้ตัวอักษรเข้มจึงจะอ่านออก
                 b.cls === "whitehead" || b.cls === "pustule"
                   ? "text-slate-900"
