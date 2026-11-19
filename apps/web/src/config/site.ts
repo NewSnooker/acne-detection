@@ -10,11 +10,10 @@ export const siteConfig = {
   keywords: ["สิว", "AI", "วิเคราะห์สิว", "acne detection", "YOLO"],
   // รูปเดียวใช้ทั้งโลโก้ในเว็บ favicon และรูปตอนแชร์ลิงก์ (วางไฟล์ไว้ใน public/)
   logo: "/brand/logo.svg",
-  // ภาพหลักของหน้าแรก — privacyBar คือแถบดำปิดตา (หน่วย % ของกรอบภาพ 4:3)
+  // ภาพหลักของหน้าแรก — ภาพวาดประกอบ (ไม่ใช่คนจริง) ภาพจัตุรัส
   hero: {
-    src: "/landing/hero.jpg",
+    src: "/landing/hero.webp",
     alt: "ตัวอย่างภาพใบหน้าพร้อมกรอบแยกชนิดสิว",
-    privacyBar: { x: 32, y: 37, w: 63, h: 15, rotate: -2 },
   },
   // วิดีโอเดโมใต้ภาพหลัก (วางไฟล์ไว้ใน public/landing/) — ใส่ null เพื่อซ่อนส่วนนี้
   // เช่น { mp4: "/landing/demo.mp4", webm: "/landing/demo.webm", poster: "/landing/demo-poster.jpg" }
@@ -25,12 +24,4 @@ export type DemoVideo = {
   mp4: string;
   webm?: string;
   poster: string;
-};
-
-export type PrivacyBar = {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  rotate?: number;
 };

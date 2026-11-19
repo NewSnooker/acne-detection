@@ -161,7 +161,7 @@ docker compose up -d
 | `tagline` | สโลแกนใต้ชื่อ |
 | `logo` | ไฟล์รูปใน `apps/web/public/` ใช้เป็นโลโก้ favicon และรูปตอนแชร์ลิงก์ (รูปเดียวกัน) |
 | `demoVideo` | วิดีโอเดโมใต้ภาพหลัก วางไฟล์ไว้ใน `apps/web/public/landing/` แล้วใส่ที่อยู่ไฟล์ `mp4` (และ `webm` ถ้ามี) กับภาพปก `poster` ถ้าเป็น `null` ส่วนนี้จะซ่อน |
-| `hero` | ภาพหลักหน้าแรก และตำแหน่งแถบดำปิดตา (`privacyBar` หน่วย % ของกรอบภาพ) ถ้าเปลี่ยนรูป ต้องแก้กรอบสิวตัวอย่างใน `components/knowledge/acne-samples.ts` ให้ตรงด้วย |
+| `hero` | ภาพหลักหน้าแรก (ภาพวาดประกอบ แสดงในกรอบ 4:3) ถ้าเปลี่ยนรูป ต้องแก้กรอบสิวตัวอย่างใน `components/knowledge/acne-samples.ts` ให้ตรงด้วย (หน่วย % ของกรอบ 4:3) |
 
 ธีมสีอยู่ใน `apps/web/src/app/globals.css` (`--brand-*` และ `[data-palette]`) รายชื่อธีมอยู่ใน `apps/web/src/lib/theme/palettes.ts`
 
